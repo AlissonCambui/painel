@@ -184,7 +184,7 @@
         </div>
     </div>
 
-    <!-- Modal Ocorrências -->
+    <!-- Modal Ocorrências - CORRIGIDO AÇÃO DE EXCLUIR E SALVAR -->
     <div id="ocorrencia-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col">
             <h2 class="text-2xl font-bold mb-4">Registrar Ocorrências</h2>
@@ -229,7 +229,21 @@
     </div>
 
     <!-- Modais Secundários -->
-    <div id="bulk-add-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg"><h2 class="text-2xl font-bold mb-4">Importar Planilha</h2><form id="bulk-add-form"><textarea id="bulk-input-area" rows="10" class="w-full border border-slate-300 rounded-md p-2 mb-4" placeholder="Cole com cabeçalho..."></textarea><div class="flex justify-end gap-2"><button type="button" id="bulk-cancel-btn" class="bg-slate-200 px-4 py-2 rounded">Cancelar</button><button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded">Importar</button></div></form></div></div>
+    <div id="bulk-add-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg">
+            <h2 class="text-2xl font-bold mb-4">Importar Planilha</h2>
+            <p class="text-sm text-slate-600 mb-4">Cole os dados do Excel. A ordem esperada das colunas é:<br>
+            <strong>Semana | Data | Unidade | OC | Colaborador | Status</strong></p>
+            <form id="bulk-add-form">
+                <textarea id="bulk-input-area" rows="10" class="w-full border border-slate-300 rounded-md p-2 mb-4 text-xs font-mono" placeholder="Cole aqui (ex: Semana 47	16/11/2025	ALPHAVIEW	8	Joao Silva	Finalizado)"></textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="bulk-cancel-btn" class="bg-slate-200 px-4 py-2 rounded text-sm font-semibold hover:bg-slate-300">Cancelar</button>
+                    <button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-orange-700">Processar e Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="restore-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm text-center"><h2 class="text-xl font-bold text-red-600 mb-2">Atenção!</h2><p class="text-slate-600">Substituir dados atuais?</p><div class="mt-4 flex justify-center gap-4"><button id="restore-confirm-cancel-btn" class="bg-slate-200 px-4 py-2 rounded">Cancelar</button><button id="restore-confirm-proceed-btn" class="bg-red-600 text-white px-4 py-2 rounded">Sim</button></div></div></div>
     <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm text-center"><p id="notification-message" class="mb-4 text-lg text-slate-700"></p><button id="notification-close-btn" class="bg-orange-600 text-white px-6 py-2 rounded">OK</button></div></div>
     
@@ -364,7 +378,7 @@
             // Variáveis Chart.js
             let ocorrenciasChart, annualMonthlyChart, pdvTrendChart, periodChart, periodCategoryChart;
 
-            // --- FUNÇÕES DE UTILIDADE E HANDLERS (MOVEMOS OS HANDLERS PARA CÁ) ---
+            // --- FUNÇÕES DE UTILIDADE E HANDLERS ---
 
             const saveTasks = () => {
                 localStorage.setItem('monitoramentoTasks', JSON.stringify(tasks));
@@ -376,6 +390,17 @@
                 document.getElementById('notification-modal').classList.remove('hidden');
             };
 
+            // Sanitização de HTML para evitar XSS (Segurança)
+            const escapeHtml = (unsafe) => {
+                if (typeof unsafe !== 'string') return unsafe;
+                return unsafe
+                     .replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+            };
+
             const formatDate = (dateString) => {
                 if (!dateString) return 'N/A';
                 const date = new Date(dateString + 'T00:00:00');
@@ -384,13 +409,6 @@
             };
             
             const formatDateForInput = (date) => date.toISOString().split('T')[0];
-
-            const getWeekNumber = (d) => {
-                d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-                var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-                return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-            };
 
             const populateCategorySelect = (selectElement, selectedValue = '') => {
                 selectElement.innerHTML = '';
@@ -403,15 +421,31 @@
                 });
             };
 
+            // Função Melhorada: Renderiza item com botão de Excluir no Modal
             const renderOcorrenciaItemInModal = (ocor, container) => {
                 const itemDiv = document.createElement('div');
-                itemDiv.className = 'ocorrencia-item p-3 bg-slate-100 rounded-md';
-                itemDiv.innerHTML = `<p class="font-semibold text-slate-800">${ocor.categoria}: ${ocor.desc}</p><p class="text-sm text-slate-500">Horário: ${ocor.horarioInicial} - ${ocor.horarioFinal}</p>`;
+                // Adicionamos a classe 'occ-data-item' para identificar que isso é um dado válido para salvar
+                itemDiv.className = 'occ-data-item p-3 bg-slate-100 rounded-md flex justify-between items-center mb-2 border border-slate-200';
+                
+                // Armazenamos os dados no dataset para recuperar ao salvar
+                itemDiv.dataset.json = JSON.stringify(ocor);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.innerHTML = `<p class="font-semibold text-slate-800">${escapeHtml(ocor.categoria)}: ${escapeHtml(ocor.desc)}</p><p class="text-xs text-slate-500">Horário: ${escapeHtml(ocor.horarioInicial)} - ${escapeHtml(ocor.horarioFinal)}</p>`;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '&times;';
+                deleteBtn.className = 'ml-2 text-red-500 hover:text-red-700 font-bold text-xl px-2';
+                deleteBtn.title = 'Remover ocorrência';
+                deleteBtn.onclick = function() {
+                    itemDiv.remove(); // Remove visualmente, o "Salvar" vai ler apenas o que sobrou
+                };
+
+                itemDiv.appendChild(contentDiv);
+                itemDiv.appendChild(deleteBtn);
                 container.appendChild(itemDiv);
             };
             
-            // --- HANDLERS MOVIDOS PARA O INÍCIO (CORREÇÃO DO ERRO) ---
-
             function handleTaskSubmit(e) {
                 e.preventDefault();
                 const formCondominioInput = document.getElementById('form-condominio');
@@ -433,10 +467,142 @@
                 showNotification('Nova análise adicionada.');
             };
 
+            // --- HANDLER DE IMPORTAÇÃO EM MASSA (COM CORREÇÃO DE DUPLICIDADE) ---
+            function handleBulkAddSubmit(e) {
+                e.preventDefault();
+                const inputArea = document.getElementById('bulk-input-area').value.trim();
+                if (!inputArea) {
+                    showNotification('Cole os dados da planilha na área de texto.');
+                    return;
+                }
+
+                const lines = inputArea.split('\n').filter(line => line.trim().length > 0);
+                const newTasks = [];
+                let ignoredCount = 0;
+                let duplicateCount = 0;
+
+                // Regex aprimorada para capturar data mesmo com 1 dígito (ex: 1/11/2025)
+                const fallbackRegex = /^(Semana\s+\d+)\s+([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4})\s+(.+?)\s*(\d*)\s*([A-Za-z\s]+?)\s*(Finalizado|Pendente|Sem gravação.*)?$/i;
+
+                lines.forEach((line, index) => {
+                    let parts = line.split('\t');
+
+                    if (parts.length < 3) {
+                        const match = line.match(fallbackRegex);
+                        if (match) {
+                            parts = [match[1], match[2], match[3], match[4], match[5], match[6]];
+                        } else {
+                             parts = line.split(/\s{2,}/);
+                        }
+                    }
+
+                    if (parts[0] && parts[0].toLowerCase().includes('semana') && parts[1] && parts[1].toLowerCase().includes('dia')) {
+                        return; 
+                    }
+
+                    if (parts.length < 3) {
+                        ignoredCount++;
+                        return;
+                    }
+
+                    const semanaRaw = parts[0] || '';
+                    const dataRaw = parts[1] || '';
+                    const unidadeRaw = parts[2] ? parts[2].trim() : '';
+                    const ocRaw = parts[3] || '';
+                    const colaboradorRaw = parts[4] || '';
+                    const statusRaw = parts[5] || 'Pendente';
+
+                    // Tratamento de Data Robusto
+                    let isoDate = '';
+                    if (dataRaw.includes('/')) {
+                        const dateParts = dataRaw.split('/');
+                        let d = dateParts[0];
+                        let m = dateParts[1];
+                        const y = dateParts[2];
+                        
+                        // Adiciona zero à esquerda se necessário
+                        if (d.length === 1) d = '0' + d;
+                        if (m.length === 1) m = '0' + m;
+                        
+                        if(d && m && y) isoDate = `${y}-${m}-${d}`;
+                    } else {
+                        isoDate = new Date().toISOString().split('T')[0];
+                    }
+
+                    // VERIFICAÇÃO DE DUPLICIDADE (CRÍTICO)
+                    // Verifica se já existe uma tarefa para este condomínio nesta data exata
+                    const jaExiste = tasks.some(t => 
+                        t.condominio.toLowerCase() === unidadeRaw.toLowerCase() && 
+                        t.dataAnalise === isoDate
+                    );
+
+                    if (jaExiste) {
+                        duplicateCount++;
+                        return; // Pula esta linha
+                    }
+
+                    const semanaMatch = semanaRaw.match(/\d+/);
+                    const semanaNum = semanaMatch ? parseInt(semanaMatch[0]) : 0;
+
+                    let stAnalise = 'Pendente';
+                    let stBackup = 'Pendente';
+                    let hasOcorrencia = 'Não'; 
+                    
+                    const stLower = statusRaw.toLowerCase().trim();
+
+                    if (stLower.includes('finalizado')) {
+                        stAnalise = 'Concluída';
+                        stBackup = 'Concluído';
+                    } else if (stLower.includes('sem gravação') || stLower.includes('sem imagem')) {
+                        stBackup = 'Pendente'; 
+                        stAnalise = 'Pendente'; 
+                    }
+
+                    let ocorrenciasList = [];
+                    if (ocRaw && ocRaw.trim().length > 0 && parseInt(ocRaw) > 0) {
+                        hasOcorrencia = 'Sim';
+                        ocorrenciasList.push({
+                            categoria: 'Importado (Planilha)',
+                            desc: `OC Nº ${ocRaw} - Colaborador: ${colaboradorRaw}`,
+                            horarioInicial: '00:00',
+                            horarioFinal: '00:00'
+                        });
+                    }
+
+                    newTasks.push({
+                        id: Date.now() + index + Math.floor(Math.random() * 1000), // ID único reforçado
+                        condominio: unidadeRaw,
+                        dataAnalise: isoDate,
+                        semanaDeTrabalho: semanaNum,
+                        observacoes: `Importado via Planilha.\nColaborador: ${colaboradorRaw}\nStatus Original: ${statusRaw}`,
+                        statusBackup: stBackup,
+                        statusAnalise: stAnalise,
+                        ocorrencia: hasOcorrencia,
+                        isExpanded: true,
+                        ocorrencias: ocorrenciasList
+                    });
+                });
+
+                if (newTasks.length > 0) {
+                    tasks.unshift(...newTasks);
+                    refreshUI();
+                    document.getElementById('bulk-add-modal').classList.add('hidden');
+                    document.getElementById('bulk-input-area').value = '';
+                    let msg = `${newTasks.length} importados.`;
+                    if (duplicateCount > 0) msg += ` (${duplicateCount} duplicatas ignoradas)`;
+                    if (ignoredCount > 0) msg += ` (${ignoredCount} linhas inválidas)`;
+                    showNotification(msg);
+                } else {
+                    let msg = 'Nenhum dado novo importado.';
+                    if (duplicateCount > 0) msg = `Todas as ${duplicateCount} linhas eram duplicadas e foram ignoradas.`;
+                    showNotification(msg);
+                }
+            }
+
             function calculatePeriodData(startDate, endDate) {
                 const start = new Date(startDate + 'T00:00:00').getTime();
                 const end = new Date(endDate + 'T00:00:00');
-                end.setDate(end.getDate() + 1); // Incluir o dia final
+                end.setDate(end.getDate() + 1);
                 const endTimestamp = end.getTime();
                 
                 const filtered = tasks.filter(t => {
@@ -445,12 +611,10 @@
                     return date >= start && date < endTimestamp;
                 });
                 
-                // 1. Métricas de Resumo
                 const uniqueDates = new Set(filtered.map(t => t.dataAnalise)).size;
                 const uniqueCondos = new Set(filtered.map(t => t.condominio)).size;
                 const totalOccurrences = filtered.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
                 
-                // 2. Gráfico por Condomínio
                 const condoCounts = filtered.reduce((acc, t) => {
                     const count = t.ocorrencias ? t.ocorrencias.length : 0;
                     if (count > 0) {
@@ -461,7 +625,6 @@
                 const condoLabels = Object.keys(condoCounts);
                 const condoData = Object.values(condoCounts);
 
-                // 3. Gráfico por Categoria (Simulado com dados fixos se não houver lógica real)
                 const categoryCounts = categories.reduce((acc, cat) => ({...acc, [cat]: Math.floor(Math.random() * 10)}), {});
                 const categoryLabels = Object.keys(categoryCounts);
                 const categoryData = Object.values(categoryCounts);
@@ -482,25 +645,21 @@
                 const resultsContent = document.getElementById('period-results-content');
                 resultsContent.classList.remove('hidden');
 
-                // 1. Preencher Resumo
                 document.getElementById('period-dias').textContent = reportData.uniqueDates;
                 document.getElementById('period-pdv').textContent = reportData.uniqueCondos;
                 document.getElementById('period-oc').textContent = reportData.totalOccurrences;
 
-                // 2. Atualizar Gráfico de Condomínio
                 periodChart.data.labels = reportData.condoLabels;
                 periodChart.data.datasets[0].data = reportData.condoData;
                 periodChart.update();
 
-                // 3. Atualizar Gráfico de Categoria
                 periodCategoryChart.data.labels = reportData.categoryLabels;
                 periodCategoryChart.data.datasets[0].data = reportData.categoryData;
                 periodCategoryChart.update();
                 
-                // 4. Preencher Lista de Tarefas
                 const taskListEl = document.getElementById('period-task-list');
                 taskListEl.innerHTML = reportData.taskList.map(t => 
-                    `<li class="text-sm">${formatDate(t.dataAnalise)} - <strong>${t.condominio}</strong> (OCs: ${t.ocorrencias ? t.ocorrencias.length : 0})</li>`
+                    `<li class="text-sm">${formatDate(t.dataAnalise)} - <strong>${escapeHtml(t.condominio)}</strong> (OCs: ${t.ocorrencias ? t.ocorrencias.length : 0})</li>`
                 ).join('');
                 
                 if (reportData.taskList.length === 0) {
@@ -521,43 +680,48 @@
                 renderPeriodReport(reportData);
             };
 
-            // Helper para calcular datas de botões de período
             function calculateDateRange(period) {
                 const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const endDate = new Date(today);
-                let startDate = new Date(today);
+                const baseDate = new Date(today);
+                baseDate.setHours(0, 0, 0, 0);
+
+                let startDate = new Date(baseDate);
+                let endDate = new Date(baseDate);
+
+                const currentDay = baseDate.getDay(); 
 
                 switch (period) {
-                    case 'today':
-                        break;
+                    case 'today': break;
                     case 'yesterday':
-                        startDate.setDate(today.getDate() - 1);
-                        endDate.setDate(today.getDate() - 1);
+                        startDate.setDate(baseDate.getDate() - 1);
+                        endDate.setDate(baseDate.getDate() - 1);
                         break;
                     case 'this-week':
-                        startDate.setDate(today.getDate() - today.getDay() + 1); 
+                        const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+                        startDate.setDate(baseDate.getDate() + diffToMonday); 
+                        endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + 4); 
+                        if (endDate.getTime() > baseDate.getTime()) endDate = baseDate;
                         break;
                     case 'last-week':
-                        startDate.setDate(today.getDate() - today.getDay() - 6);
-                        endDate.setDate(today.getDate() - today.getDay());
+                        const diffToLastMonday = currentDay === 0 ? -13 : 1 - currentDay - 7;
+                        startDate.setDate(baseDate.getDate() + diffToLastMonday); 
+                        endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + 6);
                         break;
                     case 'this-month':
                         startDate.setDate(1);
+                        endDate = baseDate;
                         break;
                     case 'last-month':
-                        startDate.setMonth(today.getMonth() - 1, 1);
+                        startDate.setMonth(baseDate.getMonth() - 1, 1);
                         endDate.setDate(1);
-                        endDate.setDate(endDate.getDate() - 1); 
+                        endDate.setDate(endDate.getDate() - 1);
                         break;
-                    default:
-                        return null;
+                    default: return null;
                 }
                 
-                return {
-                    start: formatDateForInput(startDate),
-                    end: formatDateForInput(endDate)
-                };
+                return { start: formatDateForInput(startDate), end: formatDateForInput(endDate) };
             };
             
             function handlePeriodButton(e) {
@@ -569,8 +733,6 @@
                     handleGenerateReport();
                  }
             };
-            
-            // --- FIM DOS HANDLERS MOVIDOS ---
 
             // --- UPDATE UI & CHARTS ---
 
@@ -581,7 +743,6 @@
                 document.getElementById('backups-pendentes').textContent = filteredTasks.filter(t => t.statusBackup === 'Pendente').length;
                 document.getElementById('analises-pendentes').textContent = filteredTasks.filter(t => t.statusAnalise === 'Pendente').length;
                 
-                // Lógica simplificada para semana atual
                 const completedThisWeek = filteredTasks.filter(t => t.statusAnalise === 'Concluída');
                 const totalOccurrencesWeek = completedThisWeek.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
                 document.getElementById('total-ocorrencias-semana').textContent = totalOccurrencesWeek;
@@ -671,14 +832,14 @@
                     if (task.ocorrencias && task.ocorrencias.length > 0) {
                         ocorrenciaDetailsHTML += `<div class="mt-4 border-t pt-2 space-y-2">`;
                         task.ocorrencias.forEach(ocor => {
-                            ocorrenciaDetailsHTML += `<div class="bg-red-100 p-2 rounded text-sm"><p class="font-bold text-red-600">${ocor.categoria}</p><p>${ocor.desc}</p></div>`;
+                            ocorrenciaDetailsHTML += `<div class="bg-red-100 p-2 rounded text-sm"><p class="font-bold text-red-600">${escapeHtml(ocor.categoria)}</p><p>${escapeHtml(ocor.desc)}</p></div>`;
                         });
                         ocorrenciaDetailsHTML += `</div>`;
                     }
 
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-lg flex-1">${task.condominio}</h3>
+                            <h3 class="font-bold text-lg flex-1">${escapeHtml(task.condominio)}</h3>
                             <div class="flex items-center gap-2">
                                 <button data-id="${task.id}" class="archive-single-btn text-slate-400 hover:text-orange-600 font-bold text-lg" title="Arquivar">&#128450;</button>
                                 <button data-id="${task.id}" class="delete-task-btn text-slate-400 hover:text-red-600 font-bold text-lg" title="Excluir">&times;</button>
@@ -727,6 +888,9 @@
             });
             document.getElementById('cancel-btn').addEventListener('click', () => document.getElementById('task-modal').classList.add('hidden'));
             document.getElementById('task-form').addEventListener('submit', handleTaskSubmit);
+            
+            // Modal Importar (Novo Listener)
+            document.getElementById('bulk-add-form').addEventListener('submit', handleBulkAddSubmit);
 
             // Menu Ações
             const actionsMenu = document.getElementById('actions-menu');
@@ -740,7 +904,7 @@
                 }
             });
 
-            // Botões do Menu de Ações (para abrir os modais correspondentes)
+            // Botões do Menu de Ações
             const menuMap = {
                 'bulk-add-btn': 'bulk-add-modal',
                 'category-btn': 'category-modal',
@@ -783,12 +947,11 @@
                 });
             });
 
-            // Adicionado Listeners para o Modal Análise por Período
+            // Listeners de Relatório
             document.getElementById('generate-report-btn').addEventListener('click', handleGenerateReport);
             document.querySelectorAll('.period-btn').forEach(button => {
                 button.addEventListener('click', handlePeriodButton);
             });
-
 
             // Ação Ver Arquivos
             document.getElementById('view-archive-btn').addEventListener('click', () => {
@@ -796,7 +959,7 @@
                 document.getElementById('view-archive-modal').classList.remove('hidden');
                 const archiveContainer = document.getElementById('view-archive-list-container');
                 archiveContainer.innerHTML = archivedTasks.length 
-                    ? archivedTasks.map(t => `<div class="p-2 border-b">${t.condominio} - ${t.dataAnalise}</div>`).join('')
+                    ? archivedTasks.map(t => `<div class="p-2 border-b">${escapeHtml(t.condominio)} - ${t.dataAnalise}</div>`).join('')
                     : '<p class="text-center text-slate-500">Vazio</p>';
             });
 
@@ -854,7 +1017,7 @@
                 }
             });
 
-            // Modal Ocorrências - Adicionar Item na Lista Temporária
+            // Modal Ocorrências - Adicionar Item
             document.getElementById('add-ocorrencia-btn').addEventListener('click', () => {
                 const desc = document.getElementById('add-ocorrencia-desc').value;
                 const cat = document.getElementById('add-ocorrencia-categoria').value;
@@ -862,31 +1025,29 @@
                 const fim = document.getElementById('add-horario-final').value;
                 
                 if (desc) {
-                    const item = document.createElement('div');
-                    item.className = 'p-2 bg-orange-50 border border-orange-200 rounded mb-2 new-occ-item';
-                    item.dataset.json = JSON.stringify({ categoria: cat, desc: desc, horarioInicial: ini, horarioFinal: fim });
-                    item.innerHTML = `<strong>${cat}</strong>: ${desc} <span class="text-xs">(${ini} - ${fim})</span>`;
-                    document.getElementById('ocorrencia-list').appendChild(item);
+                    // Renderiza usando a função padrão que já inclui o botão de remover e classes corretas
+                    const newItem = { categoria: cat, desc: desc, horarioInicial: ini, horarioFinal: fim };
+                    renderOcorrenciaItemInModal(newItem, document.getElementById('ocorrencia-list'));
                     
-                    // Limpar campos
                     document.getElementById('add-ocorrencia-desc').value = '';
                     document.getElementById('add-horario-inicial').value = '';
                     document.getElementById('add-horario-final').value = '';
                 }
             });
 
-            // Modal Ocorrências - Salvar Tudo
+            // Modal Ocorrências - Salvar Tudo (CORRIGIDO PARA PERMITIR EXCLUSÃO)
             document.getElementById('ocorrencia-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const taskId = document.getElementById('ocorrencia-task-id').value;
                 const task = tasks.find(t => t.id == taskId);
                 if (task) {
-                    // Recupera itens novos da lista visual
-                    const newItems = Array.from(document.querySelectorAll('.new-occ-item')).map(el => JSON.parse(el.dataset.json));
-                    // Mantém os antigos se não foram apagados (lógica simplificada: aqui estamos adicionando)
-                    if (!task.ocorrencias) task.ocorrencias = [];
-                    task.ocorrencias.push(...newItems);
+                    // Agora coletamos TUDO que está visível na lista (novos e antigos que não foram deletados)
+                    const visibleItems = Array.from(document.querySelectorAll('.occ-data-item')).map(el => JSON.parse(el.dataset.json));
+                    
+                    // Substituímos o array antigo pelo novo estado da lista visual
+                    task.ocorrencias = visibleItems;
                     task.ocorrencia = task.ocorrencias.length > 0 ? 'Sim' : 'Não';
+                    
                     refreshUI();
                     document.getElementById('ocorrencia-modal').classList.add('hidden');
                 }
