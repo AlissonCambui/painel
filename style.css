@@ -1,0 +1,25 @@
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 300px;
+    max-height: 400px;
+}
+@media (min-width: 768px) {
+    .chart-container {
+        height: 350px;
+    }
+}
+.details-content.hidden {
+    display: none;
+}
+.toggle-details-btn svg {
+    transition: transform 0.2s ease-in-out;
+}
+.toggle-details-btn.collapsed svg {
+    transform: rotate(180deg);
+}
+.ocorrencia-item.editing .view-mode { display: none; }
+.ocorrencia-item:not(.editing) .edit-mode { display: none; }
