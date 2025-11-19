@@ -607,7 +607,7 @@
                     let ocorrenciasList = [];
                     if (ocRaw && ocRaw.trim().length > 0 && parseInt(ocRaw) > 0) {
                         hasOcorrencia = 'Sim';
-                        // A descrição limpa será exibida apenas no modal/detalhes
+                        // A descrição completa (OC e Colaborador) é mantida apenas na lista de Ocorrências.
                         ocorrenciasList.push({
                             categoria: 'Importado (Planilha)',
                             desc: `OC Nº ${ocRaw} - Colaborador: ${colaboradorRaw}`,
@@ -621,7 +621,7 @@
                         condominio: unidadeRaw.trim(),
                         dataAnalise: isoDate,
                         semanaDeTrabalho: semanaNum,
-                        // Removida informação detalhada das observações para manter o campo limpo, a menos que o usuário o edite manualmente.
+                        // Observações vazias por padrão para não aparecerem no card se não forem preenchidas manualmente.
                         observacoes: '', 
                         statusBackup: stBackup,
                         statusAnalise: stAnalise,
@@ -690,7 +690,7 @@
                     task.condominio.toLowerCase().includes(filtroCond)
                 );
                 
-                // FIX 2: Aplicação dos filtros de status
+                // Aplicação dos filtros de status
                 if (filtroBackup) {
                     filteredTasks = filteredTasks.filter(task => task.statusBackup === filtroBackup);
                 }
@@ -731,19 +731,38 @@
                     if (task.ocorrencias && task.ocorrencias.length > 0) {
                         ocorrenciaDetailsHTML += `<div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700">`;
                         task.ocorrencias.forEach(ocor => {
-                            let mainDesc = ocor.desc;
-
-                            // Verifica se é uma ocorrência importada para formatar o display.
-                            if (ocor.categoria === 'Importado (Planilha)' && ocor.desc.includes('OC Nº')) {
-                                // Remove a descrição detalhada do colaborador/OC da linha principal do card (que já está no badge)
-                                mainDesc = ocor.desc.split(' - ')[0]; 
-                            }
-                            
-                            // Adicionando a descrição completa (incluindo colaborador/OC) dentro do detalhe da ocorrência
-                            ocorrenciaDetailsHTML += `<div class="bg-red-100 p-2 rounded-lg text-sm dark:bg-red-900 dark:text-red-100"><p class="font-bold text-red-600 dark:text-red-300">${ocor.categoria}</p><p>${ocor.desc}</p></div>`;
+                            // Este é o bloco de observação que aparece no card expandido.
+                            // Ele será exibido apenas se houverem OCORRÊNCIAS REGISTRADAS, e não as observações gerais.
+                            // O bloco de OC/Colaborador é exibido aqui, pois é onde o usuário deve encontrá-lo,
+                            // replicando a imagem de referência (bloco vermelho dentro do card).
+                             if (ocor.categoria === 'Importado (Planilha)') {
+                                ocorrenciaDetailsHTML += `
+                                <div class="bg-red-800 p-3 rounded-lg text-sm text-red-100 dark:bg-red-900 dark:text-red-100">
+                                    <p class="font-bold">Importado (Planilha)</p>
+                                    <p class="mt-1">${ocor.desc}</p>
+                                </div>`;
+                             } else {
+                                ocorrenciaDetailsHTML += `
+                                <div class="bg-red-100 p-2 rounded-lg text-sm dark:bg-red-900 dark:text-red-100">
+                                    <p class="font-bold text-red-600 dark:text-red-300">${ocor.categoria}</p>
+                                    <p>${ocor.desc}</p>
+                                </div>`;
+                             }
                         });
                         ocorrenciaDetailsHTML += `</div>`;
                     }
+                    
+                    // Adicionando a Observação Geral (Observacoes)
+                    let observacaoGeralHTML = '';
+                    if (task.observacoes && task.observacoes.trim().length > 0) {
+                        observacaoGeralHTML = `
+                            <div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700">
+                                <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Obs. Geral:</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">${task.observacoes}</p>
+                            </div>
+                        `;
+                    }
+
 
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
@@ -767,6 +786,7 @@
                                 <div class="flex justify-between items-center text-sm mb-1"><span class="font-semibold text-slate-600 dark:text-slate-300">Backup:</span> <select data-id="${task.id}" data-type="backup" class="status-select border-none text-right font-semibold text-sm rounded-lg p-1 ${statusClasses[task.statusBackup]}"><option value="Pendente" ${task.statusBackup === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Andamento" ${task.statusBackup === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option><option value="Concluído" ${task.statusBackup === 'Concluído' ? 'selected' : ''}>Concluído</option></select></div>
                                 <div class="flex justify-between items-center text-sm"><span class="font-semibold text-slate-600 dark:text-slate-300">Análise:</span> <select data-id="${task.id}" data-type="analise" class="status-select border-none text-right font-semibold text-sm rounded-lg p-1 ${statusClasses[task.statusAnalise]}"><option value="Pendente" ${task.statusAnalise === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Análise" ${task.statusAnalise === 'Em Análise' ? 'selected' : ''}>Em Análise</option><option value="Concluída" ${task.statusAnalise === 'Concluída' ? 'selected' : ''}>Concluída</option></select></div>
                             </div>
+                            ${observacaoGeralHTML} <!-- Adicionado observação geral -->
                             ${ocorrenciaDetailsHTML}
                             ${detailsButtonHTML}
                         </div>
@@ -787,8 +807,8 @@
 
             // Filtros (Adicionado listener de change para filtros de status)
             document.getElementById('filtro-condominio').addEventListener('input', refreshUI);
-            document.getElementById('filtro-backup').addEventListener('change', refreshUI); // FIX 2
-            document.getElementById('filtro-analise').addEventListener('change', refreshUI); // FIX 2
+            document.getElementById('filtro-backup').addEventListener('change', refreshUI); 
+            document.getElementById('filtro-analise').addEventListener('change', refreshUI); 
             
             document.getElementById('expand-all-btn').addEventListener('click', () => { tasks.forEach(t => t.isExpanded = true); refreshUI(); });
             document.getElementById('collapse-all-btn').addEventListener('click', () => { tasks.forEach(t => t.isExpanded = false); refreshUI(); });
