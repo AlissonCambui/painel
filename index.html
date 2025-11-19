@@ -11,6 +11,16 @@
         #resource-error-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; text-align: center; }
         .error-content { background: #1e293b; padding: 2rem; border-radius: 8px; border: 1px solid #ef4444; max-width: 400px; margin: 1rem; }
         .error-btn { background: #ea580c; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; margin-top: 1rem; font-weight: bold; }
+        
+        /* Classe de Privacidade LGPD */
+        .privacy-active .sensitive-data {
+            filter: blur(6px);
+            transition: filter 0.3s ease;
+            user-select: none;
+        }
+        .privacy-active .sensitive-data:hover {
+            filter: blur(0); /* Permite espiar ao passar o mouse */
+        }
     </style>
 
     <!-- Scripts -->
@@ -59,12 +69,21 @@
 
     <div class="container mx-auto p-4 md:p-6 lg:p-8">
         
-        <header class="mb-8 text-center">
-            <div class="text-4xl font-extrabold mb-2 tracking-tight" style="font-family: 'Arial Black', Arial, sans-serif;">
-                <span style="color: #f97316;">vend</span><span style="color: #fbbf24;">Perto</span>
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <div class="text-4xl font-extrabold mb-2 tracking-tight" style="font-family: 'Arial Black', Arial, sans-serif;">
+                    <span style="color: #f97316;">vend</span><span style="color: #fbbf24;">Perto</span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white">Painel de Monitoramento</h1>
+                <p class="text-slate-400 mt-2">Controle seguro e local de produtividade.</p>
             </div>
-            <h1 class="text-3xl md:text-4xl font-bold text-white">Painel de Monitoramento</h1>
-            <p class="text-slate-400 mt-2">Controle de produtividade e ocorrências.</p>
+            
+            <!-- Controles de Privacidade -->
+            <div class="flex gap-3">
+                <button id="privacy-toggle-btn" class="flex items-center gap-2 bg-slate-800 border border-slate-600 text-slate-300 px-4 py-2 rounded hover:bg-slate-700 transition-colors" title="Ocultar dados sensíveis (LGPD)">
+                    <span id="privacy-icon">👁️</span> <span class="text-sm font-bold">Privacidade</span>
+                </button>
+            </div>
         </header>
 
         <section id="dashboard-resumo" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
@@ -81,18 +100,9 @@
                 <p id="analises-concluidas" class="text-3xl font-bold text-emerald-400 mt-1">0</p>
                 <span class="absolute top-2 right-2 text-xs text-slate-500" title="Considera a data real de conclusão">📅</span>
             </div>
-            <!-- Card Alterado para mostrar apenas Ocorrências da Semana -->
             <div class="bg-slate-800 p-4 rounded-lg shadow-lg text-center border border-slate-700">
                 <h3 class="text-sm font-semibold text-slate-400">Ocorrências (Semana Atual)</h3>
                 <p id="total-ocorrencias-semana" class="text-3xl font-bold text-slate-200 mt-1">0</p>
-            </div>
-        </section>
-
-        <section id="weekly-productivity" class="mb-8">
-             <div class="bg-slate-800 p-4 rounded-lg shadow-lg text-center max-w-sm mx-auto border border-slate-700">
-                <h3 class="text-sm font-semibold text-slate-400">Produtividade Semanal (Ocorrências / Análise)</h3>
-                <p id="produtividade-semanal" class="text-3xl font-bold text-emerald-400 mt-1">N/A</p>
-                <p class="text-xs text-slate-500 mt-1">Média da semana atual</p>
             </div>
         </section>
 
@@ -128,7 +138,7 @@
                                 <button id="bulk-add-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Importar Planilha</button>
                                 <button id="rename-condo-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Renomear</button>
                                 <button id="archive-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Arquivar (Manual)</button>
-                                <button id="restore-btn" class="w-full text-left text-slate-500 font-bold block px-4 py-2 text-sm hover:bg-slate-700">Restaurar Backup</button>
+                                <button id="restore-btn" class="w-full text-left text-slate-500 font-bold block px-4 py-2 text-sm hover:bg-slate-700">Restaurar Backup (Importar JSON)</button>
                             </div>
                         </div>
                     </div>
@@ -150,7 +160,7 @@
         </section>
     </div>
 
-    <!-- MODAIS (Estrutura Simplificada para Dark Mode) -->
+    <!-- MODAIS -->
     <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm">
         <div class="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-lg border border-slate-700">
             <h2 class="text-2xl font-bold mb-4 text-white">Nova Análise</h2>
@@ -209,11 +219,13 @@
     <!-- Modais de Serviço -->
     <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-slate-800 p-6 rounded-lg border border-slate-700 text-center"><p id="notification-message" class="mb-4 text-white"></p><button id="notification-close-btn" class="bg-orange-600 text-white px-6 py-2 rounded">OK</button></div></div>
     <div id="restore-confirm-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center"><div class="bg-slate-800 p-6 rounded border border-slate-700"><h2 class="text-red-500 font-bold mb-2">Atenção</h2><p class="text-white">Substituir dados?</p><div class="mt-4 flex gap-2 justify-center"><button id="restore-confirm-cancel-btn" class="bg-slate-600 text-white px-4 py-2 rounded">Não</button><button id="restore-confirm-proceed-btn" class="bg-red-600 text-white px-4 py-2 rounded">Sim</button></div></div></div>
+    
+    <!-- Modal Arquivo -->
     <div id="archive-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center"><div class="bg-slate-800 p-6 rounded border border-slate-700 w-96"><h2 class="text-white font-bold mb-4">Arquivar</h2><button id="view-archive-btn" class="w-full bg-slate-600 text-white py-2 rounded mb-2">Ver Arquivo</button><button id="archive-cancel-btn" class="w-full border border-slate-600 text-white py-2 rounded">Cancelar</button></div></div>
     <div id="view-archive-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center"><div class="bg-slate-800 p-6 rounded border border-slate-700 w-full max-w-2xl h-4/5 flex flex-col"><div class="flex justify-between mb-4"><h2 class="text-white font-bold">Arquivo</h2><button id="view-archive-close-btn" class="text-white">&times;</button></div><input id="archive-search-input" class="bg-slate-700 border-slate-600 text-white p-2 rounded mb-2" placeholder="Buscar..."><div id="view-archive-list-container" class="flex-grow overflow-y-auto bg-slate-900 p-2"></div><button id="view-archive-close-footer-btn" class="mt-4 bg-slate-600 text-white py-2 rounded">Fechar</button></div></div>
     <div id="rename-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center"><div class="bg-slate-800 p-6 rounded border border-slate-700 w-96"><h2 class="text-white font-bold mb-4">Renomear</h2><form id="rename-form"><select id="form-old-name" class="w-full bg-slate-700 text-white p-2 rounded mb-2"></select><input id="form-new-name" class="w-full bg-slate-700 text-white p-2 rounded mb-4"><div class="flex gap-2 justify-end"><button type="button" id="rename-cancel-btn" class="bg-slate-600 text-white px-4 py-2 rounded">Cancelar</button><button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded">Salvar</button></div></form></div></div>
     
-    <!-- Modal Arquivamento Semanal (NOVO) -->
+    <!-- Modal Arquivamento Semanal -->
     <div id="archive-week-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
         <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 w-96">
             <h2 class="text-white font-bold mb-4 text-xl">Fechar Semana</h2>
@@ -229,7 +241,7 @@
         </div>
     </div>
 
-    <!-- Modal Período - RESTAURADO COMPLETO -->
+    <!-- Modal Período -->
     <div id="period-analysis-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
         <div class="bg-slate-800 p-6 rounded border border-slate-700 w-full max-w-4xl h-5/6 flex flex-col">
             <div class="flex justify-between mb-4">
@@ -318,37 +330,29 @@
                 return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
             };
 
-            // --- AUTOMATIC ARCHIVING LOGIC START ---
+            // FUNÇÕES DE PRIVACIDADE E SEGURANÇA
+            document.getElementById('privacy-toggle-btn').addEventListener('click', () => {
+                document.body.classList.toggle('privacy-active');
+                const btn = document.getElementById('privacy-icon');
+                btn.textContent = document.body.classList.contains('privacy-active') ? '🙈' : '👁️';
+            });
+
+            // --- AUTOMATIC ARCHIVING LOGIC ---
             const checkAndRunAutoArchive = () => {
                 const currentWeek = getWeekNumber(new Date());
-                // Flag para evitar spam de arquivamento se o usuário recarregar a página
                 const lastArchiveWeek = localStorage.getItem('lastAutoArchiveWeek');
-                
-                // Se ainda não arquivamos para a semana atual
                 if (lastArchiveWeek != currentWeek) {
-                    // Procure tarefas que sejam estritamente da semana anterior (currentWeek - 1)
-                    // Tratamento para virada de ano: se for semana 1, arquiva 52 ou 53
                     const targetWeek = currentWeek === 1 ? 52 : currentWeek - 1; 
-                    
                     const tasksToArchive = tasks.filter(t => t.semanaDeTrabalho === targetWeek);
-                    
                     if (tasksToArchive.length > 0) {
-                        // Arquivar
                         archivedTasks.push(...tasksToArchive);
-                        // Remover das ativas
                         tasks = tasks.filter(t => t.semanaDeTrabalho !== targetWeek);
-                        
                         saveTasks();
-                        
-                        // Notificar usuário de forma amigável
                         showNotification(`🔄 Início de Semana Detectado!\n${tasksToArchive.length} análises da Semana ${targetWeek} foram arquivadas automaticamente.`);
                     }
-                    
-                    // Atualiza a flag para não rodar de novo nesta semana
                     localStorage.setItem('lastAutoArchiveWeek', currentWeek);
                 }
             };
-            // --- AUTOMATIC ARCHIVING LOGIC END ---
 
             const populateCategorySelect = (sel) => {
                 sel.innerHTML = '';
@@ -360,7 +364,8 @@
                 itemDiv.className = 'occ-data-item p-3 bg-slate-700 rounded-md flex justify-between items-center mb-2 border border-slate-600 shadow-sm';
                 itemDiv.dataset.json = JSON.stringify(ocor);
                 const contentDiv = document.createElement('div');
-                contentDiv.innerHTML = `<p class="font-semibold text-slate-200">${escapeHtml(ocor.categoria)}: ${escapeHtml(ocor.desc)}</p><p class="text-xs text-slate-400">Horário: ${escapeHtml(ocor.horarioInicial)} - ${escapeHtml(ocor.horarioFinal)}</p>`;
+                // Adicionando classe sensitive-data para o modo privacidade
+                contentDiv.innerHTML = `<p class="font-semibold text-slate-200 sensitive-data">${escapeHtml(ocor.categoria)}: ${escapeHtml(ocor.desc)}</p><p class="text-xs text-slate-400">Horário: ${escapeHtml(ocor.horarioInicial)} - ${escapeHtml(ocor.horarioFinal)}</p>`;
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '&times;';
                 deleteBtn.className = 'ml-2 text-red-400 hover:text-red-300 font-bold text-xl px-2';
@@ -447,7 +452,8 @@
                     card.className = 'bg-slate-800 p-4 rounded-lg shadow-lg border-l-4 transition-all hover:bg-slate-750';
                     card.style.borderLeftColor = color;
                     const ocHtml = t.ocorrencias?.length 
-                        ? `<div class="mt-3 pt-2 border-t border-slate-700 space-y-1">${t.ocorrencias.map(o=>`<div class="text-xs bg-red-900/30 text-red-200 p-1 rounded border border-red-900/50"><strong>${escapeHtml(o.categoria)}</strong>: ${escapeHtml(o.desc)}</div>`).join('')}</div>` 
+                        // Adicionando classe sensitive-data
+                        ? `<div class="mt-3 pt-2 border-t border-slate-700 space-y-1">${t.ocorrencias.map(o=>`<div class="text-xs bg-red-900/30 text-red-200 p-1 rounded border border-red-900/50"><strong class="sensitive-data">${escapeHtml(o.categoria)}</strong>: <span class="sensitive-data">${escapeHtml(o.desc)}</span></div>`).join('')}</div>` 
                         : '';
                     const btnHtml = (t.statusAnalise === 'Em Análise' || t.statusAnalise === 'Concluída')
                         ? `<button data-id="${t.id}" class="edit-oc-btn mt-3 w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-bold rounded border border-slate-600">${t.statusAnalise==='Concluída'?'Ver Ocorrências':'Registrar Ocorrências'}</button>`
@@ -455,7 +461,7 @@
                     const weekBadge = `<span class="bg-slate-700 text-xs px-2 py-0.5 rounded text-slate-300 ml-2 border border-slate-600">Semana ${t.semanaDeTrabalho}</span>`;
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-lg text-white flex-1 truncate" title="${escapeHtml(t.condominio)}">${escapeHtml(t.condominio)}</h3>
+                            <h3 class="font-bold text-lg text-white flex-1 truncate sensitive-data" title="${escapeHtml(t.condominio)}">${escapeHtml(t.condominio)}</h3>
                             <div class="flex gap-2">
                                 <button data-id="${t.id}" class="archive-btn text-slate-500 hover:text-orange-500 text-lg" title="Arquivar">📥</button>
                                 <button data-id="${t.id}" class="del-btn text-slate-500 hover:text-red-500 text-lg" title="Excluir">&times;</button>
@@ -503,12 +509,8 @@
                     return getWeekNumber(dDate) === currentWeekNum && dDate.getFullYear() === currentYear;
                 });
                 safeSetText('analises-concluidas', doneThisWeek.length);
-                
-                // ALTERADO: Soma Ocorrências SOMENTE da Semana Atual (Baseado na semanaDeTrabalho)
-                const ocsThisWeek = active.filter(t => t.semanaDeTrabalho === currentWeekNum)
-                                          .reduce((acc, t) => acc + (t.ocorrencias?.length||0), 0);
+                const ocsThisWeek = active.filter(t => t.semanaDeTrabalho === currentWeekNum).reduce((acc, t) => acc + (t.ocorrencias?.length||0), 0);
                 safeSetText('total-ocorrencias-semana', ocsThisWeek);
-                
                 const allDone = active.filter(t => t.statusAnalise === 'Concluída');
                 const prod = allDone.length ? (active.reduce((a,b)=>a+(b.ocorrencias?.length||0),0) / allDone.length).toFixed(1) : '0.0';
                 safeSetText('produtividade-semanal', prod);
@@ -529,7 +531,7 @@
                 }
             };
 
-            // Lógica Análise por Período (Audit)
+            // Lógica Análise por Período
             function runPeriodAnalysis(startStr, endStr) {
                 const start = new Date(startStr + 'T00:00:00').getTime();
                 const end = new Date(endStr + 'T00:00:00'); end.setDate(end.getDate()+1); const endTs = end.getTime();
@@ -552,7 +554,7 @@
                 const ul = document.getElementById('period-task-list'); 
                 ul.innerHTML = rangeTasks.map(t => {
                    const dateDisplay = useConclusionDate ? `Concluído em: ${new Date(t.completedAt).toLocaleDateString('pt-BR')}` : formatDate(t.dataAnalise);
-                   return `<li class="border-b border-slate-700 pb-1">${dateDisplay} - ${escapeHtml(t.condominio)} <span class="text-xs text-slate-500">(${t.statusAnalise})</span></li>`;
+                   return `<li class="border-b border-slate-700 pb-1"><span class="text-white sensitive-data">${dateDisplay} - ${escapeHtml(t.condominio)}</span> <span class="text-xs text-slate-500">(${t.statusAnalise})</span></li>`;
                 }).join('');
                 
                 document.getElementById('period-results-content').classList.remove('hidden');
@@ -673,7 +675,7 @@
                 document.getElementById('archive-modal').classList.add('hidden');
                 document.getElementById('view-archive-modal').classList.remove('hidden');
                 const list = document.getElementById('view-archive-list-container');
-                list.innerHTML = archivedTasks.length ? archivedTasks.map(t => `<div class="p-2 border-b border-slate-700 text-slate-300 text-sm">${formatDate(t.dataAnalise)} - ${escapeHtml(t.condominio)} (Semana ${t.semanaDeTrabalho})</div>`).join('') : '<p class="text-center text-slate-500">Vazio</p>';
+                list.innerHTML = archivedTasks.length ? archivedTasks.map(t => `<div class="p-2 border-b border-slate-700 text-slate-300 text-sm"><span class="sensitive-data">${formatDate(t.dataAnalise)} - ${escapeHtml(t.condominio)} (Semana ${t.semanaDeTrabalho})</span></div>`).join('') : '<p class="text-center text-slate-500">Vazio</p>';
             });
 
             // Event Listeners para o Lista e Modais
@@ -733,7 +735,7 @@
 
             document.getElementById('ocorrencia-cancel-btn').addEventListener('click', () => document.getElementById('ocorrencia-modal').classList.add('hidden'));
 
-            checkAndRunAutoArchive(); // ATIVAÇÃO DA AUTOMAÇÃO
+            checkAndRunAutoArchive();
             initCharts();
             refreshUI();
         });
