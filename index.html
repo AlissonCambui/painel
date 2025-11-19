@@ -446,6 +446,13 @@
                 const [y, m, d] = parts;
                 return `${d}/${m}/${y}`;
             },
+            
+            clearFilters() {
+                document.getElementById('filtro-condominio').value = '';
+                document.getElementById('filtro-analise').value = '';
+                document.getElementById('filtro-backup').value = '';
+                this.render();
+            },
 
             showToast(msg) {
                 const t = document.getElementById('toast');
@@ -511,17 +518,22 @@
                 const container = document.getElementById('task-list');
                 container.innerHTML = '';
 
+                // CORREÇÃO: .trim() remove espaços invisíveis que quebram o filtro
                 const filtered = this.data.tasks.filter(t => {
+                    const sBackup = t.statusBackup ? t.statusBackup.trim() : '';
+                    const sAnalise = t.statusAnalise ? t.statusAnalise.trim() : '';
+
                     return t.condominio.toLowerCase().includes(filterCondo) &&
-                           (!filterBackup || t.statusBackup === filterBackup) &&
-                           (!filterAnalise || t.statusAnalise === filterAnalise);
+                           (!filterBackup || sBackup === filterBackup) &&
+                           (!filterAnalise || sAnalise === filterAnalise);
                 });
 
                 if (filtered.length === 0) {
                     container.innerHTML = `
                         <div class="col-span-full text-center text-slate-500 py-12 flex flex-col items-center">
                             <i class="ph ph-magnifying-glass text-4xl mb-2 opacity-50"></i>
-                            <p>Nenhuma análise encontrada com estes filtros.</p>
+                            <p class="mb-4">Nenhuma análise encontrada com estes filtros.</p>
+                            <button onclick="App.clearFilters()" class="text-brand-orange font-bold hover:underline text-sm border border-brand-orange px-4 py-2 rounded hover:bg-orange-50 dark:hover:bg-slate-800 transition-colors">Limpar Filtros</button>
                         </div>`;
                     return;
                 }
@@ -758,24 +770,27 @@
                     const colData = cols[1]?.trim();
                     if(!colData || !colData.includes('/')) return; // Pula cabeçalhos ou lixo
 
-                    // Extração
+                    // Extração e LIMPEZA (trim)
                     const week = cols[0]?.trim();
                     const dateRaw = cols[1]?.trim();
                     const condo = cols[2]?.trim();
                     
                     // Lógica para colunas variáveis (OC/Colaborador)
-                    let oc = '0', colab = '', status = 'Pendente';
+                    let oc = '0', colab = '', statusRaw = '';
                     const col3 = cols[3]?.trim();
                     
                     // Tenta adivinhar onde estão os dados baseado se é número ou texto
                     if(col3 && !isNaN(col3)) { 
                         oc = col3;
-                        colab = cols[4] || '';
-                        status = cols[5] || 'Pendente';
+                        colab = cols[4]?.trim() || '';
+                        statusRaw = cols[5]?.trim();
                     } else {
                         colab = col3;
-                        status = cols[4] || 'Pendente';
+                        statusRaw = cols[4]?.trim();
                     }
+
+                    // Define status padrão se vazio
+                    let status = statusRaw || 'Pendente';
 
                     if(status && status.includes('Finalizado')) status = 'Concluída';
                     
