@@ -176,7 +176,6 @@
                         <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Condomínio</label>
                         <div class="relative">
                             <input type="text" id="form-condominio" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 focus:ring-2 focus:ring-brand-orange dark:text-white" required autocomplete="off" placeholder="Nome do local">
-                            <!-- Autocomplete dropdown -->
                             <div id="autocomplete-list" class="absolute z-20 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg mt-1 hidden max-h-40 overflow-y-auto shadow-lg"></div>
                         </div>
                     </div>
@@ -201,7 +200,6 @@
         </div>
     </div>
 
-    <!-- Modal Ocorrências -->
     <div id="ocorrencia-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 animate-fade-in">
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
@@ -212,12 +210,8 @@
             <form id="ocorrencia-form" class="flex-grow flex flex-col min-h-0">
                 <input type="hidden" id="ocorrencia-task-id">
                 
-                <!-- Lista Visual -->
-                <div id="ocorrencia-list" class="flex-grow overflow-y-auto mb-4 space-y-3 p-2 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 min-h-[150px]">
-                    <!-- Itens inseridos via JS -->
-                </div>
+                <div id="ocorrencia-list" class="flex-grow overflow-y-auto mb-4 space-y-3 p-2 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 min-h-[150px]"></div>
                 
-                <!-- Formulário de adição -->
                 <div class="flex-shrink-0 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <div class="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg">
                         <h3 class="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 mb-3">Nova Entrada</h3>
@@ -250,7 +244,6 @@
         </div>
     </div>
 
-    <!-- Modal Importar Excel -->
     <div id="excel-import-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 animate-fade-in">
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-2xl border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
@@ -263,8 +256,7 @@
                 <p class="text-xs mt-1 text-slate-400">Ordem esperada: Semana | Dia | Unidade/OC | Colaborador | Status</p>
             </div>
 
-            <textarea id="excel-paste-area" rows="10" class="w-full p-3 text-sm font-mono bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-orange dark:text-slate-200 whitespace-pre" placeholder="Cole aqui...
-Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
+            <textarea id="excel-paste-area" rows="10" class="w-full p-3 text-sm font-mono bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-orange dark:text-slate-200 whitespace-pre" placeholder="Cole aqui..."></textarea>
 
             <div class="mt-6 flex justify-end gap-3">
                 <button id="process-import-btn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors flex items-center gap-2">
@@ -275,7 +267,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
         </div>
     </div>
 
-    <!-- Modal Relatório Período -->
     <div id="period-analysis-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 animate-fade-in">
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-4xl h-5/6 flex flex-col border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
@@ -283,7 +274,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 <button id="period-analysis-close-btn" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
             </div>
 
-            <!-- Filtros de Data e Atalhos -->
             <div class="mb-4 space-y-4 border-b dark:border-slate-700 pb-4">
                 <div class="flex gap-2 justify-center md:justify-start overflow-x-auto pb-2">
                     <button id="preset-week-btn" class="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded hover:bg-brand-orange hover:text-white text-sm font-medium transition-colors whitespace-nowrap">Esta Semana</button>
@@ -326,38 +316,28 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
         </div>
     </div>
 
-    <!-- Modal Arquivo Morto -->
     <div id="archive-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 animate-fade-in">
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-3xl max-h-[80vh] flex flex-col border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Arquivo Morto</h2>
                 <button id="archive-close-btn" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
             </div>
-            <div id="archive-list" class="flex-grow overflow-y-auto space-y-2 p-2">
-                <!-- Itens arquivados -->
-            </div>
+            <div id="archive-list" class="flex-grow overflow-y-auto space-y-2 p-2"></div>
             <div class="mt-4 text-right">
                 <button id="clear-archive-btn" class="text-red-500 hover:text-red-700 text-sm font-bold">Limpar Arquivo Permanentemente</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3">
         <span id="toast-icon">✅</span>
         <span id="toast-message" class="font-medium">Operação realizada</span>
     </div>
 
-    <!-- Hidden Inputs for File IO -->
     <input type="file" id="file-input" accept=".json" class="hidden">
 
     <script>
-        // --- LÓGICA PRINCIPAL ---
-        
-        const normalizeString = (str) => {
-            // Remove acentos, espaços laterais e caracteres especiais (deixa apenas letras e numeros)
-            return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase() : "";
-        };
+        const normalizeString = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase() : "";
 
         const App = {
             data: {
@@ -371,7 +351,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 this.loadData();
                 this.setupTheme();
                 this.setupDate();
-                this.autoArchiveOldTasks(); // Executa limpeza automática
+                this.autoArchiveOldTasks(); // AQUI ESTÁ A CORREÇÃO: AGORA ARQUIVA SÓ > 1 SEMANA
                 this.charts.setup();
                 this.render();
                 this.events.setup();
@@ -397,30 +377,24 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 const userTheme = localStorage.getItem('theme');
                 const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 
-                // Lógica Simples: Se tiver 'dark' salvo ou se for preferência do sistema e não tiver nada salvo
                 const isDark = userTheme === 'dark' || (!userTheme && systemTheme);
 
                 if (isDark) {
                     document.documentElement.classList.add('dark');
-                    document.getElementById('sun-icon').classList.remove('hidden'); // Mostra Sol no Dark
+                    document.getElementById('sun-icon').classList.remove('hidden');
                     document.getElementById('moon-icon').classList.add('hidden');
                 } else {
                     document.documentElement.classList.remove('dark');
                     document.getElementById('sun-icon').classList.add('hidden');
-                    document.getElementById('moon-icon').classList.remove('hidden'); // Mostra Lua no Light
+                    document.getElementById('moon-icon').classList.remove('hidden');
                 }
             },
             
             toggleTheme() {
-                // Alterna a classe 'dark' no elemento <html>
                 const isDark = document.documentElement.classList.toggle('dark');
                 localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                
-                // Atualiza os ícones
                 document.getElementById('sun-icon').classList.toggle('hidden', !isDark);
                 document.getElementById('moon-icon').classList.toggle('hidden', isDark);
-                
-                // Atualiza os gráficos para se adaptarem ao tema
                 this.charts.update();
             },
 
@@ -430,35 +404,32 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 document.getElementById('current-date').textContent = today.toLocaleDateString('pt-BR', options);
             },
 
-            // Helper: Obter Range da Semana Atual (Segunda - Sexta)
             getCurrentWeekRange() {
                 const now = new Date();
-                const day = now.getDay(); // 0 (Dom) - 6 (Sab)
-                
-                // Ajuste para pegar a Segunda-feira da semana atual
+                const day = now.getDay(); 
                 const diffToMon = day === 0 ? -6 : 1 - day;
-                
                 const monday = new Date(now);
                 monday.setDate(now.getDate() + diffToMon);
                 monday.setHours(0, 0, 0, 0); 
-                
                 const friday = new Date(monday);
-                friday.setDate(monday.getDate() + 4); // Sexta-feira
+                friday.setDate(monday.getDate() + 4); 
                 friday.setHours(23, 59, 59, 999); 
-
                 return { monday, friday };
             },
 
-            // Função: Auto Arquivar Tarefas Antigas
+            // CORREÇÃO DA LÓGICA DE ARQUIVAMENTO: USA A SEMANA ANTERIOR COMO BASE
             autoArchiveOldTasks() {
                 const { monday } = this.getCurrentWeekRange();
-                const mondayStr = monday.toISOString().split('T')[0]; // YYYY-MM-DD
+                // Subtrai 7 dias para incluir a semana anterior (foco da análise)
+                const cutoffDate = new Date(monday);
+                cutoffDate.setDate(cutoffDate.getDate() - 7);
+                const cutoffStr = cutoffDate.toISOString().split('T')[0];
 
                 const toArchive = [];
                 const keep = [];
 
                 this.data.tasks.forEach(task => {
-                    if (task.dataAnalise < mondayStr) {
+                    if (task.dataAnalise < cutoffStr) {
                         toArchive.push(task);
                     } else {
                         keep.push(task);
@@ -474,7 +445,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     localStorage.setItem('monitoramentoArchive', JSON.stringify(this.data.archived));
                     
                     setTimeout(() => {
-                        this.ui.showToast(`${toArchive.length} tarefas da semana passada arquivadas automaticamente.`, 'info');
+                        this.ui.showToast(`${toArchive.length} tarefas antigas arquivadas automaticamente.`, 'info');
                     }, 1000);
                 }
             },
@@ -483,10 +454,10 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
 
             addTask(taskData) {
                 const newTask = {
-                    id: Date.now() + Math.random(), // Random add to avoid ID collision in loops
+                    id: Date.now() + Math.random(), 
                     condominio: taskData.condominio,
                     dataAnalise: taskData.data,
-                    semana: taskData.semana || '', // Nova propriedade
+                    semana: taskData.semana || '',
                     observacoes: taskData.obs || '',
                     statusBackup: 'Pendente',
                     statusAnalise: taskData.statusAnalise || 'Pendente',
@@ -537,6 +508,16 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 }
             },
 
+            saveOcorrencias(taskId, newOcorrencias) {
+                const task = this.data.tasks.find(t => t.id == taskId);
+                if (task) {
+                    if(!task.ocorrencias) task.ocorrencias = [];
+                    task.ocorrencias.push(...newOcorrencias);
+                    this.saveData();
+                    this.ui.showToast(`${newOcorrencias.length} ocorrências registradas.`);
+                }
+            },
+
             // --- IMPORT/EXPORT ---
             
             processExcelData() {
@@ -555,7 +536,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
 
                     const weekRaw = cols[0] ? cols[0].trim() : '';
                     const col1 = cols[1] ? cols[1].trim() : '';
-                    // Ignora cabeçalhos
                     if (col1 === 'Dia' || col1 === 'Data' || col1.toLowerCase().includes('unidade')) return;
                     
                     const isDate = /^\d{2}\/\d{2}\/\d{4}$/.test(col1);
@@ -594,7 +574,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                         dataIso = new Date().toISOString().split('T')[0];
                     }
 
-                    // MESCLAGEM INTELIGENTE COM PROTEÇÃO DE DADOS (NORMALIZAÇÃO)
                     const existingTask = this.data.tasks.find(t => 
                         normalizeString(t.condominio) === normalizeString(unidadeRaw) && 
                         t.dataAnalise === dataIso
@@ -608,13 +587,11 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     }
 
                     if (existingTask) {
-                        // ENCONTROU O CARD: ATUALIZA APENAS STATUS E SEMANA, MANTÉM DADOS
                         if (statusApp === 'Concluída' && existingTask.statusAnalise !== 'Concluída') {
                             existingTask.statusAnalise = 'Concluída';
                         }
                         if (weekRaw && !existingTask.semana) existingTask.semana = weekRaw;
                         
-                        // LÓGICA: Se o usuário já escreveu 2 ocorrências, e a planilha diz que são 5, adiciona 3 NOVAS.
                         if (ocCount && parseInt(ocCount) > 0) {
                             const sheetQty = parseInt(ocCount);
                             const currentQty = existingTask.ocorrencias ? existingTask.ocorrencias.length : 0;
@@ -640,7 +617,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                         updatedCount++;
 
                     } else {
-                        // NÃO ENCONTROU: CRIA NOVO
                         let obs = '';
                         if (statusRaw && statusRaw.toLowerCase().includes('desconectado')) {
                             obs += '[IMPORTADO]: Status original "Desconectado". ';
@@ -654,8 +630,8 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 initialOcorrencias.push({
                                     categoria: 'Importada', 
                                     desc: 'Ocorrência registrada via importação',
-                                    horarioInicial: '00:00:00', // Valor padrão
-                                    horarioFinal: '00:00:00'    // Valor padrão
+                                    horarioInicial: '00:00:00',
+                                    horarioFinal: '00:00:00'
                                 });
                             }
                             obs += `[IMPORTADO]: ${qtd} ocorrências registradas via planilha. `;
@@ -752,12 +728,10 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     return matchCondo && matchBackup && matchAnalise;
                 });
 
-                // CORREÇÃO: Soma ocorrências de TODAS as tarefas visíveis no painel
                 const weekOccurrences = this.data.tasks.reduce((acc, t) => {
                     return acc + (t.ocorrencias ? t.ocorrencias.length : 0);
                 }, 0);
 
-                // Renderizar KPIs
                 document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
                 document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
                 document.getElementById('analises-concluidas').textContent = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length;
@@ -770,8 +744,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 const avg = concludedTasksInWeek.length ? (occInConcluded / concludedTasksInWeek.length).toFixed(1) : "0.0";
                 document.getElementById('produtividade-semanal').textContent = avg;
 
-
-                // Renderizar Lista
                 const container = document.getElementById('task-list');
                 container.innerHTML = '';
                 
@@ -790,7 +762,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 this.charts.update();
             },
 
-            // --- UI HELPERS ---
             ui: {
                 statusColors: {
                     'Pendente': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
@@ -809,7 +780,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     const obsAlert = task.observacoes ? `<span class="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-2" title="${task.observacoes}">Obs</span>` : '';
                     const weekBadge = task.semana ? `<span class="absolute top-3 right-3 text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-1 rounded uppercase tracking-wide">${task.semana}</span>` : '';
 
-                    // Geração da lista de ocorrências (visualização direta no card)
                     let occurrencesHTML = '';
                     if (task.ocorrencias && task.ocorrencias.length > 0) {
                         occurrencesHTML += `<div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1">`;
@@ -856,7 +826,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 </div>
                             </div>
 
-                            <!-- VISUALIZAÇÃO DIRETA DAS OCORRÊNCIAS -->
                             ${occurrencesHTML}
 
                             <div class="flex items-center justify-between mt-4">
@@ -867,7 +836,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 
                                 <div class="flex gap-1">
                                     <button onclick="App.archiveTask(${task.id})" class="p-1 text-slate-400 hover:text-blue-500 transition-colors" title="Arquivar">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 00-2-2V8m-9 4h4"></path></svg>
                                     </button>
                                     <button onclick="App.deleteTask(${task.id})" class="p-1 text-slate-400 hover:text-red-500 transition-colors" title="Excluir">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -905,7 +874,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
             charts: {
                 instances: {},
                 setup() {
-                    // Chart Ocorrências
                     const ctxOc = document.getElementById('ocorrenciasChart').getContext('2d');
                     this.instances.ocorrencias = new Chart(ctxOc, {
                         type: 'bar',
@@ -921,7 +889,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                         }
                     });
 
-                    // Chart Periodo
                     const ctxPer = document.getElementById('periodChart').getContext('2d');
                     this.instances.period = new Chart(ctxPer, {
                         type: 'bar',
