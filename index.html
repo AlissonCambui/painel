@@ -604,38 +604,24 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 rows.forEach(row => {
                     if (!row.trim()) return;
 
-                    // Tenta dividir por TAB
                     let cols = row.split('\t');
-                    
-                    // Se não tiver tabs, tenta por múltiplos espaços (fallback)
-                    if (cols.length < 3) {
-                         cols = row.split(/\s{2,}/); // Separa por 2 ou mais espaços
-                    }
+                    if (cols.length < 3) cols = row.split(/\s{2,}/);
 
-                    // Captura a Semana (Coluna 0)
                     const weekRaw = cols[0] ? cols[0].trim() : '';
-
-                    // *** LÓGICA DE CABEÇALHO ***
                     const col1 = cols[1] ? cols[1].trim() : '';
                     if (col1 === 'Dia' || col1 === 'Data' || col1.toLowerCase().includes('unidade')) return;
                     
                     const isDate = /^\d{2}\/\d{2}\/\d{4}$/.test(col1);
-                    if (!isDate) {
-                         return; 
-                    }
+                    if (!isDate) return;
                     
-                    if (cols.length < 3) return; // Linha inválida
+                    if (cols.length < 3) return;
 
                     const dataRaw = cols[1]; 
                     const unidadeRaw = cols[2];
-                    
-                    // Lógica para coluna OC e Colaborador
                     let ocCount = '';
                     let colaborador = '';
                     let statusRaw = '';
-
                     const col3 = cols[3] ? cols[3].trim() : '';
-                    
                     const isCol3Numeric = /^\d+$/.test(col3);
                     
                     if (isCol3Numeric && col3 !== '') {
@@ -643,18 +629,16 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                         colaborador = cols[4] || '';
                         statusRaw = cols[5] || '';
                     } else {
-                        ocCount = ''; // Sem OC
+                        ocCount = ''; 
                         colaborador = col3; 
                         statusRaw = cols[4] || ''; 
                     }
 
-                    // Concatenar status
                     if (colaborador.includes('Finalizado') || colaborador.includes('Pendente')) {
-                        statusRaw = colaborador.split(' ').pop(); // Pega a ultima palavra
+                        statusRaw = colaborador.split(' ').pop();
                         colaborador = colaborador.replace(statusRaw, '').trim();
                     }
 
-                    // Converter Data
                     let dataIso = '';
                     if (dataRaw && dataRaw.includes('/')) {
                         const [d, m, y] = dataRaw.trim().split('/');
@@ -663,62 +647,85 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                         dataIso = new Date().toISOString().split('T')[0];
                     }
 
-                    // VERIFICAÇÃO DE DUPLICIDADE
-                    // Ignora se já existe uma tarefa com mesmo Condomínio E Data
-                    const exists = this.data.tasks.some(t => 
+                    // ESTRATÉGIA DE MESCLAGEM (MERGE)
+                    const existingTask = this.data.tasks.find(t => 
                         t.condominio.toLowerCase() === unidadeRaw.trim().toLowerCase() && 
                         t.dataAnalise === dataIso
                     );
                     
-                    if (exists) return; // Pula esta iteração do loop
-
-                    // Mapear Status
                     let statusApp = 'Pendente';
-                    let obs = '';
-
                     if (statusRaw) {
                         const s = statusRaw.trim().toLowerCase();
                         if (s.includes('finalizado')) statusApp = 'Concluída';
-                        if (s.includes('desconectado')) {
-                            statusApp = 'Pendente';
+                        if (s.includes('desconectado')) statusApp = 'Pendente';
+                    }
+
+                    if (existingTask) {
+                        // ATUALIZA O STATUS APENAS SE FOR "MAIS AVANÇADO" OU SE O EXCEL MANDAR
+                        // Se o excel diz Concluído e app diz Pendente -> Atualiza para Concluído
+                        if (statusApp === 'Concluída' && existingTask.statusAnalise !== 'Concluída') {
+                            existingTask.statusAnalise = 'Concluída';
+                        }
+                        // Se tiver semana no excel, atualiza
+                        if (weekRaw && !existingTask.semana) existingTask.semana = weekRaw;
+                        
+                        // NÃO SOBSCREVE OCORRÊNCIAS se já existirem no app
+                        // Só adiciona ocorrências se a lista estiver vazia e o excel tiver contagem
+                        if ((!existingTask.ocorrencias || existingTask.ocorrencias.length === 0) && ocCount && parseInt(ocCount) > 0) {
+                            const qtd = parseInt(ocCount);
+                            existingTask.ocorrencias = [];
+                            for(let i=0; i<qtd; i++) {
+                                existingTask.ocorrencias.push({
+                                    categoria: 'Importada', 
+                                    desc: 'Ocorrência importada da planilha (sem detalhes)',
+                                    horarioInicial: '',
+                                    horarioFinal: ''
+                                });
+                            }
+                        }
+                        // Adiciona observação se necessário (evita duplicar a mesma obs)
+                         if (!existingTask.observacoes.includes('Atualizado via planilha')) {
+                             existingTask.observacoes += ' [Atualizado via planilha]';
+                         }
+
+                    } else {
+                        // CRIA NOVA TAREFA
+                        let obs = '';
+                        if (statusRaw && statusRaw.toLowerCase().includes('desconectado')) {
                             obs += '[IMPORTADO]: Status original "Desconectado". ';
                         }
-                    }
-                    
-                    if (colaborador) obs += `Colaborador: ${colaborador}. `;
+                        if (colaborador) obs += `Colaborador: ${colaborador}. `;
 
-                    // LÓGICA DE OCORRÊNCIAS IMPORTADAS (OC > 0)
-                    let initialOcorrencias = [];
-                    if (ocCount && !isNaN(ocCount) && parseInt(ocCount) > 0) {
-                        const qtd = parseInt(ocCount);
-                        // Cria N itens de ocorrência para que a contagem funcione
-                        for(let i=0; i<qtd; i++) {
-                            initialOcorrencias.push({
-                                categoria: 'Importada', 
-                                desc: 'Ocorrência importada da planilha (sem detalhes)',
-                                horarioInicial: '',
-                                horarioFinal: ''
-                            });
+                        let initialOcorrencias = [];
+                        if (ocCount && !isNaN(ocCount) && parseInt(ocCount) > 0) {
+                            const qtd = parseInt(ocCount);
+                            for(let i=0; i<qtd; i++) {
+                                initialOcorrencias.push({
+                                    categoria: 'Importada', 
+                                    desc: 'Ocorrência importada da planilha (sem detalhes)',
+                                    horarioInicial: '',
+                                    horarioFinal: ''
+                                });
+                            }
+                            obs += `[IMPORTADO]: ${qtd} ocorrências registradas via planilha. `;
                         }
-                        obs += `[IMPORTADO]: ${qtd} ocorrências registradas via planilha. `;
-                    }
 
-                    // Cria Tarefa
-                    this.addTask({
-                        condominio: unidadeRaw.trim(),
-                        data: dataIso,
-                        semana: weekRaw, 
-                        statusAnalise: statusApp,
-                        ocorrencias: initialOcorrencias, // Passa as ocorrências geradas
-                        obs: obs.trim()
-                    });
-                    count++;
+                        this.addTask({
+                            condominio: unidadeRaw.trim(),
+                            data: dataIso,
+                            semana: weekRaw, 
+                            statusAnalise: statusApp,
+                            ocorrencias: initialOcorrencias,
+                            obs: obs.trim()
+                        });
+                        count++;
+                    }
                 });
 
                 this.saveData();
                 this.ui.closeModal('excel-import-modal');
-                document.getElementById('excel-paste-area').value = ''; // Limpa
-                this.ui.showToast(`${count} tarefas importadas!`);
+                document.getElementById('excel-paste-area').value = ''; 
+                this.ui.showToast(`Processamento concluído! ${count} novas tarefas adicionadas.`);
             },
 
             exportData() {
@@ -771,7 +778,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 });
 
                 // CORREÇÃO: Soma ocorrências de TODAS as tarefas visíveis no painel
-                // O filtro automático de data já removeu as velhas, então o que sobra é a semana
                 const weekOccurrences = this.data.tasks.reduce((acc, t) => {
                     return acc + (t.ocorrencias ? t.ocorrencias.length : 0);
                 }, 0);
