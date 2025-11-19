@@ -365,7 +365,7 @@
                 this.loadData();
                 this.setupTheme();
                 this.setupDate();
-                this.autoArchiveOldTasks(); // Agora existe
+                this.autoArchiveOldTasks();
                 this.setupCharts();
                 this.render();
                 this.events.setup();
@@ -431,7 +431,8 @@
 
             // --- UTILITÁRIOS ---
             generateId() {
-                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+                // CORREÇÃO: Uso de crypto.randomUUID para evitar colisões em loops rápidos
+                return crypto.randomUUID();
             },
             
             normalize(str) {
@@ -519,13 +520,20 @@
                 container.innerHTML = '';
 
                 // CORREÇÃO: .trim() remove espaços invisíveis que quebram o filtro
-                const filtered = this.data.tasks.filter(t => {
+                let filtered = this.data.tasks.filter(t => {
                     const sBackup = t.statusBackup ? t.statusBackup.trim() : '';
                     const sAnalise = t.statusAnalise ? t.statusAnalise.trim() : '';
 
                     return t.condominio.toLowerCase().includes(filterCondo) &&
                            (!filterBackup || sBackup === filterBackup) &&
                            (!filterAnalise || sAnalise === filterAnalise);
+                });
+
+                // CORREÇÃO: Ordenação (Data mais recente primeiro)
+                filtered.sort((a, b) => {
+                    if (a.dataAnalise > b.dataAnalise) return -1;
+                    if (a.dataAnalise < b.dataAnalise) return 1;
+                    return 0;
                 });
 
                 if (filtered.length === 0) {
@@ -902,7 +910,9 @@
             },
 
             updateCharts() {
-                if(!this.charts.oc) return;
+                // CORREÇÃO: Evita atualizar gráficos que não existem
+                if(!this.charts.oc || !this.charts.oc.canvas) return;
+                
                 const counts = {};
                 this.data.tasks.forEach(t => {
                     if(t.ocorrencias?.length) counts[t.condominio] = (counts[t.condominio] || 0) + t.ocorrencias.length;
