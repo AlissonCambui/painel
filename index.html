@@ -408,7 +408,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
         // --- LÓGICA PRINCIPAL ---
         
         const normalizeString = (str) => {
-            return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+            return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase() : "";
         };
 
         const App = {
@@ -646,7 +646,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                         dataIso = new Date().toISOString().split('T')[0];
                     }
 
-                    // MESCLAGEM INTELIGENTE (IGNORA ACENTOS)
+                    // MESCLAGEM INTELIGENTE COM PROTEÇÃO DE DADOS
                     const existingTask = this.data.tasks.find(t => 
                         normalizeString(t.condominio) === normalizeString(unidadeRaw) && 
                         t.dataAnalise === dataIso
@@ -660,20 +660,21 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     }
 
                     if (existingTask) {
-                        // ATUALIZA STATUS E SEMANA
+                        // ENCONTROU O CARD: ATUALIZA APENAS STATUS E SEMANA, MANTÉM DADOS
                         if (statusApp === 'Concluída' && existingTask.statusAnalise !== 'Concluída') {
                             existingTask.statusAnalise = 'Concluída';
                         }
                         if (weekRaw && !existingTask.semana) existingTask.semana = weekRaw;
                         
-                        // MESCLAGEM DE OCORRÊNCIAS SEM PERDA DE DADOS
+                        // LÓGICA: Se o usuário já escreveu 2 ocorrências, e a planilha diz que são 5, adiciona 3 NOVAS.
+                        // Se a planilha diz que são 5, e o usuário já escreveu 5, NÃO FAZ NADA.
+                        // ISSO PROTEGE O QUE VOCÊ JÁ ESCREVEU.
                         if (ocCount && parseInt(ocCount) > 0) {
                             const sheetQty = parseInt(ocCount);
                             const currentQty = existingTask.ocorrencias ? existingTask.ocorrencias.length : 0;
                             
                             if (!existingTask.ocorrencias) existingTask.ocorrencias = [];
 
-                            // SÓ ADICIONA SE A PLANILHA TIVER MAIS DO QUE JÁ TEMOS
                             if (sheetQty > currentQty) {
                                 const diff = sheetQty - currentQty;
                                 for(let i=0; i<diff; i++) {
@@ -685,7 +686,6 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                     });
                                 }
                             }
-                            // NUNCA APAGA O QUE JÁ EXISTE
                         }
                          
                         if (!existingTask.observacoes.includes('Atualizado via planilha')) {
@@ -694,7 +694,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                         updatedCount++;
 
                     } else {
-                        // Cria Nova
+                        // NÃO ENCONTROU: CRIA NOVO
                         let obs = '';
                         if (statusRaw && statusRaw.toLowerCase().includes('desconectado')) {
                             obs += '[IMPORTADO]: Status original "Desconectado". ';
@@ -708,8 +708,8 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 initialOcorrencias.push({
                                     categoria: 'Importada', 
                                     desc: 'Ocorrência registrada via importação',
-                                    horarioInicial: '00:00:00', // Corrigido
-                                    horarioFinal: '00:00:00'
+                                    horarioInicial: '00:00:00', // Valor padrão
+                                    horarioFinal: '00:00:00'    // Valor padrão
                                 });
                             }
                             obs += `[IMPORTADO]: ${qtd} ocorrências registradas via planilha. `;
@@ -730,7 +730,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 this.saveData();
                 this.ui.closeModal('excel-import-modal');
                 document.getElementById('excel-paste-area').value = ''; 
-                this.ui.showToast(`Processamento: ${count} novas, ${updatedCount} atualizadas.`);
+                this.ui.showToast(`Processamento: ${count} criadas, ${updatedCount} atualizadas.`);
             },
 
             exportData() {
@@ -894,7 +894,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                             <div class="space-y-3 mb-4">
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-slate-500 dark:text-slate-400 font-medium">Backup</span>
-                                    <select onchange="App.updateStatus(${task.id}, 'backup', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.statusColors[task.statusBackup] || 'bg-slate-100 text-slate-600'}">
+                                    <select onchange="App.updateStatus(${task.id}, 'backup', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.ui.statusColors[task.statusBackup] || 'bg-slate-100 text-slate-600'}">
                                         <option value="Pendente" ${task.statusBackup==='Pendente'?'selected':''}>Pendente</option>
                                         <option value="Em Andamento" ${task.statusBackup==='Em Andamento'?'selected':''}>Baixando</option>
                                         <option value="Concluído" ${task.statusBackup==='Concluído'?'selected':''}>Salvo</option>
@@ -902,7 +902,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-slate-500 dark:text-slate-400 font-medium">Análise</span>
-                                    <select onchange="App.updateStatus(${task.id}, 'analise', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.statusColors[task.statusAnalise] || 'bg-slate-100 text-slate-600'}">
+                                    <select onchange="App.updateStatus(${task.id}, 'analise', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.ui.statusColors[task.statusAnalise] || 'bg-slate-100 text-slate-600'}">
                                         <option value="Pendente" ${task.statusAnalise==='Pendente'?'selected':''}>Pendente</option>
                                         <option value="Em Análise" ${task.statusAnalise==='Em Análise'?'selected':''}>Em Análise</option>
                                         <option value="Concluída" ${task.statusAnalise==='Concluída'?'selected':''}>Concluída</option>
