@@ -351,7 +351,7 @@
                 this.loadData();
                 this.setupTheme();
                 this.setupDate();
-                this.autoArchiveOldTasks(); // AQUI ESTÁ A CORREÇÃO: AGORA ARQUIVA SÓ > 1 SEMANA
+                this.autoArchiveOldTasks(); 
                 this.charts.setup();
                 this.render();
                 this.events.setup();
@@ -376,7 +376,6 @@
             setupTheme() {
                 const userTheme = localStorage.getItem('theme');
                 const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                
                 const isDark = userTheme === 'dark' || (!userTheme && systemTheme);
 
                 if (isDark) {
@@ -417,12 +416,10 @@
                 return { monday, friday };
             },
 
-            // CORREÇÃO DA LÓGICA DE ARQUIVAMENTO: USA A SEMANA ANTERIOR COMO BASE
             autoArchiveOldTasks() {
                 const { monday } = this.getCurrentWeekRange();
-                // Subtrai 7 dias para incluir a semana anterior (foco da análise)
                 const cutoffDate = new Date(monday);
-                cutoffDate.setDate(cutoffDate.getDate() - 7);
+                cutoffDate.setDate(cutoffDate.getDate() - 7); // Keep last week
                 const cutoffStr = cutoffDate.toISOString().split('T')[0];
 
                 const toArchive = [];
@@ -440,17 +437,13 @@
                     toArchive.forEach(t => t.archivedDate = new Date().toISOString());
                     this.data.archived.push(...toArchive);
                     this.data.tasks = keep; 
-                    
                     localStorage.setItem('monitoramentoTasks', JSON.stringify(this.data.tasks));
                     localStorage.setItem('monitoramentoArchive', JSON.stringify(this.data.archived));
-                    
                     setTimeout(() => {
                         this.ui.showToast(`${toArchive.length} tarefas antigas arquivadas automaticamente.`, 'info');
                     }, 1000);
                 }
             },
-
-            // --- CRUD ---
 
             addTask(taskData) {
                 const newTask = {
@@ -508,29 +501,15 @@
                 }
             },
 
-            saveOcorrencias(taskId, newOcorrencias) {
-                const task = this.data.tasks.find(t => t.id == taskId);
-                if (task) {
-                    if(!task.ocorrencias) task.ocorrencias = [];
-                    task.ocorrencias.push(...newOcorrencias);
-                    this.saveData();
-                    this.ui.showToast(`${newOcorrencias.length} ocorrências registradas.`);
-                }
-            },
-
-            // --- IMPORT/EXPORT ---
-            
             processExcelData() {
                 const text = document.getElementById('excel-paste-area').value;
                 if (!text.trim()) return alert("Cole os dados primeiro.");
-
                 const rows = text.trim().split('\n');
                 let count = 0;
                 let updatedCount = 0;
 
                 rows.forEach(row => {
                     if (!row.trim()) return;
-
                     let cols = row.split('\t');
                     if (cols.length < 3) cols = row.split(/\s{2,}/);
 
@@ -540,14 +519,11 @@
                     
                     const isDate = /^\d{2}\/\d{2}\/\d{4}$/.test(col1);
                     if (!isDate) return;
-                    
                     if (cols.length < 3) return;
 
                     const dataRaw = cols[1]; 
                     const unidadeRaw = cols[2];
-                    let ocCount = '';
-                    let colaborador = '';
-                    let statusRaw = '';
+                    let ocCount = '', colaborador = '', statusRaw = '';
                     const col3 = cols[3] ? cols[3].trim() : '';
                     const isCol3Numeric = /^\d+$/.test(col3);
                     
@@ -587,17 +563,13 @@
                     }
 
                     if (existingTask) {
-                        if (statusApp === 'Concluída' && existingTask.statusAnalise !== 'Concluída') {
-                            existingTask.statusAnalise = 'Concluída';
-                        }
+                        if (statusApp === 'Concluída' && existingTask.statusAnalise !== 'Concluída') existingTask.statusAnalise = 'Concluída';
                         if (weekRaw && !existingTask.semana) existingTask.semana = weekRaw;
                         
                         if (ocCount && parseInt(ocCount) > 0) {
                             const sheetQty = parseInt(ocCount);
                             const currentQty = existingTask.ocorrencias ? existingTask.ocorrencias.length : 0;
-                            
                             if (!existingTask.ocorrencias) existingTask.ocorrencias = [];
-
                             if (sheetQty > currentQty) {
                                 const diff = sheetQty - currentQty;
                                 for(let i=0; i<diff; i++) {
@@ -610,17 +582,11 @@
                                 }
                             }
                         }
-                         
-                        if (!existingTask.observacoes.includes('Atualizado via planilha')) {
-                             existingTask.observacoes += ' [Atualizado via planilha]';
-                        }
+                        if (!existingTask.observacoes.includes('Atualizado via planilha')) existingTask.observacoes += ' [Atualizado via planilha]';
                         updatedCount++;
-
                     } else {
                         let obs = '';
-                        if (statusRaw && statusRaw.toLowerCase().includes('desconectado')) {
-                            obs += '[IMPORTADO]: Status original "Desconectado". ';
-                        }
+                        if (statusRaw && statusRaw.toLowerCase().includes('desconectado')) obs += '[IMPORTADO]: Status original "Desconectado". ';
                         if (colaborador) obs += `Colaborador: ${colaborador}. `;
 
                         let initialOcorrencias = [];
@@ -655,43 +621,6 @@
                 this.ui.showToast(`Processamento: ${count} criadas, ${updatedCount} atualizadas.`);
             },
 
-            exportData() {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.data));
-                const downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", "backup_monitoramento_" + new Date().toISOString().split('T')[0] + ".json");
-                document.body.appendChild(downloadAnchorNode);
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
-                this.ui.showToast('Backup baixado com sucesso!');
-            },
-
-            importData(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const imported = JSON.parse(e.target.result);
-                        if (imported.tasks && Array.isArray(imported.tasks)) {
-                            if(confirm('Isso irá substituir seus dados atuais pelos do backup. Continuar?')) {
-                                this.data.tasks = imported.tasks;
-                                this.data.archived = imported.archived || [];
-                                this.saveData();
-                                this.ui.showToast('Dados restaurados com sucesso!');
-                            }
-                        } else {
-                            alert('Arquivo inválido.');
-                        }
-                    } catch (error) {
-                        alert('Erro ao ler arquivo JSON.');
-                    }
-                };
-                reader.readAsText(file);
-            },
-
-            // --- RENDER ---
-            
             renderArchiveList() {
                 const list = document.getElementById('archive-list');
                 list.innerHTML = '';
@@ -728,19 +657,15 @@
                     return matchCondo && matchBackup && matchAnalise;
                 });
 
-                const weekOccurrences = this.data.tasks.reduce((acc, t) => {
-                    return acc + (t.ocorrencias ? t.ocorrencias.length : 0);
-                }, 0);
+                const weekOccurrences = this.data.tasks.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
 
                 document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
                 document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
                 document.getElementById('analises-concluidas').textContent = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length;
-                
                 document.getElementById('total-ocorrencias-semana').textContent = weekOccurrences;
                 
                 const concludedTasksInWeek = this.data.tasks.filter(t => t.statusAnalise === 'Concluída');
                 const occInConcluded = concludedTasksInWeek.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
-                
                 const avg = concludedTasksInWeek.length ? (occInConcluded / concludedTasksInWeek.length).toFixed(1) : "0.0";
                 document.getElementById('produtividade-semanal').textContent = avg;
 
@@ -748,17 +673,10 @@
                 container.innerHTML = '';
                 
                 if (filtered.length === 0) {
-                    container.innerHTML = `
-                        <div class="col-span-full text-center py-12 bg-slate-100 dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-600">
-                            <p class="text-slate-500 dark:text-slate-400 text-lg">Nenhuma análise encontrada com estes filtros.</p>
-                        </div>
-                    `;
+                    container.innerHTML = `<div class="col-span-full text-center py-12 bg-slate-100 dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-600"><p class="text-slate-500 dark:text-slate-400 text-lg">Nenhuma análise encontrada com estes filtros.</p></div>`;
                 } else {
-                    filtered.forEach(task => {
-                        container.appendChild(this.ui.createTaskCard(task));
-                    });
+                    filtered.forEach(task => container.appendChild(this.ui.createTaskCard(task)));
                 }
-
                 this.charts.update();
             },
 
@@ -770,13 +688,10 @@
                     'Concluído': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
                     'Concluída': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
                 },
-
                 createTaskCard(task) {
                     const div = document.createElement('div');
                     div.className = 'bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition flex flex-col relative overflow-hidden';
-                    
                     const borderClass = task.statusAnalise === 'Concluída' ? 'bg-emerald-500' : (task.statusAnalise === 'Pendente' ? 'bg-slate-300' : 'bg-orange-500');
-                    
                     const obsAlert = task.observacoes ? `<span class="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-2" title="${task.observacoes}">Obs</span>` : '';
                     const weekBadge = task.semana ? `<span class="absolute top-3 right-3 text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-1 rounded uppercase tracking-wide">${task.semana}</span>` : '';
 
@@ -784,213 +699,107 @@
                     if (task.ocorrencias && task.ocorrencias.length > 0) {
                         occurrencesHTML += `<div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1">`;
                         task.ocorrencias.forEach(oc => {
-                            occurrencesHTML += `
-                                <div class="text-xs text-slate-600 dark:text-slate-400">
-                                    <span class="font-mono font-bold text-brand-orange">${oc.horarioInicial || '--:--'}</span>
-                                    <span class="truncate"> - ${oc.desc}</span>
-                                </div>
-                            `;
+                            occurrencesHTML += `<div class="text-xs text-slate-600 dark:text-slate-400"><span class="font-mono font-bold text-brand-orange">${oc.horarioInicial || '--:--'}</span><span class="truncate"> - ${oc.desc}</span></div>`;
                         });
                         occurrencesHTML += `</div>`;
                     }
 
                     div.innerHTML = `
-                        <div class="absolute top-0 left-0 w-1 h-full ${borderClass}"></div>
-                        ${weekBadge}
+                        <div class="absolute top-0 left-0 w-1 h-full ${borderClass}"></div>${weekBadge}
                         <div class="pl-3 pt-1">
-                            <div class="flex justify-between items-start mb-3 pr-12">
-                                <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">${task.condominio} ${obsAlert}</h3>
-                            </div>
-                            
-                            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                ${new Date(task.dataAnalise + 'T00:00:00').toLocaleDateString('pt-BR')}
-                            </p>
-
+                            <div class="flex justify-between items-start mb-3 pr-12"><h3 class="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">${task.condominio} ${obsAlert}</h3></div>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>${new Date(task.dataAnalise + 'T00:00:00').toLocaleDateString('pt-BR')}</p>
                             <div class="space-y-3 mb-4">
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Backup</span>
-                                    <select onchange="App.updateStatus(${task.id}, 'backup', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.ui.statusColors[task.statusBackup] || 'bg-slate-100 text-slate-600'}">
-                                        <option value="Pendente" ${task.statusBackup==='Pendente'?'selected':''}>Pendente</option>
-                                        <option value="Em Andamento" ${task.statusBackup==='Em Andamento'?'selected':''}>Baixando</option>
-                                        <option value="Concluído" ${task.statusBackup==='Concluído'?'selected':''}>Salvo</option>
-                                    </select>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Análise</span>
-                                    <select onchange="App.updateStatus(${task.id}, 'analise', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.ui.statusColors[task.statusAnalise] || 'bg-slate-100 text-slate-600'}">
-                                        <option value="Pendente" ${task.statusAnalise==='Pendente'?'selected':''}>Pendente</option>
-                                        <option value="Em Análise" ${task.statusAnalise==='Em Análise'?'selected':''}>Em Análise</option>
-                                        <option value="Concluída" ${task.statusAnalise==='Concluída'?'selected':''}>Concluída</option>
-                                    </select>
-                                </div>
+                                <div class="flex justify-between items-center text-sm"><span class="text-slate-500 dark:text-slate-400 font-medium">Backup</span><select onchange="App.updateStatus(${task.id}, 'backup', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.statusColors[task.statusBackup] || 'bg-slate-100 text-slate-600'}"><option value="Pendente" ${task.statusBackup==='Pendente'?'selected':''}>Pendente</option><option value="Em Andamento" ${task.statusBackup==='Em Andamento'?'selected':''}>Baixando</option><option value="Concluído" ${task.statusBackup==='Concluído'?'selected':''}>Salvo</option></select></div>
+                                <div class="flex justify-between items-center text-sm"><span class="text-slate-500 dark:text-slate-400 font-medium">Análise</span><select onchange="App.updateStatus(${task.id}, 'analise', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.statusColors[task.statusAnalise] || 'bg-slate-100 text-slate-600'}"><option value="Pendente" ${task.statusAnalise==='Pendente'?'selected':''}>Pendente</option><option value="Em Análise" ${task.statusAnalise==='Em Análise'?'selected':''}>Em Análise</option><option value="Concluída" ${task.statusAnalise==='Concluída'?'selected':''}>Concluída</option></select></div>
                             </div>
-
                             ${occurrencesHTML}
-
                             <div class="flex items-center justify-between mt-4">
-                                <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 p-2 rounded">
-                                    <span class="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 rounded">${task.ocorrencias ? task.ocorrencias.length : 0}</span>
-                                    Ocorrências
-                                </div>
-                                
-                                <div class="flex gap-1">
-                                    <button onclick="App.archiveTask(${task.id})" class="p-1 text-slate-400 hover:text-blue-500 transition-colors" title="Arquivar">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 00-2-2V8m-9 4h4"></path></svg>
-                                    </button>
-                                    <button onclick="App.deleteTask(${task.id})" class="p-1 text-slate-400 hover:text-red-500 transition-colors" title="Excluir">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
+                                <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 p-2 rounded"><span class="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 rounded">${task.ocorrencias ? task.ocorrencias.length : 0}</span> Ocorrências</div>
+                                <div class="flex gap-1"><button onclick="App.archiveTask(${task.id})" class="p-1 text-slate-400 hover:text-blue-500 transition-colors" title="Arquivar"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 00-2-2V8m-9 4h4"></path></svg></button><button onclick="App.deleteTask(${task.id})" class="p-1 text-slate-400 hover:text-red-500 transition-colors" title="Excluir"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div>
                             </div>
-
-                            <button onclick="App.events.openOcorrenciaModal(${task.id})" class="mt-3 w-full bg-slate-100 dark:bg-slate-700 hover:bg-brand-orange hover:text-white dark:hover:bg-brand-orange text-slate-700 dark:text-slate-200 font-bold py-2 rounded-lg transition-colors text-sm flex items-center justify-center gap-2 group">
-                                <svg class="w-4 h-4 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                Detalhes / Editar
-                            </button>
-                        </div>
-                    `;
+                            <button onclick="App.events.openOcorrenciaModal(${task.id})" class="mt-3 w-full bg-slate-100 dark:bg-slate-700 hover:bg-brand-orange hover:text-white dark:hover:bg-brand-orange text-slate-700 dark:text-slate-200 font-bold py-2 rounded-lg transition-colors text-sm flex items-center justify-center gap-2 group"><svg class="w-4 h-4 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Detalhes / Editar</button>
+                        </div>`;
                     return div;
                 },
-
                 showToast(msg, type = 'success') {
                     const toast = document.getElementById('toast');
                     const icon = document.getElementById('toast-icon');
                     const text = document.getElementById('toast-message');
-                    
                     text.textContent = msg;
                     icon.textContent = type === 'success' ? '✅' : (type === 'error' ? '🗑️' : 'ℹ️');
-                    
                     toast.classList.remove('translate-y-20', 'opacity-0');
-                    setTimeout(() => {
-                        toast.classList.add('translate-y-20', 'opacity-0');
-                    }, 3000);
+                    setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
                 },
-
                 openModal(id) { document.getElementById(id).classList.remove('hidden'); },
                 closeModal(id) { document.getElementById(id).classList.add('hidden'); }
             },
-
             charts: {
                 instances: {},
                 setup() {
                     const ctxOc = document.getElementById('ocorrenciasChart').getContext('2d');
-                    this.instances.ocorrencias = new Chart(ctxOc, {
-                        type: 'bar',
-                        data: { labels: [], datasets: [{ label: 'Ocorrências', data: [], backgroundColor: '#f26324', borderRadius: 4 }] },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: { 
-                                y: { beginAtZero: true, grid: { display: false } },
-                                x: { grid: { display: false } }
-                            }
-                        }
-                    });
-
+                    this.instances.ocorrencias = new Chart(ctxOc, { type: 'bar', data: { labels: [], datasets: [{ label: 'Ocorrências', data: [], backgroundColor: '#f26324', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } } });
                     const ctxPer = document.getElementById('periodChart').getContext('2d');
-                    this.instances.period = new Chart(ctxPer, {
-                        type: 'bar',
-                        data: { labels: [], datasets: [{ label: 'Total', data: [], backgroundColor: '#f7b41e', borderRadius: 4 }] },
-                        options: { responsive: true, maintainAspectRatio: false }
-                    });
+                    this.instances.period = new Chart(ctxPer, { type: 'bar', data: { labels: [], datasets: [{ label: 'Total', data: [], backgroundColor: '#f7b41e', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false } });
                 },
                 update() {
                     const data = App.data.tasks.reduce((acc, t) => {
-                        if (t.ocorrencias && t.ocorrencias.length > 0) {
-                            acc[t.condominio] = (acc[t.condominio] || 0) + t.ocorrencias.length;
-                        }
+                        if (t.ocorrencias && t.ocorrencias.length > 0) acc[t.condominio] = (acc[t.condominio] || 0) + t.ocorrencias.length;
                         return acc;
                     }, {});
-
                     const sorted = Object.entries(data).sort((a,b) => b[1] - a[1]).slice(0, 7);
-
                     this.instances.ocorrencias.data.labels = sorted.map(i => i[0]);
                     this.instances.ocorrencias.data.datasets[0].data = sorted.map(i => i[1]);
-                    
                     const isDark = document.documentElement.classList.contains('dark');
                     const color = isDark ? '#f26324' : '#f26324';
-                    
                     this.instances.ocorrencias.data.datasets[0].backgroundColor = color;
                     this.instances.ocorrencias.options.scales.x.ticks = { color: isDark ? '#cbd5e1' : '#64748b' };
                     this.instances.ocorrencias.update();
                 }
             },
-
             events: {
                 setup() {
-                    ['filtro-condominio', 'filtro-backup', 'filtro-analise'].forEach(id => {
-                        document.getElementById(id).addEventListener('input', () => App.render());
-                    });
-
-                    document.getElementById('add-task-btn').addEventListener('click', () => {
-                        document.getElementById('task-form').reset();
-                        document.getElementById('form-data-analise').valueAsDate = new Date();
-                        App.ui.openModal('task-modal');
-                    });
+                    ['filtro-condominio', 'filtro-backup', 'filtro-analise'].forEach(id => { document.getElementById(id).addEventListener('input', () => App.render()); });
+                    document.getElementById('add-task-btn').addEventListener('click', () => { document.getElementById('task-form').reset(); document.getElementById('form-data-analise').valueAsDate = new Date(); App.ui.openModal('task-modal'); });
                     document.getElementById('cancel-btn').addEventListener('click', () => App.ui.closeModal('task-modal'));
                     document.getElementById('cancel-btn-2').addEventListener('click', () => App.ui.closeModal('task-modal'));
-
                     document.getElementById('task-form').addEventListener('submit', (e) => {
                         e.preventDefault();
-                        App.addTask({
-                            condominio: document.getElementById('form-condominio').value,
-                            data: document.getElementById('form-data-analise').value,
-                            semana: document.getElementById('form-semana').value,
-                            obs: document.getElementById('form-observacoes').value
-                        });
+                        App.addTask({ condominio: document.getElementById('form-condominio').value, data: document.getElementById('form-data-analise').value, semana: document.getElementById('form-semana').value, obs: document.getElementById('form-observacoes').value });
                         App.ui.closeModal('task-modal');
-                        App.saveData(); 
+                        App.saveData();
                         App.ui.showToast('Análise adicionada!');
                     });
-
                     const condoInput = document.getElementById('form-condominio');
                     const list = document.getElementById('autocomplete-list');
-                    
                     condoInput.addEventListener('input', function() {
                         const val = this.value;
                         list.innerHTML = '';
                         if (!val) { list.classList.add('hidden'); return; }
-                        
                         const existing = [...new Set(App.data.tasks.map(t => t.condominio))];
                         const matches = existing.filter(c => c.toLowerCase().includes(val.toLowerCase()));
-                        
                         if (matches.length > 0) {
                             list.classList.remove('hidden');
                             matches.forEach(match => {
                                 const div = document.createElement('div');
                                 div.className = 'p-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer text-sm dark:text-slate-200';
                                 div.textContent = match;
-                                div.onclick = () => {
-                                    condoInput.value = match;
-                                    list.classList.add('hidden');
-                                };
+                                div.onclick = () => { condoInput.value = match; list.classList.add('hidden'); };
                                 list.appendChild(div);
                             });
-                        } else {
-                            list.classList.add('hidden');
-                        }
+                        } else { list.classList.add('hidden'); }
                     });
-
                     const menuBtn = document.getElementById('actions-menu-btn');
                     const menu = document.getElementById('actions-menu');
                     menuBtn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); });
                     document.addEventListener('click', (e) => { if (!menu.contains(e.target) && e.target !== menuBtn) menu.classList.add('hidden'); });
-
                     document.getElementById('theme-toggle').addEventListener('click', () => App.toggleTheme());
-
                     this.setupOcorrenciaModal();
                     this.setupPeriodModal();
-
                     document.getElementById('excel-import-btn').addEventListener('click', () => App.ui.openModal('excel-import-modal'));
                     document.getElementById('excel-import-close-btn').addEventListener('click', () => App.ui.closeModal('excel-import-modal'));
                     document.getElementById('process-import-btn').addEventListener('click', () => App.processExcelData());
-
-                    document.getElementById('archive-btn').addEventListener('click', () => {
-                        App.renderArchiveList();
-                        App.ui.openModal('archive-modal');
-                    });
+                    document.getElementById('archive-btn').addEventListener('click', () => { App.renderArchiveList(); App.ui.openModal('archive-modal'); });
                     document.getElementById('archive-close-btn').addEventListener('click', () => App.ui.closeModal('archive-modal'));
                     document.getElementById('clear-archive-btn').addEventListener('click', () => {
                         if(confirm('Isso apagará permanentemente o histórico. Continuar?')) {
@@ -999,94 +808,59 @@
                             App.renderArchiveList();
                         }
                     });
-
                     document.getElementById('export-data-btn').addEventListener('click', () => App.exportData());
                     document.getElementById('import-data-btn').addEventListener('click', () => document.getElementById('file-input').click());
                     document.getElementById('file-input').addEventListener('change', (e) => App.importData(e));
                 },
-
                 setupOcorrenciaModal() {
                     const catSelect = document.getElementById('add-ocorrencia-categoria');
-                    App.data.categories.forEach(c => {
-                        const opt = document.createElement('option');
-                        opt.value = c; opt.textContent = c;
-                        catSelect.appendChild(opt);
-                    });
-
+                    App.data.categories.forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; catSelect.appendChild(opt); });
                     document.getElementById('ocorrencia-cancel-btn').addEventListener('click', () => App.ui.closeModal('ocorrencia-modal'));
-                    
                     document.getElementById('add-ocorrencia-btn').addEventListener('click', () => {
                         const cat = document.getElementById('add-ocorrencia-categoria').value;
                         const desc = document.getElementById('add-ocorrencia-desc').value;
                         const ini = document.getElementById('add-horario-inicial').value;
                         const fim = document.getElementById('add-horario-final').value;
-
                         if (!desc) return alert('Adicione uma descrição');
-
                         const item = { categoria: cat, desc, horarioInicial: ini, horarioFinal: fim };
-                        App.events.appendOcorrenciaToModal(item); // Updated to call method on App.events context correctly
-                        
+                        App.events.appendOcorrenciaToModal(item);
                         document.getElementById('add-ocorrencia-desc').value = '';
                         document.getElementById('add-horario-inicial').value = '';
                         document.getElementById('add-horario-final').value = '';
                     });
-
                     document.getElementById('ocorrencia-form').addEventListener('submit', (e) => {
                         e.preventDefault();
                         const taskId = document.getElementById('ocorrencia-task-id').value;
                         const items = Array.from(document.getElementById('ocorrencia-list').children).map(div => JSON.parse(div.dataset.item));
-                        
                         let task = App.data.tasks.find(t => t.id == taskId);
-                        
-                        if (!task) {
-                            task = App.data.archived.find(t => t.id == taskId);
-                        }
-                        
+                        if (!task) { task = App.data.archived.find(t => t.id == taskId); }
                         if(task) {
                             task.ocorrencias = items;
                             if(items.length > 0 && task.statusAnalise !== 'Concluída') task.statusAnalise = 'Em Análise'; 
-                            
                             App.saveData();
-                            
-                            if(App.data.archived.find(t => t.id == taskId)) {
-                                App.renderArchiveList();
-                            }
-                            
+                            if(App.data.archived.find(t => t.id == taskId)) { App.renderArchiveList(); }
                             App.ui.closeModal('ocorrencia-modal');
                             App.ui.showToast('Ocorrências atualizadas');
                         }
                     });
                 },
-
                 openOcorrenciaModal(taskId) {
-                    // Busca primeiro nas ativas, depois nas arquivadas
                     let task = App.data.tasks.find(t => t.id == taskId);
-                    if (!task) {
-                        task = App.data.archived.find(t => t.id == taskId);
-                    }
-                    
+                    if (!task) { task = App.data.archived.find(t => t.id == taskId); }
                     if (!task) return;
-
                     document.getElementById('ocorrencia-task-id').value = task.id;
                     document.getElementById('modal-condo-name').textContent = task.condominio + (task.archivedDate ? " (Arquivado)" : "");
                     const list = document.getElementById('ocorrencia-list');
                     list.innerHTML = '';
-
-                    if (task.ocorrencias) {
-                        task.ocorrencias.forEach(occ => this.appendOcorrenciaToModal(occ));
-                    }
+                    if (task.ocorrencias) { task.ocorrencias.forEach(occ => this.appendOcorrenciaToModal(occ)); }
                     App.ui.openModal('ocorrencia-modal');
                 },
-
                 appendOcorrenciaToModal(item) {
                     const list = document.getElementById('ocorrencia-list');
                     const div = document.createElement('div');
                     div.className = 'bg-white dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-600 flex justify-between items-start shadow-sm group';
                     div.dataset.item = JSON.stringify(item);
-                    
-                    // Botão de editar
                     const editBtn = `<button type="button" class="text-blue-400 hover:text-blue-600 mr-2" onclick="App.events.editOcorrencia(this)">✏️</button>`;
-                    
                     div.innerHTML = `
                         <div class="flex-grow">
                             <span class="text-xs font-bold text-brand-orange uppercase tracking-wide">${item.categoria}</span>
@@ -1100,34 +874,25 @@
                     `;
                     list.appendChild(div);
                 },
-                
                 editOcorrencia(btn) {
                     const div = btn.closest('div.bg-white');
                     const item = JSON.parse(div.dataset.item);
-                    
-                    // Popula os campos
                     document.getElementById('add-ocorrencia-categoria').value = item.categoria;
                     document.getElementById('add-ocorrencia-desc').value = item.desc;
                     document.getElementById('add-horario-inicial').value = item.horarioInicial || '';
                     document.getElementById('add-horario-final').value = item.horarioFinal || '';
-                    
-                    // Remove da lista (o usuário deve clicar em Adicionar novamente para confirmar a edição)
                     div.remove();
                     document.getElementById('add-ocorrencia-desc').focus();
                 },
-
                 setupPeriodModal() {
                     document.getElementById('period-analysis-btn').addEventListener('click', () => App.ui.openModal('period-analysis-modal'));
                     document.getElementById('period-analysis-close-btn').addEventListener('click', () => App.ui.closeModal('period-analysis-modal'));
-
                     const setDates = (type) => {
                          const today = new Date();
                          let start = new Date(today);
                          let end = new Date(today);
-
                          if (type === 'week') {
-                            const day = today.getDay(); // 0 (Sun) - 6 (Sat)
-                            // Assume week starts Sunday
+                            const day = today.getDay(); 
                             const diff = today.getDate() - day;
                             start.setDate(diff);
                             end.setDate(diff + 6);
@@ -1138,11 +903,9 @@
                              start = new Date(today.getFullYear(), 0, 1);
                              end = new Date(today.getFullYear(), 11, 31);
                          }
-
                          document.getElementById('period-start-date').value = start.toISOString().split('T')[0];
                          document.getElementById('period-end-date').value = end.toISOString().split('T')[0];
                     };
-
                     document.getElementById('preset-week-btn').addEventListener('click', () => setDates('week'));
                     document.getElementById('preset-month-btn').addEventListener('click', () => setDates('month'));
                     document.getElementById('preset-year-btn').addEventListener('click', () => setDates('year'));
@@ -1151,31 +914,20 @@
                         const start = document.getElementById('period-start-date').value;
                         const end = document.getElementById('period-end-date').value;
                         if(!start || !end) return alert('Selecione as datas');
-
-                        // Filtrar
                         const sDate = new Date(start);
                         const eDate = new Date(end); eDate.setHours(23,59,59);
-
                         const filtered = App.data.tasks.filter(t => {
                             const d = new Date(t.dataAnalise);
                             return d >= sDate && d <= eDate;
                         });
-                        
                         const concluidas = filtered.filter(t => t.statusAnalise === 'Concluída');
-
-                        // KPIs
                         document.getElementById('period-results-content').classList.remove('hidden');
                         document.getElementById('period-total').textContent = filtered.length; 
                         document.getElementById('period-concluidas').textContent = concluidas.length;
-                        
-                        // Contar ocorrências apenas nas concluídas ou no total? Normalmente no total do periodo.
                         const totalOcc = filtered.reduce((acc, t) => acc + (t.ocorrencias?.length || 0), 0);
                         document.getElementById('period-oc').textContent = totalOcc;
-
-                        // Lista - Prioriza mostrar Concluídas em destaque
                         const list = document.getElementById('period-task-list');
                         list.innerHTML = filtered.sort((a,b) => {
-                            // Sort by status (Concluída first) then date
                             if (a.statusAnalise === 'Concluída' && b.statusAnalise !== 'Concluída') return -1;
                             if (a.statusAnalise !== 'Concluída' && b.statusAnalise === 'Concluída') return 1;
                             return 0;
@@ -1195,16 +947,12 @@
                                 </div>
                             </li>
                         `}).join('');
-
-                        // Chart Update
                         const occByCondo = filtered.reduce((acc, t) => {
                             if(t.ocorrencias?.length > 0) acc[t.condominio] = (acc[t.condominio]||0) + t.ocorrencias.length;
                             return acc;
                         }, {});
-                        
                         const labels = Object.keys(occByCondo);
                         const data = Object.values(occByCondo);
-                        
                         App.charts.instances.period.data.labels = labels;
                         App.charts.instances.period.data.datasets[0].data = data;
                         App.charts.instances.period.update();
@@ -1212,7 +960,6 @@
                 },
             }
         };
-
         document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
