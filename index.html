@@ -708,7 +708,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 initialOcorrencias.push({
                                     categoria: 'Importada', 
                                     desc: 'Ocorrência registrada via importação',
-                                    horarioInicial: '00:00:00',
+                                    horarioInicial: '00:00:00', // Corrigido
                                     horarioFinal: '00:00:00'
                                 });
                             }
@@ -863,6 +863,21 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     const obsAlert = task.observacoes ? `<span class="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-2" title="${task.observacoes}">Obs</span>` : '';
                     const weekBadge = task.semana ? `<span class="absolute top-3 right-3 text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-1 rounded uppercase tracking-wide">${task.semana}</span>` : '';
 
+                    // Geração da lista de ocorrências (visualização direta no card)
+                    let occurrencesHTML = '';
+                    if (task.ocorrencias && task.ocorrencias.length > 0) {
+                        occurrencesHTML += `<div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1">`;
+                        task.ocorrencias.forEach(oc => {
+                            occurrencesHTML += `
+                                <div class="text-xs text-slate-600 dark:text-slate-400">
+                                    <span class="font-mono font-bold text-brand-orange">${oc.horarioInicial || '--:--'}</span>
+                                    <span class="truncate"> - ${oc.desc}</span>
+                                </div>
+                            `;
+                        });
+                        occurrencesHTML += `</div>`;
+                    }
+
                     div.innerHTML = `
                         <div class="absolute top-0 left-0 w-1 h-full ${borderClass}"></div>
                         ${weekBadge}
@@ -879,7 +894,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                             <div class="space-y-3 mb-4">
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-slate-500 dark:text-slate-400 font-medium">Backup</span>
-                                    <select onchange="App.updateStatus(${task.id}, 'backup', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.ui.statusColors[task.statusBackup] || 'bg-slate-100 text-slate-600'}">
+                                    <select onchange="App.updateStatus(${task.id}, 'backup', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.statusColors[task.statusBackup] || 'bg-slate-100 text-slate-600'}">
                                         <option value="Pendente" ${task.statusBackup==='Pendente'?'selected':''}>Pendente</option>
                                         <option value="Em Andamento" ${task.statusBackup==='Em Andamento'?'selected':''}>Baixando</option>
                                         <option value="Concluído" ${task.statusBackup==='Concluído'?'selected':''}>Salvo</option>
@@ -887,7 +902,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-slate-500 dark:text-slate-400 font-medium">Análise</span>
-                                    <select onchange="App.updateStatus(${task.id}, 'analise', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.ui.statusColors[task.statusAnalise] || 'bg-slate-100 text-slate-600'}">
+                                    <select onchange="App.updateStatus(${task.id}, 'analise', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-brand-orange ${this.statusColors[task.statusAnalise] || 'bg-slate-100 text-slate-600'}">
                                         <option value="Pendente" ${task.statusAnalise==='Pendente'?'selected':''}>Pendente</option>
                                         <option value="Em Análise" ${task.statusAnalise==='Em Análise'?'selected':''}>Em Análise</option>
                                         <option value="Concluída" ${task.statusAnalise==='Concluída'?'selected':''}>Concluída</option>
@@ -895,25 +910,12 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 p-2 rounded">
-                                    <span class="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 rounded">${task.ocorrencias ? task.ocorrencias.length : 0}</span>
-                                    Ocorrências
-                                </div>
-                                
-                                <div class="flex gap-1">
-                                    <button onclick="App.archiveTask(${task.id})" class="p-1 text-slate-400 hover:text-blue-500 transition-colors" title="Arquivar">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                                    </button>
-                                    <button onclick="App.deleteTask(${task.id})" class="p-1 text-slate-400 hover:text-red-500 transition-colors" title="Excluir">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
+                            <!-- VISUALIZAÇÃO DIRETA DAS OCORRÊNCIAS -->
+                            ${occurrencesHTML}
 
                             <button onclick="App.events.openOcorrenciaModal(${task.id})" class="mt-3 w-full bg-slate-100 dark:bg-slate-700 hover:bg-brand-orange hover:text-white dark:hover:bg-brand-orange text-slate-700 dark:text-slate-200 font-bold py-2 rounded-lg transition-colors text-sm flex items-center justify-center gap-2 group">
                                 <svg class="w-4 h-4 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                Detalhes / Ocorrências
+                                Detalhes / Editar
                             </button>
                         </div>
                     `;
