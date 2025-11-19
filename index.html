@@ -118,7 +118,7 @@
                     <span class="bg-red-100 text-red-600 p-1 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></span>
                 </div>
                 <p id="total-ocorrencias-semana" class="text-3xl font-bold text-red-500">0</p>
-                <p class="text-xs text-slate-400 mt-1 text-right">Segunda a Sexta</p>
+                <p class="text-xs text-slate-400 mt-1 text-right">Total no Painel</p>
             </div>
         </section>
 
@@ -533,7 +533,7 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     observacoes: taskData.obs || '',
                     statusBackup: 'Pendente',
                     statusAnalise: taskData.statusAnalise || 'Pendente',
-                    ocorrencias: [],
+                    ocorrencias: taskData.ocorrencias || [], // Inicializar com ocorrências se fornecido
                     expanded: true
                 };
                 this.data.tasks.unshift(newTask);
@@ -613,30 +613,17 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     }
 
                     // Captura a Semana (Coluna 0)
-                    // Ex: "Semana 47"
                     const weekRaw = cols[0] ? cols[0].trim() : '';
 
-                    // *** CORREÇÃO PRINCIPAL: LÓGICA DE CABEÇALHO ***
-                    // Ignora apenas se a coluna 1 (onde fica a data) for literalmente "Dia" ou "Data"
-                    // ou se NÃO for uma data válida (ex: título da coluna)
+                    // *** LÓGICA DE CABEÇALHO ***
                     const col1 = cols[1] ? cols[1].trim() : '';
                     if (col1 === 'Dia' || col1 === 'Data' || col1.toLowerCase().includes('unidade')) return;
                     
-                    // Verifica se a col1 parece uma data DD/MM/YYYY
                     const isDate = /^\d{2}\/\d{2}\/\d{4}$/.test(col1);
                     if (!isDate) {
-                         // Se não for data, assume que é cabeçalho ou lixo e ignora
                          return; 
                     }
                     
-                    // Estrutura esperada:
-                    // 0: Semana (Ex: Semana 47)
-                    // 1: Dia (Ex: 14/11/2025)
-                    // 2: Unidade (Ex: ALPHAVIEW)
-                    // 3: OC (Ex: 2 ou vazio/tab ou Colaborador se tab engolido)
-                    // 4: Colaborador (Ex: Alisson)
-                    // 5: Status (Ex: Pendente)
-
                     if (cols.length < 3) return; // Linha inválida
 
                     const dataRaw = cols[1]; 
@@ -649,29 +636,25 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
 
                     const col3 = cols[3] ? cols[3].trim() : '';
                     
-                    // Verifica se Col 3 é número (OC) ou texto (Nome)
-                    // Se for número, é a contagem de OC. Se for texto longo, é o nome (e OC estava vazio)
                     const isCol3Numeric = /^\d+$/.test(col3);
                     
                     if (isCol3Numeric && col3 !== '') {
-                        // Caso: Tem OC
                         ocCount = col3;
                         colaborador = cols[4] || '';
                         statusRaw = cols[5] || '';
                     } else {
-                        // Caso: OC Vazio (a coluna 3 já é o colaborador)
                         ocCount = ''; // Sem OC
-                        colaborador = col3; // Col 3 é o nome
-                        statusRaw = cols[4] || ''; // Status deslocado
+                        colaborador = col3; 
+                        statusRaw = cols[4] || ''; 
                     }
 
-                    // Concatenar status se houver "Alisson Finalizado" na mesma coluna
+                    // Concatenar status
                     if (colaborador.includes('Finalizado') || colaborador.includes('Pendente')) {
                         statusRaw = colaborador.split(' ').pop(); // Pega a ultima palavra
                         colaborador = colaborador.replace(statusRaw, '').trim();
                     }
 
-                    // Converter Data DD/MM/YYYY para YYYY-MM-DD
+                    // Converter Data
                     let dataIso = '';
                     if (dataRaw && dataRaw.includes('/')) {
                         const [d, m, y] = dataRaw.trim().split('/');
@@ -679,6 +662,15 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     } else {
                         dataIso = new Date().toISOString().split('T')[0];
                     }
+
+                    // VERIFICAÇÃO DE DUPLICIDADE
+                    // Ignora se já existe uma tarefa com mesmo Condomínio E Data
+                    const exists = this.data.tasks.some(t => 
+                        t.condominio.toLowerCase() === unidadeRaw.trim().toLowerCase() && 
+                        t.dataAnalise === dataIso
+                    );
+                    
+                    if (exists) return; // Pula esta iteração do loop
 
                     // Mapear Status
                     let statusApp = 'Pendente';
@@ -695,17 +687,29 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     
                     if (colaborador) obs += `Colaborador: ${colaborador}. `;
 
-                    // Verifica Ocorrências
-                    if (ocCount && ocCount !== '' && ocCount !== '0') {
-                        obs += `[IMPORTADO]: Planilha indicou OC: ${ocCount}. `;
+                    // LÓGICA DE OCORRÊNCIAS IMPORTADAS (OC > 0)
+                    let initialOcorrencias = [];
+                    if (ocCount && !isNaN(ocCount) && parseInt(ocCount) > 0) {
+                        const qtd = parseInt(ocCount);
+                        // Cria N itens de ocorrência para que a contagem funcione
+                        for(let i=0; i<qtd; i++) {
+                            initialOcorrencias.push({
+                                categoria: 'Importada', 
+                                desc: 'Ocorrência importada da planilha (sem detalhes)',
+                                horarioInicial: '',
+                                horarioFinal: ''
+                            });
+                        }
+                        obs += `[IMPORTADO]: ${qtd} ocorrências registradas via planilha. `;
                     }
 
                     // Cria Tarefa
                     this.addTask({
                         condominio: unidadeRaw.trim(),
                         data: dataIso,
-                        semana: weekRaw, // Armazena a semana
+                        semana: weekRaw, 
                         statusAnalise: statusApp,
+                        ocorrencias: initialOcorrencias, // Passa as ocorrências geradas
                         obs: obs.trim()
                     });
                     count++;
@@ -766,19 +770,11 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                     return matchCondo && matchBackup && matchAnalise;
                 });
 
-                // CALCULO DO KPI RIGOROSO DA SEMANA
-                const { monday, friday } = this.getCurrentWeekRange();
-                const mStr = monday.toISOString().split('T')[0];
-                const fStr = friday.toISOString().split('T')[0];
-
-                // Filtra apenas tarefas que estao DENTRO do range Seg-Sex da semana atual e CONCLUÍDAS
-                const weekOccurrences = this.data.tasks
-                    .filter(t => 
-                        t.statusAnalise === 'Concluída' && 
-                        t.dataAnalise >= mStr && 
-                        t.dataAnalise <= fStr
-                    )
-                    .reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
+                // CORREÇÃO: Soma ocorrências de TODAS as tarefas visíveis no painel
+                // O filtro automático de data já removeu as velhas, então o que sobra é a semana
+                const weekOccurrences = this.data.tasks.reduce((acc, t) => {
+                    return acc + (t.ocorrencias ? t.ocorrencias.length : 0);
+                }, 0);
 
                 // Renderizar KPIs
                 document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
@@ -789,14 +785,10 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 document.getElementById('total-ocorrencias-semana').textContent = weekOccurrences;
                 
                 // Produtividade Semana (Reutiliza a lógica nova)
-                // Filtra tarefas concluidas na semana para a média
-                const tasksConcluidasNaSemana = this.data.tasks.filter(t => 
-                     t.statusAnalise === 'Concluída' && 
-                     t.dataAnalise >= mStr && 
-                     t.dataAnalise <= fStr
-                ).length;
-
-                const avg = tasksConcluidasNaSemana ? (weekOccurrences / tasksConcluidasNaSemana).toFixed(1) : "0.0";
+                const concludedTasksInWeek = this.data.tasks.filter(t => t.statusAnalise === 'Concluída');
+                const occInConcluded = concludedTasksInWeek.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
+                
+                const avg = concludedTasksInWeek.length ? (occInConcluded / concludedTasksInWeek.length).toFixed(1) : "0.0";
                 document.getElementById('produtividade-semanal').textContent = avg;
 
 
@@ -1107,12 +1099,27 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                         // Coletar itens do DOM (Hack simples para evitar estado complexo temporário)
                         const items = Array.from(document.getElementById('ocorrencia-list').children).map(div => JSON.parse(div.dataset.item));
                         
-                        // Salvar no banco
-                        const task = App.data.tasks.find(t => t.id == taskId);
+                        // Tenta achar em tarefas ativas
+                        let task = App.data.tasks.find(t => t.id == taskId);
+                        
+                        // Se não achar, tenta no arquivo morto
+                        if (!task) {
+                            task = App.data.archived.find(t => t.id == taskId);
+                        }
+                        
                         if(task) {
                             task.ocorrencias = items;
-                            if(items.length > 0 && task.statusAnalise !== 'Concluída') task.statusAnalise = 'Em Análise'; // Auto update status
+                            // Se tiver ocorrências e estiver concluída, muda para em análise? Depende da regra.
+                            // Manteremos a lógica original mas verificando status
+                            if(items.length > 0 && task.statusAnalise !== 'Concluída') task.statusAnalise = 'Em Análise'; 
+                            
                             App.saveData();
+                            
+                            // Se for arquivada, atualiza a lista do arquivo morto visualmente
+                            if(App.data.archived.find(t => t.id == taskId)) {
+                                App.events.renderArchiveList();
+                            }
+                            
                             App.ui.closeModal('ocorrencia-modal');
                             App.ui.showToast('Ocorrências atualizadas');
                         }
@@ -1120,11 +1127,16 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 },
 
                 openOcorrenciaModal(taskId) {
-                    const task = App.data.tasks.find(t => t.id == taskId);
+                    // Busca primeiro nas ativas, depois nas arquivadas
+                    let task = App.data.tasks.find(t => t.id == taskId);
+                    if (!task) {
+                        task = App.data.archived.find(t => t.id == taskId);
+                    }
+                    
                     if (!task) return;
 
                     document.getElementById('ocorrencia-task-id').value = task.id;
-                    document.getElementById('modal-condo-name').textContent = task.condominio;
+                    document.getElementById('modal-condo-name').textContent = task.condominio + (task.archivedDate ? " (Arquivado)" : "");
                     const list = document.getElementById('ocorrencia-list');
                     list.innerHTML = '';
 
@@ -1137,17 +1149,39 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                 appendOcorrenciaToModal(item) {
                     const list = document.getElementById('ocorrencia-list');
                     const div = document.createElement('div');
-                    div.className = 'bg-white dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-600 flex justify-between items-start shadow-sm';
+                    div.className = 'bg-white dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-600 flex justify-between items-start shadow-sm group';
                     div.dataset.item = JSON.stringify(item);
+                    
+                    // Botão de editar
+                    const editBtn = `<button type="button" class="text-blue-400 hover:text-blue-600 mr-2" onclick="App.events.editOcorrencia(this)">✏️</button>`;
+                    
                     div.innerHTML = `
-                        <div>
+                        <div class="flex-grow">
                             <span class="text-xs font-bold text-brand-orange uppercase tracking-wide">${item.categoria}</span>
                             <p class="text-sm dark:text-slate-200">${item.desc}</p>
-                            <p class="text-xs text-slate-400 mt-1">${item.horarioInicial || '--:--'} até ${item.horarioFinal || '--:--'}</p>
+                            <p class="text-xs text-slate-400 mt-1">${item.horarioInicial || '--:--:--'} até ${item.horarioFinal || '--:--:--'}</p>
                         </div>
-                        <button type="button" class="text-slate-400 hover:text-red-500" onclick="this.parentElement.remove()">&times;</button>
+                        <div class="flex items-center">
+                            ${editBtn}
+                            <button type="button" class="text-slate-400 hover:text-red-500 font-bold text-lg" onclick="this.parentElement.parentElement.remove()">&times;</button>
+                        </div>
                     `;
                     list.appendChild(div);
+                },
+                
+                editOcorrencia(btn) {
+                    const div = btn.closest('div.bg-white');
+                    const item = JSON.parse(div.dataset.item);
+                    
+                    // Popula os campos
+                    document.getElementById('add-ocorrencia-categoria').value = item.categoria;
+                    document.getElementById('add-ocorrencia-desc').value = item.desc;
+                    document.getElementById('add-horario-inicial').value = item.horarioInicial || '';
+                    document.getElementById('add-horario-final').value = item.horarioFinal || '';
+                    
+                    // Remove da lista (o usuário deve clicar em Adicionar novamente para confirmar a edição)
+                    div.remove();
+                    document.getElementById('add-ocorrencia-desc').focus();
                 },
 
                 setupPeriodModal() {
@@ -1260,7 +1294,10 @@ Ex: Semana 47	14/11/2025	ALPHAVIEW	Alisson	Pendente"></textarea>
                                 <p class="font-bold dark:text-white">${t.condominio} <span class="text-xs text-slate-400">(${t.semana||''})</span></p>
                                 <p class="text-xs text-slate-500">${t.dataAnalise} - ${t.ocorrencias?.length||0} ocorrências</p>
                             </div>
-                            <button onclick="App.restoreTask(${t.id})" class="text-sm text-blue-600 hover:underline font-bold">Restaurar</button>
+                            <div class="flex gap-2">
+                                <button onclick="App.events.openOcorrenciaModal(${t.id})" class="text-sm text-orange-500 hover:underline font-bold">Ver/Editar</button>
+                                <button onclick="App.restoreTask(${t.id})" class="text-sm text-blue-600 hover:underline font-bold">Restaurar</button>
+                            </div>
                         `;
                         list.appendChild(div);
                     });
