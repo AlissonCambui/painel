@@ -4,12 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Monitoramento de Minimercados</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    
+    <!-- CSS Crítico (Fallback): Garante que o site tenha cor de fundo e legibilidade 
+         mesmo se o Tailwind for bloqueado por extensões -->
+    <style>
+        body {
+            background-color: #0f172a; /* Slate 950 */
+            color: #e2e8f0; /* Slate 200 */
+            font-family: sans-serif;
+            margin: 0;
+        }
+        /* Estilo para o modal de erro de recurso, forçado via CSS nativo */
+        #resource-error-modal {
+            display: none; /* Oculto por padrão */
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .error-content {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #ef4444;
+            max-width: 400px;
+            margin: 1rem;
+        }
+        .error-btn {
+            background: #ea580c;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+    </style>
+
+    <!-- Carregamento de Scripts com Detecção de Erro (onerror) -->
+    <script src="https://cdn.tailwindcss.com" onerror="handleResourceError('Tailwind CSS')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="handleResourceError('Chart.js')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns" onerror="handleResourceError('Date Adapter')"></script>
     
     <style>
-        /* CSS Personalizado Original */
+        /* CSS Personalizado - Dark Mode (Tailwind dependente) */
         .chart-container {
             position: relative;
             width: 100%;
@@ -36,95 +78,131 @@
         .ocorrencia-item.editing .view-mode { display: none; }
         .ocorrencia-item:not(.editing) .edit-mode { display: none; }
         
-        /* Garante que o modal fique acima de tudo */
+        /* Custom Scrollbar para Dark Mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+
         .z-50 { z-index: 50; }
     </style>
+
+    <script>
+        // Função de emergência para avisar sobre bloqueadores
+        function handleResourceError(resourceName) {
+            const modal = document.getElementById('resource-error-modal');
+            const msg = document.getElementById('resource-error-msg');
+            if (modal && msg) {
+                modal.style.display = 'flex'; // Força display flex via JS inline
+                msg.innerHTML += `<p>Falha ao carregar: <strong>${resourceName}</strong></p>`;
+            }
+            console.error(`Bloqueador detectado ou falha de rede: ${resourceName}`);
+        }
+    </script>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="bg-slate-950 text-slate-200 antialiased">
+
+    <!-- Modal de Alerta de Bloqueador (Anti-AdBlock protection) -->
+    <div id="resource-error-modal">
+        <div class="error-content">
+            <h2 style="color: #ef4444; font-size: 1.5rem; margin-bottom: 1rem;">⚠️ Atenção</h2>
+            <p>Alguns recursos visuais foram bloqueados.</p>
+            <div id="resource-error-msg" style="margin: 1rem 0; color: #cbd5e1; font-size: 0.9rem;"></div>
+            <p style="font-size: 0.9rem; color: #94a3b8;">Se você usa um bloqueador de anúncios ou Brave Shield, por favor desative-o para este painel ou permita scripts de "cdn.tailwindcss.com".</p>
+            <button class="error-btn" onclick="window.location.reload()">Recarregar Página</button>
+        </div>
+    </div>
 
     <div class="container mx-auto p-4 md:p-6 lg:p-8">
         
         <header class="mb-8 text-center">
             <div class="text-4xl font-extrabold mb-2 tracking-tight" style="font-family: 'Arial Black', Arial, sans-serif;">
-                <span style="color: #f26324;">vend</span><span style="color: #f7b41e;">Perto</span>
+                <span style="color: #f97316;">vend</span><span style="color: #fbbf24;">Perto</span>
             </div>
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Painel de Monitoramento</h1>
-            <p class="text-slate-600 mt-2">Controle de backups, análises e ocorrências de minimercados.</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Painel de Monitoramento</h1>
+            <p class="text-slate-400 mt-2">Controle de backups, análises e ocorrências de minimercados.</p>
         </header>
 
         <section id="dashboard-resumo" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
-            <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                <h3 class="text-sm font-semibold text-slate-500">Solicitações Ativas</h3>
-                <p id="total-solicitacoes" class="text-3xl font-bold text-orange-600 mt-1">0</p>
+            <div class="bg-slate-800 p-4 rounded-lg shadow-lg text-center border border-slate-700">
+                <h3 class="text-sm font-semibold text-slate-400">Solicitações Ativas</h3>
+                <p id="total-solicitacoes" class="text-3xl font-bold text-orange-500 mt-1">0</p>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                <h3 class="text-sm font-semibold text-slate-500">Backups Pendentes</h3>
-                <p id="backups-pendentes" class="text-3xl font-bold text-amber-500 mt-1">0</p>
+            <div class="bg-slate-800 p-4 rounded-lg shadow-lg text-center border border-slate-700">
+                <h3 class="text-sm font-semibold text-slate-400">Backups Pendentes</h3>
+                <p id="backups-pendentes" class="text-3xl font-bold text-amber-400 mt-1">0</p>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                <h3 class="text-sm font-semibold text-slate-500">Análises Pendentes</h3>
-                <p id="analises-pendentes" class="text-3xl font-bold text-red-500 mt-1">0</p>
+            <!-- Card Alterado: De Analises Pendentes para Analises Concluídas -->
+            <div class="bg-slate-800 p-4 rounded-lg shadow-lg text-center border border-slate-700">
+                <h3 class="text-sm font-semibold text-slate-400">Análises Concluídas</h3>
+                <p id="analises-concluidas" class="text-3xl font-bold text-emerald-400 mt-1">0</p>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                <h3 class="text-sm font-semibold text-slate-500">Ocorrências (Semana)</h3>
-                <p id="total-ocorrencias-semana" class="text-3xl font-bold text-slate-700 mt-1">0</p>
+            <div class="bg-slate-800 p-4 rounded-lg shadow-lg text-center border border-slate-700">
+                <h3 class="text-sm font-semibold text-slate-400">Ocorrências (Semana)</h3>
+                <p id="total-ocorrencias-semana" class="text-3xl font-bold text-slate-200 mt-1">0</p>
             </div>
         </section>
 
         <section id="weekly-productivity" class="mb-8">
-             <div class="bg-white p-4 rounded-lg shadow-md text-center max-w-sm mx-auto">
-                <h3 class="text-sm font-semibold text-slate-500">Produtividade Semanal (Ocorrências / Análise)</h3>
-                <p id="produtividade-semanal" class="text-3xl font-bold text-emerald-600 mt-1">N/A</p>
-                <p class="text-xs text-slate-400 mt-1">Média da semana atual</p>
+             <div class="bg-slate-800 p-4 rounded-lg shadow-lg text-center max-w-sm mx-auto border border-slate-700">
+                <h3 class="text-sm font-semibold text-slate-400">Produtividade Semanal (Ocorrências / Análise)</h3>
+                <p id="produtividade-semanal" class="text-3xl font-bold text-emerald-400 mt-1">N/A</p>
+                <p class="text-xs text-slate-500 mt-1">Média da semana atual</p>
             </div>
         </section>
 
-
-        <section class="bg-white p-4 rounded-lg shadow-md mb-8">
+        <section class="bg-slate-800 p-4 rounded-lg shadow-lg mb-8 border border-slate-700">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex flex-wrap items-center gap-4 flex-grow">
-                    <input type="text" id="filtro-condominio" placeholder="Filtrar por condomínio..." class="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 flex-grow md:flex-grow-0">
-                    <input type="date" id="filtro-data" class="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
-                    <input type="number" id="filtro-semana" placeholder="Semana (Ex: 43)" class="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-32">
-                    <select id="filtro-backup" class="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                    <input type="text" id="filtro-condominio" placeholder="Filtrar por condomínio..." class="bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white placeholder-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 flex-grow md:flex-grow-0">
+                    <input type="date" id="filtro-data" class="bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                    <input type="number" id="filtro-semana" placeholder="Semana (Ex: 43)" class="bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white placeholder-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-32">
+                    <select id="filtro-backup" class="bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                         <option value="">Backup (Todos)</option>
                         <option value="Pendente">Pendente</option>
                         <option value="Em Andamento">Em Andamento</option>
                         <option value="Concluído">Concluído</option>
                     </select>
-                    <select id="filtro-analise" class="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                    <select id="filtro-analise" class="bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                         <option value="">Análise (Todos)</option>
                         <option value="Pendente">Pendente</option>
                         <option value="Em Análise">Em Análise</option>
                         <option value="Concluída">Concluída</option>
                     </select>
                     <div class="flex gap-2">
-                        <button id="expand-all-btn" class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded-md hover:bg-slate-300">Expandir</button>
-                        <button id="collapse-all-btn" class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded-md hover:bg-slate-300">Recolher</button>
+                        <button id="expand-all-btn" class="text-xs bg-slate-700 border border-slate-600 text-slate-300 px-2 py-1 rounded-md hover:bg-slate-600 hover:text-white">Expandir</button>
+                        <button id="collapse-all-btn" class="text-xs bg-slate-700 border border-slate-600 text-slate-300 px-2 py-1 rounded-md hover:bg-slate-600 hover:text-white">Recolher</button>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                    <button id="add-task-btn" class="bg-orange-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-orange-700 transition-colors w-full sm:w-auto flex-grow">
+                    <button id="add-task-btn" class="bg-orange-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-orange-700 transition-colors w-full sm:w-auto flex-grow shadow-md">
                         + Adicionar
                     </button>
                     <div class="relative inline-block text-left" id="actions-menu-container">
-                        <button type="button" id="actions-menu-btn" class="inline-flex justify-center w-full rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-100 focus:ring-orange-500">
+                        <button type="button" id="actions-menu-btn" class="inline-flex justify-center w-full rounded-md border border-slate-600 shadow-sm px-4 py-2 bg-slate-700 text-sm font-medium text-slate-200 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-orange-500">
                             Ações
                             <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                         </button>
-                        <div id="actions-menu" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-20">
+                        <div id="actions-menu" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 hidden z-20 border border-slate-700">
                             <div class="py-1">
-                                <button id="priority-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Prioridades</button>
-                                <button id="planner-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Planejar Semana</button>
-                                <button id="period-analysis-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Análise por Período</button>
-                                <button id="annual-report-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Análise Anual</button>
-                                <button id="pdv-dashboard-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Painel do PDV</button>
-                                <div class="border-t border-slate-100 my-1"></div>
-                                <button id="bulk-add-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Importar Planilha</button>
-                                <button id="category-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Categorias</button>
-                                <button id="rename-condo-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Renomear</button>
-                                <button id="archive-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100">Arquivar</button>
-                                <button id="restore-btn" class="w-full text-left text-orange-700 font-bold block px-4 py-2 text-sm hover:bg-slate-100">Restaurar Backup</button>
+                                <button id="period-analysis-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Análise por Período</button>
+                                <button id="annual-report-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Análise Anual</button>
+                                <button id="pdv-dashboard-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Painel do PDV</button>
+                                <div class="border-t border-slate-700 my-1"></div>
+                                <button id="bulk-add-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Importar Planilha</button>
+                                <button id="rename-condo-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Renomear</button>
+                                <button id="archive-btn" class="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Arquivar</button>
+                                <button id="restore-btn" class="w-full text-left text-orange-500 font-bold block px-4 py-2 text-sm hover:bg-slate-700">Restaurar Backup</button>
                             </div>
                         </div>
                     </div>
@@ -137,9 +215,9 @@
         </main>
         
         <section class="mt-12">
-            <h2 class="text-2xl font-bold text-center mb-8 text-slate-800">Ocorrências da Semana (por Condomínio)</h2>
+            <h2 class="text-2xl font-bold text-center mb-8 text-slate-200">Ocorrências da Semana (por Condomínio)</h2>
             <div class="flex justify-center">
-                <div class="bg-white p-4 rounded-lg shadow-md w-full lg:w-1/2">
+                <div class="bg-slate-800 p-4 rounded-lg shadow-lg w-full lg:w-1/2 border border-slate-700">
                      <div class="chart-container">
                         <canvas id="ocorrenciasChart"></canvas>
                      </div>
@@ -151,77 +229,77 @@
     <!-- MODAIS -->
 
     <!-- Modal Adicionar -->
-    <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg">
-            <h2 class="text-2xl font-bold mb-4">Adicionar Nova Análise</h2>
+    <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm">
+        <div class="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-lg border border-slate-700">
+            <h2 class="text-2xl font-bold mb-4 text-white">Adicionar Nova Análise</h2>
             <form id="task-form">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700">Condomínio</label>
+                        <label class="block text-sm font-medium text-slate-300">Condomínio</label>
                         <div class="relative">
-                            <input type="text" id="form-condominio" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-orange-500 focus:border-orange-500" required autocomplete="off">
-                            <div id="autocomplete-list" class="absolute z-10 w-full bg-white border border-slate-300 rounded-md mt-1 hidden max-h-40 overflow-y-auto shadow-lg"></div>
+                            <input type="text" id="form-condominio" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:ring-orange-500 focus:border-orange-500" required autocomplete="off">
+                            <div id="autocomplete-list" class="absolute z-10 w-full bg-slate-700 border border-slate-600 rounded-md mt-1 hidden max-h-40 overflow-y-auto shadow-lg text-slate-200"></div>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700">Data</label>
-                        <input type="date" id="form-data-analise" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-orange-500 focus:border-orange-500" required>
+                        <label class="block text-sm font-medium text-slate-300">Data</label>
+                        <input type="date" id="form-data-analise" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:ring-orange-500 focus:border-orange-500" required>
                     </div>
                 </div>
                  <div class="mt-4">
-                    <label class="block text-sm font-medium text-slate-700">Semana (Nº)</label>
-                    <input type="number" id="form-semana-trabalho" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-orange-500 focus:border-orange-500">
+                    <label class="block text-sm font-medium text-slate-300">Semana (Nº)</label>
+                    <input type="number" id="form-semana-trabalho" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:ring-orange-500 focus:border-orange-500">
                  </div>
                  <div class="mt-4">
-                    <label class="block text-sm font-medium text-slate-700">Observações</label>
-                    <textarea id="form-observacoes" rows="3" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-orange-500 focus:border-orange-500"></textarea>
+                    <label class="block text-sm font-medium text-slate-300">Observações</label>
+                    <textarea id="form-observacoes" rows="3" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:ring-orange-500 focus:border-orange-500"></textarea>
                  </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" id="cancel-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-md hover:bg-slate-300">Cancelar</button>
+                    <button type="button" id="cancel-btn" class="bg-slate-600 text-slate-200 font-semibold px-4 py-2 rounded-md hover:bg-slate-500">Cancelar</button>
                     <button type="submit" class="bg-orange-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-orange-700">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal Ocorrências - CORRIGIDO AÇÃO DE EXCLUIR E SALVAR -->
-    <div id="ocorrencia-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <h2 class="text-2xl font-bold mb-4">Registrar Ocorrências</h2>
+    <!-- Modal Ocorrências -->
+    <div id="ocorrencia-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm">
+        <div class="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-700">
+            <h2 class="text-2xl font-bold mb-4 text-white">Registrar Ocorrências</h2>
             <form id="ocorrencia-form" class="flex-grow flex flex-col min-h-0">
                 <input type="hidden" id="ocorrencia-task-id">
                 <div id="ocorrencia-list" class="flex-grow overflow-y-auto pr-2 -mr-2 mb-4 space-y-3"></div>
                 
-                <div class="flex-shrink-0 pt-4 border-t border-slate-200">
-                    <h3 class="font-semibold mb-2 text-sm text-slate-600">Nova Ocorrência</h3>
+                <div class="flex-shrink-0 pt-4 border-t border-slate-700">
+                    <h3 class="font-semibold mb-2 text-sm text-slate-400">Nova Ocorrência</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
-                            <label class="block text-xs font-medium text-slate-700">Categoria</label>
-                            <select id="add-ocorrencia-categoria" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-1 px-2 text-sm"></select>
+                            <label class="block text-xs font-medium text-slate-400">Categoria</label>
+                            <select id="add-ocorrencia-categoria" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-1 px-2 text-sm text-white"></select>
                          </div>
                         <div>
-                           <label class="block text-xs font-medium text-slate-700">Descrição</label>
-                           <input type="text" id="add-ocorrencia-desc" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-1 px-2 text-sm">
+                           <label class="block text-xs font-medium text-slate-400">Descrição</label>
+                           <input type="text" id="add-ocorrencia-desc" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-1 px-2 text-sm text-white">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-700">Início</label>
-                            <input type="time" id="add-horario-inicial" step="1" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-1 px-2 text-sm">
+                            <label class="block text-xs font-medium text-slate-400">Início</label>
+                            <input type="time" id="add-horario-inicial" step="1" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-1 px-2 text-sm text-white">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-700">Fim</label>
-                            <input type="time" id="add-horario-final" step="1" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-1 px-2 text-sm">
+                            <label class="block text-xs font-medium text-slate-400">Fim</label>
+                            <input type="time" id="add-horario-final" step="1" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-1 px-2 text-sm text-white">
                         </div>
                     </div>
                      <div class="mt-3">
                         <label class="flex items-center">
-                            <input type="checkbox" id="add-ocorrencia-inconclusiva" class="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
-                            <span class="ml-2 text-sm font-medium text-slate-700">Inconclusiva</span>
+                            <input type="checkbox" id="add-ocorrencia-inconclusiva" class="h-4 w-4 text-orange-600 border-slate-600 bg-slate-700 rounded focus:ring-orange-500">
+                            <span class="ml-2 text-sm font-medium text-slate-300">Inconclusiva</span>
                         </label>
                     </div>
-                     <button type="button" id="add-ocorrencia-btn" class="mt-3 w-full bg-orange-100 text-orange-800 font-semibold px-4 py-2 rounded-md hover:bg-orange-200 text-sm">+ Adicionar à Lista</button>
+                     <button type="button" id="add-ocorrencia-btn" class="mt-3 w-full bg-slate-700 border border-slate-600 text-orange-400 font-semibold px-4 py-2 rounded-md hover:bg-slate-600 text-sm transition-colors">+ Adicionar à Lista</button>
                 </div>
                 <div class="mt-6 flex justify-end gap-3 flex-shrink-0">
-                    <button type="button" id="ocorrencia-cancel-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-md hover:bg-slate-300">Fechar</button>
+                    <button type="button" id="ocorrencia-cancel-btn" class="bg-slate-600 text-slate-200 font-semibold px-4 py-2 rounded-md hover:bg-slate-500">Fechar</button>
                     <button type="submit" class="bg-orange-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-orange-700">Salvar Tudo</button>
                 </div>
             </form>
@@ -229,40 +307,40 @@
     </div>
 
     <!-- Modais Secundários -->
-    <div id="bulk-add-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg">
-            <h2 class="text-2xl font-bold mb-4">Importar Planilha</h2>
-            <p class="text-sm text-slate-600 mb-4">Cole os dados do Excel. A ordem esperada das colunas é:<br>
+    <div id="bulk-add-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm">
+        <div class="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-lg border border-slate-700">
+            <h2 class="text-2xl font-bold mb-4 text-white">Importar Planilha</h2>
+            <p class="text-sm text-slate-400 mb-4">Cole os dados do Excel. A ordem esperada das colunas é:<br>
             <strong>Semana | Data | Unidade | OC | Colaborador | Status</strong></p>
             <form id="bulk-add-form">
-                <textarea id="bulk-input-area" rows="10" class="w-full border border-slate-300 rounded-md p-2 mb-4 text-xs font-mono" placeholder="Cole aqui (ex: Semana 47	16/11/2025	ALPHAVIEW	8	Joao Silva	Finalizado)"></textarea>
+                <textarea id="bulk-input-area" rows="10" class="w-full bg-slate-900 border border-slate-600 rounded-md p-2 mb-4 text-xs font-mono text-slate-200 placeholder-slate-500" placeholder="Cole aqui (ex: Semana 47	16/11/2025	ALPHAVIEW	8	Joao Silva	Finalizado)"></textarea>
                 <div class="flex justify-end gap-2">
-                    <button type="button" id="bulk-cancel-btn" class="bg-slate-200 px-4 py-2 rounded text-sm font-semibold hover:bg-slate-300">Cancelar</button>
+                    <button type="button" id="bulk-cancel-btn" class="bg-slate-600 px-4 py-2 rounded text-sm font-semibold hover:bg-slate-500 text-white">Cancelar</button>
                     <button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-orange-700">Processar e Importar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="restore-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm text-center"><h2 class="text-xl font-bold text-red-600 mb-2">Atenção!</h2><p class="text-slate-600">Substituir dados atuais?</p><div class="mt-4 flex justify-center gap-4"><button id="restore-confirm-cancel-btn" class="bg-slate-200 px-4 py-2 rounded">Cancelar</button><button id="restore-confirm-proceed-btn" class="bg-red-600 text-white px-4 py-2 rounded">Sim</button></div></div></div>
-    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm text-center"><p id="notification-message" class="mb-4 text-lg text-slate-700"></p><button id="notification-close-btn" class="bg-orange-600 text-white px-6 py-2 rounded">OK</button></div></div>
+    <div id="restore-confirm-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-slate-800 rounded-lg shadow-2xl p-6 max-w-sm text-center border border-slate-700"><h2 class="text-xl font-bold text-red-500 mb-2">Atenção!</h2><p class="text-slate-300">Substituir dados atuais?</p><div class="mt-4 flex justify-center gap-4"><button id="restore-confirm-cancel-btn" class="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500">Cancelar</button><button id="restore-confirm-proceed-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Sim</button></div></div></div>
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-slate-800 rounded-lg shadow-2xl p-6 max-w-sm text-center border border-slate-700"><p id="notification-message" class="mb-4 text-lg text-slate-200"></p><button id="notification-close-btn" class="bg-orange-600 text-white px-6 py-2 rounded hover:bg-orange-700">OK</button></div></div>
     
-    <!-- MODAL ANÁLISE POR PERÍODO (COMPLETO) -->
-    <div id="period-analysis-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-4xl h-5/6 flex flex-col">
+    <!-- MODAL ANÁLISE POR PERÍODO -->
+    <div id="period-analysis-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm">
+        <div class="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-4xl h-5/6 flex flex-col border border-slate-700">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Análise por Período</h2>
-                <button id="period-analysis-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button>
+                <h2 class="text-2xl font-bold text-white">Análise por Período</h2>
+                <button id="period-analysis-close-btn" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-700 pb-4 mb-4">
                 <div>
-                    <label for="period-start-date" class="block text-sm font-medium text-slate-700">Data de Início</label>
-                    <input type="date" id="period-start-date" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                    <label for="period-start-date" class="block text-sm font-medium text-slate-300">Data de Início</label>
+                    <input type="date" id="period-start-date" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-orange-500 focus:border-orange-500">
                 </div>
                 <div>
-                    <label for="period-end-date" class="block text-sm font-medium text-slate-700">Data de Fim</label>
-                    <input type="date" id="period-end-date" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                    <label for="period-end-date" class="block text-sm font-medium text-slate-300">Data de Fim</label>
+                    <input type="date" id="period-end-date" class="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-orange-500 focus:border-orange-500">
                 </div>
                 <div class="flex items-end">
                     <button id="generate-report-btn" class="bg-orange-600 text-white font-semibold w-full px-4 py-2 rounded-md hover:bg-orange-700">Gerar Relatório</button>
@@ -270,89 +348,86 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 mb-2">Analisar por:</label>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Analisar por:</label>
                 <div class="flex gap-4">
                     <label class="flex items-center">
-                        <input type="radio" name="analysis_type" value="dataAnalise" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500" checked>
-                        <span class="ml-2 text-sm text-slate-700">Data da Análise</span>
+                        <input type="radio" name="analysis_type" value="dataAnalise" class="h-4 w-4 text-orange-600 border-slate-600 bg-slate-700 focus:ring-orange-500" checked>
+                        <span class="ml-2 text-sm text-slate-300">Data da Análise</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="radio" name="analysis_type" value="dataConclusao" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
-                        <span class="ml-2 text-sm text-slate-700">Data da Conclusão</span>
+                        <input type="radio" name="analysis_type" value="dataConclusao" class="h-4 w-4 text-orange-600 border-slate-600 bg-slate-700 focus:ring-orange-500">
+                        <span class="ml-2 text-sm text-slate-300">Data da Conclusão</span>
                     </label>
                 </div>
             </div>
 
             <div class="flex flex-wrap gap-2 mb-4">
-                <button data-period="today" class="period-btn text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-md hover:bg-slate-300">Hoje</button>
-                <button data-period="yesterday" class="period-btn text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-md hover:bg-slate-300">Ontem</button>
-                <button data-period="this-week" class="period-btn text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-md hover:bg-slate-300">Esta Semana</button>
-                <button data-period="last-week" class="period-btn text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-md hover:bg-slate-300">Semana Passada</button>
-                <button data-period="this-month" class="period-btn text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-md hover:bg-slate-300">Este Mês</button>
-                <button data-period="last-month" class="period-btn text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-md hover:bg-slate-300">Mês Passado</button>
+                <button data-period="today" class="period-btn text-xs bg-slate-700 border border-slate-600 text-slate-300 px-3 py-1 rounded-md hover:bg-slate-600 hover:text-white">Hoje</button>
+                <button data-period="yesterday" class="period-btn text-xs bg-slate-700 border border-slate-600 text-slate-300 px-3 py-1 rounded-md hover:bg-slate-600 hover:text-white">Ontem</button>
+                <button data-period="this-week" class="period-btn text-xs bg-slate-700 border border-slate-600 text-slate-300 px-3 py-1 rounded-md hover:bg-slate-600 hover:text-white">Esta Semana</button>
+                <button data-period="last-week" class="period-btn text-xs bg-slate-700 border border-slate-600 text-slate-300 px-3 py-1 rounded-md hover:bg-slate-600 hover:text-white">Semana Passada</button>
+                <button data-period="this-month" class="period-btn text-xs bg-slate-700 border border-slate-600 text-slate-300 px-3 py-1 rounded-md hover:bg-slate-600 hover:text-white">Este Mês</button>
+                <button data-period="last-month" class="period-btn text-xs bg-slate-700 border border-slate-600 text-slate-300 px-3 py-1 rounded-md hover:bg-slate-600 hover:text-white">Mês Passado</button>
             </div>
 
             <div id="period-results-content" class="flex-grow overflow-y-auto hidden">
                 <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-slate-100 p-4 rounded-lg text-center">
-                        <h3 class="text-lg font-semibold text-slate-500">Dias (Análises)</h3>
-                        <p id="period-dias" class="text-3xl font-bold text-orange-600 mt-1">0</p>
+                    <div class="bg-slate-900 p-4 rounded-lg text-center border border-slate-700">
+                        <h3 class="text-lg font-semibold text-slate-400">Dias (Análises)</h3>
+                        <p id="period-dias" class="text-3xl font-bold text-orange-500 mt-1">0</p>
                     </div>
-                    <div class="bg-slate-100 p-4 rounded-lg text-center">
-                        <h3 class="text-lg font-semibold text-slate-500">PDV (Condomínios)</h3>
-                        <p id="period-pdv" class="text-3xl font-bold text-orange-500 mt-1">0</p>
+                    <div class="bg-slate-900 p-4 rounded-lg text-center border border-slate-700">
+                        <h3 class="text-lg font-semibold text-slate-400">PDV (Condomínios)</h3>
+                        <p id="period-pdv" class="text-3xl font-bold text-orange-400 mt-1">0</p>
                     </div>
-                    <div class="bg-slate-100 p-4 rounded-lg text-center">
-                        <h3 class="text-lg font-semibold text-slate-500">OC (Ocorrências)</h3>
-                        <p id="period-oc" class="text-3xl font-bold text-red-600 mt-1">0</p>
+                    <div class="bg-slate-900 p-4 rounded-lg text-center border border-slate-700">
+                        <h3 class="text-lg font-semibold text-slate-400">OC (Ocorrências)</h3>
+                        <p id="period-oc" class="text-3xl font-bold text-red-400 mt-1">0</p>
                     </div>
                 </section>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-slate-50 p-4 rounded-lg">
-                        <h3 class="text-center font-semibold mb-4">Ocorrências por Categoria</h3>
+                    <div class="bg-slate-700 p-4 rounded-lg border border-slate-600">
+                        <h3 class="text-center font-semibold mb-4 text-slate-200">Ocorrências por Categoria</h3>
                         <div class="chart-container" style="height: 250px; max-height: 250px;">
                             <canvas id="periodCategoryChart"></canvas>
                         </div>
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-lg">
-                        <h3 class="text-center font-semibold mb-4">Ocorrências por Condomínio</h3>
+                    <div class="bg-slate-700 p-4 rounded-lg border border-slate-600">
+                        <h3 class="text-center font-semibold mb-4 text-slate-200">Ocorrências por Condomínio</h3>
                         <div class="chart-container" style="height: 250px; max-height: 250px;">
                             <canvas id="periodChart"></canvas>
                         </div>
                     </div>
                 </div>
                  <div class="mt-6">
-                    <h3 class="font-semibold mb-2 text-lg">Lista de Análises no Período</h3>
-                    <ul id="period-task-list" class="space-y-2 max-h-40 overflow-y-auto pr-2 bg-slate-50 p-2 rounded-md"></ul>
+                    <h3 class="font-semibold mb-2 text-lg text-slate-300">Lista de Análises no Período</h3>
+                    <ul id="period-task-list" class="space-y-2 max-h-40 overflow-y-auto pr-2 bg-slate-900 p-2 rounded-md border border-slate-700 text-slate-300"></ul>
                  </div>
             </div>
         </div>
     </div>
     
-    <!-- Outros Modais -->
-    <div id="annual-report-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg p-6 w-full max-w-6xl h-5/6 flex flex-col"><div class="flex justify-between mb-4"><h2 class="text-2xl font-bold">Relatório Anual</h2><button id="annual-report-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button></div><div class="flex-grow overflow-y-auto"><section class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-slate-100 p-4 rounded-lg text-center"><h3 class="text-lg font-semibold text-slate-500">Total de Análises (Ano)</h3><p id="annual-total-analises" class="text-3xl font-bold text-orange-600 mt-1">0</p></div><div class="bg-slate-100 p-4 rounded-lg text-center"><h3 class="text-lg font-semibold text-slate-500">Ocorrências (Ano)</h3><p id="annual-total-ocorrencias" class="text-3xl font-bold text-red-600 mt-1">0</p></div></section><div class="mt-4 chart-container"><canvas id="annualReportChart_Monthly"></canvas></div></div></div></div>
-    <div id="priority-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg p-6 w-full max-w-2xl h-5/6 flex flex-col"><div class="flex justify-between mb-4"><h2 class="text-2xl font-bold">Prioridades</h2><button id="priority-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button></div><ul id="priority-task-list" class="flex-grow overflow-y-auto space-y-2"></ul></div></div>
-    <div id="planner-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg p-6 w-full max-w-lg flex flex-col"><h2 class="text-2xl font-bold mb-4">Planejador</h2><form id="planner-form"><input type="number" id="planner-week-number" class="w-full border p-2 rounded mb-4" placeholder="Semana Nº"><div id="planner-list-container" class="h-64 overflow-y-auto border p-2 rounded mb-4"></div><div class="flex justify-end gap-2"><button type="button" id="planner-cancel-btn" class="bg-slate-200 px-4 py-2 rounded">Cancelar</button></div></form></div></div>
-    <div id="pdv-dashboard-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg p-6 w-full max-w-4xl h-5/6 flex flex-col"><div class="flex justify-between mb-4"><h2 class="text-2xl font-bold">Painel PDV</h2><button id="pdv-dashboard-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button></div><div id="pdv-content" class="flex-grow overflow-y-auto"><div class="chart-container mb-4"><canvas id="pdvTrendChart"></canvas></div></div></div></div>
-    <div id="category-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg p-6 w-full max-w-md"><h2 class="text-2xl font-bold mb-4">Categorias</h2><div id="category-list-container" class="h-40 overflow-y-auto border p-2 mb-4 rounded"></div><button id="category-close-btn" class="w-full bg-slate-200 py-2 rounded">Fechar</button></div></div>
-    <div id="rename-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg p-6 w-full max-w-md"><h2 class="text-2xl font-bold mb-4">Renomear</h2><form id="rename-form"><label>Antigo</label><select id="form-old-name" class="w-full border p-2 rounded mb-4"></select><label>Novo</label><input type="text" id="form-new-name" class="w-full border p-2 rounded mb-4"><div class="flex justify-end gap-2"><button type="button" id="rename-cancel-btn" class="bg-slate-200 px-4 py-2 rounded">Cancelar</button><button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded">Salvar</button></div></form></div></div>
-    <div id="archive-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-lg p-6 w-full max-w-md"><h2 class="text-2xl font-bold mb-4">Arquivar</h2><form id="archive-form"><div class="space-y-2 mb-4"><button type="button" id="view-archive-btn" class="w-full bg-slate-500 text-white px-4 py-2 rounded mb-4">Ver Arquivo</button><div class="flex gap-2"><button type="button" id="archive-cancel-btn" class="bg-slate-200 w-full px-4 py-2 rounded">Cancelar</button></div></div></form></div></div>
+    <!-- Outros Modais (Estrutura básica atualizada para dark) -->
+    <div id="annual-report-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-slate-800 rounded-lg p-6 w-full max-w-6xl h-5/6 flex flex-col border border-slate-700"><div class="flex justify-between mb-4"><h2 class="text-2xl font-bold text-white">Relatório Anual</h2><button id="annual-report-close-btn" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button></div><div class="flex-grow overflow-y-auto"><section class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-slate-900 p-4 rounded-lg text-center border border-slate-700"><h3 class="text-lg font-semibold text-slate-400">Total de Análises (Ano)</h3><p id="annual-total-analises" class="text-3xl font-bold text-orange-500 mt-1">0</p></div><div class="bg-slate-900 p-4 rounded-lg text-center border border-slate-700"><h3 class="text-lg font-semibold text-slate-400">Ocorrências (Ano)</h3><p id="annual-total-ocorrencias" class="text-3xl font-bold text-red-500 mt-1">0</p></div></section><div class="mt-4 chart-container"><canvas id="annualReportChart_Monthly"></canvas></div></div></div></div>
+    <div id="pdv-dashboard-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-slate-800 rounded-lg p-6 w-full max-w-4xl h-5/6 flex flex-col border border-slate-700"><div class="flex justify-between mb-4"><h2 class="text-2xl font-bold text-white">Painel PDV</h2><button id="pdv-dashboard-close-btn" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button></div><div id="pdv-content" class="flex-grow overflow-y-auto"><div class="chart-container mb-4"><canvas id="pdvTrendChart"></canvas></div></div></div></div>
+    <div id="rename-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-slate-800 rounded-lg p-6 w-full max-w-md border border-slate-700"><h2 class="text-2xl font-bold mb-4 text-white">Renomear</h2><form id="rename-form"><label class="text-slate-300">Antigo</label><select id="form-old-name" class="w-full bg-slate-700 border border-slate-600 text-white p-2 rounded mb-4"></select><label class="text-slate-300">Novo</label><input type="text" id="form-new-name" class="w-full bg-slate-700 border border-slate-600 text-white p-2 rounded mb-4"><div class="flex justify-end gap-2"><button type="button" id="rename-cancel-btn" class="bg-slate-600 px-4 py-2 rounded text-white hover:bg-slate-500">Cancelar</button><button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">Salvar</button></div></form></div></div>
+    <div id="archive-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm"><div class="bg-slate-800 rounded-lg p-6 w-full max-w-md border border-slate-700"><h2 class="text-2xl font-bold mb-4 text-white">Arquivar</h2><form id="archive-form"><div class="space-y-2 mb-4"><button type="button" id="view-archive-btn" class="w-full bg-slate-600 text-white px-4 py-2 rounded mb-4 hover:bg-slate-500">Ver Arquivo</button><div class="flex gap-2"><button type="button" id="archive-cancel-btn" class="bg-slate-700 w-full px-4 py-2 rounded text-white hover:bg-slate-600">Cancelar</button></div></div></form></div></div>
     
     <!-- Modal Arquivados -->
-    <div id="view-archive-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] flex flex-col">
+    <div id="view-archive-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm">
+        <div class="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] flex flex-col border border-slate-700">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Análises Arquivadas</h2>
-                <button id="view-archive-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold">&times;</button>
+                <h2 class="text-2xl font-bold text-white">Análises Arquivadas</h2>
+                <button id="view-archive-close-btn" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
             </div>
              <div class="mb-4">
-                <input type="text" id="archive-search-input" placeholder="Buscar em arquivadas..." class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
+                <input type="text" id="archive-search-input" placeholder="Buscar em arquivadas..." class="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white placeholder-slate-400">
              </div>
-            <div id="view-archive-list-container" class="flex-grow overflow-y-auto bg-slate-50 p-3 rounded-md min-h-[200px]">
+            <div id="view-archive-list-container" class="flex-grow overflow-y-auto bg-slate-900 p-3 rounded-md min-h-[200px] border border-slate-700 text-slate-300">
                 <p class="text-center text-slate-500">Nenhuma análise arquivada.</p>
             </div>
             <div class="mt-4 flex justify-end gap-2">
-                 <button id="view-archive-close-footer-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-md hover:bg-slate-300">Fechar</button>
+                 <button id="view-archive-close-footer-btn" class="bg-slate-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-slate-500">Fechar</button>
             </div>
         </div>
     </div>
@@ -360,14 +435,18 @@
     <input type="file" id="restore-input" class="hidden" accept=".json">
 
     <script>
-        // Objeto de classes CSS para os status
+        // Configuração de cores globais para o Chart.js em Dark Mode
+        Chart.defaults.color = '#94a3b8'; // slate-400
+        Chart.defaults.borderColor = '#334155'; // slate-700
+
+        // Status atualizados para Dark Mode (Cores mais escuras e translúcidas)
         const statusClasses = {
-            'Pendente': 'bg-amber-100 text-amber-600',
-            'Em Andamento': 'bg-orange-100 text-orange-600',
-            'Em Análise': 'bg-orange-100 text-orange-600',
-            'Concluído': 'bg-emerald-100 text-emerald-600',
-            'Concluída': 'bg-emerald-100 text-emerald-600',
-            'Não visualizar': 'bg-slate-100 text-slate-500'
+            'Pendente': 'bg-amber-900/40 text-amber-200 border border-amber-800/50',
+            'Em Andamento': 'bg-orange-900/40 text-orange-200 border border-orange-800/50',
+            'Em Análise': 'bg-orange-900/40 text-orange-200 border border-orange-800/50',
+            'Concluído': 'bg-emerald-900/40 text-emerald-200 border border-emerald-800/50',
+            'Concluída': 'bg-emerald-900/40 text-emerald-200 border border-emerald-800/50',
+            'Não visualizar': 'bg-slate-700 text-slate-400 border border-slate-600'
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -424,18 +503,18 @@
             // Função Melhorada: Renderiza item com botão de Excluir no Modal
             const renderOcorrenciaItemInModal = (ocor, container) => {
                 const itemDiv = document.createElement('div');
-                // Adicionamos a classe 'occ-data-item' para identificar que isso é um dado válido para salvar
-                itemDiv.className = 'occ-data-item p-3 bg-slate-100 rounded-md flex justify-between items-center mb-2 border border-slate-200';
+                // Dark mode styles applied here
+                itemDiv.className = 'occ-data-item p-3 bg-slate-700 rounded-md flex justify-between items-center mb-2 border border-slate-600 shadow-sm';
                 
                 // Armazenamos os dados no dataset para recuperar ao salvar
                 itemDiv.dataset.json = JSON.stringify(ocor);
 
                 const contentDiv = document.createElement('div');
-                contentDiv.innerHTML = `<p class="font-semibold text-slate-800">${escapeHtml(ocor.categoria)}: ${escapeHtml(ocor.desc)}</p><p class="text-xs text-slate-500">Horário: ${escapeHtml(ocor.horarioInicial)} - ${escapeHtml(ocor.horarioFinal)}</p>`;
+                contentDiv.innerHTML = `<p class="font-semibold text-slate-200">${escapeHtml(ocor.categoria)}: ${escapeHtml(ocor.desc)}</p><p class="text-xs text-slate-400">Horário: ${escapeHtml(ocor.horarioInicial)} - ${escapeHtml(ocor.horarioFinal)}</p>`;
                 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '&times;';
-                deleteBtn.className = 'ml-2 text-red-500 hover:text-red-700 font-bold text-xl px-2';
+                deleteBtn.className = 'ml-2 text-red-400 hover:text-red-300 font-bold text-xl px-2';
                 deleteBtn.title = 'Remover ocorrência';
                 deleteBtn.onclick = function() {
                     itemDiv.remove(); // Remove visualmente, o "Salvar" vai ler apenas o que sobrou
@@ -467,7 +546,7 @@
                 showNotification('Nova análise adicionada.');
             };
 
-            // --- HANDLER DE IMPORTAÇÃO EM MASSA (COM CORREÇÃO DE DUPLICIDADE) ---
+            // --- HANDLER DE IMPORTAÇÃO EM MASSA ---
             function handleBulkAddSubmit(e) {
                 e.preventDefault();
                 const inputArea = document.getElementById('bulk-input-area').value.trim();
@@ -481,7 +560,6 @@
                 let ignoredCount = 0;
                 let duplicateCount = 0;
 
-                // Regex aprimorada para capturar data mesmo com 1 dígito (ex: 1/11/2025)
                 const fallbackRegex = /^(Semana\s+\d+)\s+([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4})\s+(.+?)\s*(\d*)\s*([A-Za-z\s]+?)\s*(Finalizado|Pendente|Sem gravação.*)?$/i;
 
                 lines.forEach((line, index) => {
@@ -512,25 +590,19 @@
                     const colaboradorRaw = parts[4] || '';
                     const statusRaw = parts[5] || 'Pendente';
 
-                    // Tratamento de Data Robusto
                     let isoDate = '';
                     if (dataRaw.includes('/')) {
                         const dateParts = dataRaw.split('/');
                         let d = dateParts[0];
                         let m = dateParts[1];
                         const y = dateParts[2];
-                        
-                        // Adiciona zero à esquerda se necessário
                         if (d.length === 1) d = '0' + d;
                         if (m.length === 1) m = '0' + m;
-                        
                         if(d && m && y) isoDate = `${y}-${m}-${d}`;
                     } else {
                         isoDate = new Date().toISOString().split('T')[0];
                     }
 
-                    // VERIFICAÇÃO DE DUPLICIDADE (CRÍTICO)
-                    // Verifica se já existe uma tarefa para este condomínio nesta data exata
                     const jaExiste = tasks.some(t => 
                         t.condominio.toLowerCase() === unidadeRaw.toLowerCase() && 
                         t.dataAnalise === isoDate
@@ -538,7 +610,7 @@
 
                     if (jaExiste) {
                         duplicateCount++;
-                        return; // Pula esta linha
+                        return;
                     }
 
                     const semanaMatch = semanaRaw.match(/\d+/);
@@ -570,7 +642,7 @@
                     }
 
                     newTasks.push({
-                        id: Date.now() + index + Math.floor(Math.random() * 1000), // ID único reforçado
+                        id: Date.now() + index + Math.floor(Math.random() * 1000),
                         condominio: unidadeRaw,
                         dataAnalise: isoDate,
                         semanaDeTrabalho: semanaNum,
@@ -659,7 +731,7 @@
                 
                 const taskListEl = document.getElementById('period-task-list');
                 taskListEl.innerHTML = reportData.taskList.map(t => 
-                    `<li class="text-sm">${formatDate(t.dataAnalise)} - <strong>${escapeHtml(t.condominio)}</strong> (OCs: ${t.ocorrencias ? t.ocorrencias.length : 0})</li>`
+                    `<li class="text-sm border-b border-slate-700 pb-1 last:border-0">${formatDate(t.dataAnalise)} - <strong class="text-white">${escapeHtml(t.condominio)}</strong> (OCs: ${t.ocorrencias ? t.ocorrencias.length : 0})</li>`
                 ).join('');
                 
                 if (reportData.taskList.length === 0) {
@@ -741,11 +813,14 @@
                 
                 document.getElementById('total-solicitacoes').textContent = filteredTasks.length;
                 document.getElementById('backups-pendentes').textContent = filteredTasks.filter(t => t.statusBackup === 'Pendente').length;
-                document.getElementById('analises-pendentes').textContent = filteredTasks.filter(t => t.statusAnalise === 'Pendente').length;
+                // REMOVIDA LINHA QUE CAUSAVA ERRO (analises-pendentes)
                 
                 const completedThisWeek = filteredTasks.filter(t => t.statusAnalise === 'Concluída');
                 const totalOccurrencesWeek = completedThisWeek.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
                 document.getElementById('total-ocorrencias-semana').textContent = totalOccurrencesWeek;
+
+                // NOVA LÓGICA PARA O CARTÃO DE ANÁLISES CONCLUÍDAS
+                document.getElementById('analises-concluidas').textContent = completedThisWeek.length;
                 
                 const prodElement = document.getElementById('produtividade-semanal');
                 if (prodElement) prodElement.textContent = completedThisWeek.length > 0 ? (totalOccurrencesWeek / completedThisWeek.length).toFixed(1) : '0.0';
@@ -774,30 +849,30 @@
                 const ctx = document.getElementById('ocorrenciasChart').getContext('2d');
                 ocorrenciasChart = new Chart(ctx, {
                     type: 'bar',
-                    data: { labels: [], datasets: [{ label: '# de Ocorrências', data: [], backgroundColor: 'rgba(249, 115, 22, 0.6)' }] },
+                    data: { labels: [], datasets: [{ label: '# de Ocorrências', data: [], backgroundColor: 'rgba(249, 115, 22, 0.8)' }] },
                     options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
                 });
                 
                 const annualCtx = document.getElementById('annualReportChart_Monthly').getContext('2d');
                 annualMonthlyChart = new Chart(annualCtx, {
-                    type: 'bar', data: { labels: ['Jan','Fev','Mar'], datasets: [{ label: 'Mensal', data: [0,0,0], backgroundColor: 'red' }] }, options: { maintainAspectRatio: false }
+                    type: 'bar', data: { labels: ['Jan','Fev','Mar'], datasets: [{ label: 'Mensal', data: [0,0,0], backgroundColor: 'rgba(220, 38, 38, 0.8)' }] }, options: { maintainAspectRatio: false }
                 });
 
                 const pdvCtx = document.getElementById('pdvTrendChart').getContext('2d');
                 pdvTrendChart = new Chart(pdvCtx, {
-                    type: 'line', data: { labels: [], datasets: [{ label: 'Tendência', data: [] }] }, options: { maintainAspectRatio: false }
+                    type: 'line', data: { labels: [], datasets: [{ label: 'Tendência', data: [], borderColor: '#f97316' }] }, options: { maintainAspectRatio: false }
                 });
 
                 const periodCtx = document.getElementById('periodChart').getContext('2d');
                 periodChart = new Chart(periodCtx, {
-                    type: 'bar', data: { labels: [], datasets: [{ label: '# de Ocorrências', data: [], backgroundColor: 'rgba(249, 115, 22, 0.6)' }] },
+                    type: 'bar', data: { labels: [], datasets: [{ label: '# de Ocorrências', data: [], backgroundColor: 'rgba(249, 115, 22, 0.8)' }] },
                     options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
                 });
 
                 const periodCategoryCtx = document.getElementById('periodCategoryChart').getContext('2d');
                 periodCategoryChart = new Chart(periodCategoryCtx, {
-                    type: 'pie', data: { labels: [], datasets: [{ label: 'Ocorrências por Categoria', data: [], backgroundColor: ['#ea580c', '#f97316', '#f7b41e', '#fbbf24', '#fcd34d', '#fed7aa', '#ffedd5'] }] },
-                    options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                    type: 'pie', data: { labels: [], datasets: [{ label: 'Ocorrências por Categoria', data: [], backgroundColor: ['#c2410c', '#ea580c', '#f97316', '#fb923c', '#fbbf24', '#fcd34d', '#fde68a'], borderColor: '#334155' }] },
+                    options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } }
                 });
             };
 
@@ -818,45 +893,46 @@
                     if (task.statusAnalise === 'Em Análise') borderSideColor = '#f97316';
                     if (task.statusAnalise === 'Concluída') borderSideColor = '#10b981';
 
-                    card.className = 'bg-white p-4 rounded-lg shadow-md border-l-4';
+                    // Card colors updated for Dark Mode
+                    card.className = 'bg-slate-800 p-4 rounded-lg shadow-lg border-l-4 border-slate-700 hover:border-slate-600 transition-colors';
                     card.style.borderLeftColor = borderSideColor;
                     
                     const isCollapsed = !task.isExpanded;
                     let detailsButtonHTML = '';
                     if (task.statusAnalise === 'Em Análise' || task.statusAnalise === 'Concluída') {
                          const buttonText = task.statusAnalise === 'Concluída' ? 'Ver Ocorrências' : 'Registrar Ocorrências';
-                         detailsButtonHTML = `<button data-id="${task.id}" class="edit-ocorrencia-btn mt-4 w-full bg-slate-200 text-slate-800 font-bold py-2 rounded hover:bg-slate-300">${buttonText}</button>`;
+                         detailsButtonHTML = `<button data-id="${task.id}" class="edit-ocorrencia-btn mt-4 w-full bg-slate-700 text-slate-200 font-bold py-2 rounded hover:bg-slate-600 transition-colors border border-slate-600">${buttonText}</button>`;
                     }
                     
                     let ocorrenciaDetailsHTML = '';
                     if (task.ocorrencias && task.ocorrencias.length > 0) {
-                        ocorrenciaDetailsHTML += `<div class="mt-4 border-t pt-2 space-y-2">`;
+                        ocorrenciaDetailsHTML += `<div class="mt-4 border-t border-slate-700 pt-2 space-y-2">`;
                         task.ocorrencias.forEach(ocor => {
-                            ocorrenciaDetailsHTML += `<div class="bg-red-100 p-2 rounded text-sm"><p class="font-bold text-red-600">${escapeHtml(ocor.categoria)}</p><p>${escapeHtml(ocor.desc)}</p></div>`;
+                            ocorrenciaDetailsHTML += `<div class="bg-red-900/30 border border-red-900/50 p-2 rounded text-sm"><p class="font-bold text-red-400">${escapeHtml(ocor.categoria)}</p><p class="text-slate-300">${escapeHtml(ocor.desc)}</p></div>`;
                         });
                         ocorrenciaDetailsHTML += `</div>`;
                     }
 
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-lg flex-1">${escapeHtml(task.condominio)}</h3>
+                            <h3 class="font-bold text-lg flex-1 text-white">${escapeHtml(task.condominio)}</h3>
                             <div class="flex items-center gap-2">
-                                <button data-id="${task.id}" class="archive-single-btn text-slate-400 hover:text-orange-600 font-bold text-lg" title="Arquivar">&#128450;</button>
-                                <button data-id="${task.id}" class="delete-task-btn text-slate-400 hover:text-red-600 font-bold text-lg" title="Excluir">&times;</button>
+                                <button data-id="${task.id}" class="archive-single-btn text-slate-500 hover:text-orange-500 font-bold text-lg transition-colors" title="Arquivar">&#128450;</button>
+                                <button data-id="${task.id}" class="delete-task-btn text-slate-500 hover:text-red-500 font-bold text-lg transition-colors" title="Excluir">&times;</button>
                             </div>
                         </div>
                         <div class="flex justify-between items-center mt-2">
                             <div>
-                                <p class="text-sm text-slate-500">Data: <strong>${formatDate(task.dataAnalise)}</strong></p>
+                                <p class="text-sm text-slate-400">Data: <strong class="text-slate-200">${formatDate(task.dataAnalise)}</strong></p>
                             </div>
-                            <button data-id="${task.id}" class="toggle-details-btn p-1 rounded hover:bg-slate-200">
+                            <button data-id="${task.id}" class="toggle-details-btn p-1 rounded hover:bg-slate-700 text-slate-300">
                                 ${isCollapsed ? '&#9660;' : '&#9650;'}
                             </button>
                         </div>
                         <div class="${isCollapsed ? 'hidden' : ''} mt-4 details-content">
                             <div class="space-y-3 text-sm mt-4">
-                                <div class="flex justify-between items-center text-sm mb-1"><span class="font-semibold text-slate-600">Backup:</span> <select data-id="${task.id}" data-type="backup" class="status-select border-none text-right font-semibold text-sm rounded-md p-1 ${statusClasses[task.statusBackup]}"><option value="Pendente" ${task.statusBackup === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Andamento" ${task.statusBackup === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option><option value="Concluído" ${task.statusBackup === 'Concluído' ? 'selected' : ''}>Concluído</option></select></div>
-                                <div class="flex justify-between items-center text-sm"><span class="font-semibold text-slate-600">Análise:</span> <select data-id="${task.id}" data-type="analise" class="status-select border-none text-right font-semibold text-sm rounded-md p-1 ${statusClasses[task.statusAnalise]}"><option value="Pendente" ${task.statusAnalise === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Análise" ${task.statusAnalise === 'Em Análise' ? 'selected' : ''}>Em Análise</option><option value="Concluída" ${task.statusAnalise === 'Concluída' ? 'selected' : ''}>Concluída</option></select></div>
+                                <div class="flex justify-between items-center text-sm mb-1"><span class="font-semibold text-slate-400">Backup:</span> <select data-id="${task.id}" data-type="backup" class="status-select border-none text-right font-semibold text-sm rounded-md p-1 ${statusClasses[task.statusBackup]} cursor-pointer"><option value="Pendente" class="bg-slate-800 text-white" ${task.statusBackup === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Andamento" class="bg-slate-800 text-white" ${task.statusBackup === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option><option value="Concluído" class="bg-slate-800 text-white" ${task.statusBackup === 'Concluído' ? 'selected' : ''}>Concluído</option></select></div>
+                                <div class="flex justify-between items-center text-sm"><span class="font-semibold text-slate-400">Análise:</span> <select data-id="${task.id}" data-type="analise" class="status-select border-none text-right font-semibold text-sm rounded-md p-1 ${statusClasses[task.statusAnalise]} cursor-pointer"><option value="Pendente" class="bg-slate-800 text-white" ${task.statusAnalise === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Análise" class="bg-slate-800 text-white" ${task.statusAnalise === 'Em Análise' ? 'selected' : ''}>Em Análise</option><option value="Concluída" class="bg-slate-800 text-white" ${task.statusAnalise === 'Concluída' ? 'selected' : ''}>Concluída</option></select></div>
                             </div>
                             ${ocorrenciaDetailsHTML}
                             ${detailsButtonHTML}
@@ -904,36 +980,33 @@
                 }
             });
 
-            // Botões do Menu de Ações
+            // Botões do Menu de Ações (Atualizado - Removidos os botões deletados)
             const menuMap = {
                 'bulk-add-btn': 'bulk-add-modal',
-                'category-btn': 'category-modal',
                 'rename-condo-btn': 'rename-modal',
                 'archive-btn': 'archive-modal',
                 'period-analysis-btn': 'period-analysis-modal',
                 'annual-report-btn': 'annual-report-modal',
-                'priority-btn': 'priority-modal',
-                'planner-btn': 'planner-modal',
                 'pdv-dashboard-btn': 'pdv-dashboard-modal'
             };
 
             Object.keys(menuMap).forEach(btnId => {
-                document.getElementById(btnId).addEventListener('click', () => {
-                    actionsMenu.classList.add('hidden');
-                    document.getElementById(menuMap[btnId]).classList.remove('hidden');
-                });
+                const btn = document.getElementById(btnId);
+                if(btn){
+                    btn.addEventListener('click', () => {
+                        actionsMenu.classList.add('hidden');
+                        document.getElementById(menuMap[btnId]).classList.remove('hidden');
+                    });
+                }
             });
 
-            // Fechamento de Modais Secundários
+            // Fechamento de Modais Secundários (Atualizado)
             const closeMap = {
                 'bulk-cancel-btn': 'bulk-add-modal',
-                'category-close-btn': 'category-modal',
                 'rename-cancel-btn': 'rename-modal',
                 'archive-cancel-btn': 'archive-modal',
                 'period-analysis-close-btn': 'period-analysis-modal',
                 'annual-report-close-btn': 'annual-report-modal',
-                'priority-close-btn': 'priority-modal',
-                'planner-cancel-btn': 'planner-modal',
                 'pdv-dashboard-close-btn': 'pdv-dashboard-modal',
                 'view-archive-close-btn': 'view-archive-modal',
                 'view-archive-close-footer-btn': 'view-archive-modal',
@@ -942,9 +1015,12 @@
             };
 
             Object.keys(closeMap).forEach(btnId => {
-                document.getElementById(btnId).addEventListener('click', () => {
-                    document.getElementById(closeMap[btnId]).classList.add('hidden');
-                });
+                const btn = document.getElementById(btnId);
+                if(btn){
+                    btn.addEventListener('click', () => {
+                        document.getElementById(closeMap[btnId]).classList.add('hidden');
+                    });
+                }
             });
 
             // Listeners de Relatório
@@ -959,7 +1035,7 @@
                 document.getElementById('view-archive-modal').classList.remove('hidden');
                 const archiveContainer = document.getElementById('view-archive-list-container');
                 archiveContainer.innerHTML = archivedTasks.length 
-                    ? archivedTasks.map(t => `<div class="p-2 border-b">${escapeHtml(t.condominio)} - ${t.dataAnalise}</div>`).join('')
+                    ? archivedTasks.map(t => `<div class="p-2 border-b border-slate-700 text-slate-300">${escapeHtml(t.condominio)} - ${t.dataAnalise}</div>`).join('')
                     : '<p class="text-center text-slate-500">Vazio</p>';
             });
 
