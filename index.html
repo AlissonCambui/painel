@@ -727,42 +727,66 @@
                          detailsButtonHTML = `<button data-id="${task.id}" class="edit-ocorrencia-btn mt-4 w-full bg-slate-200 text-slate-800 font-bold py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">${buttonText}</button>`;
                     }
                     
-                    let ocorrenciaDetailsHTML = '';
-                    if (task.ocorrencias && task.ocorrencias.length > 0) {
-                        ocorrenciaDetailsHTML += `<div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700">`;
-                        task.ocorrencias.forEach(ocor => {
-                            // Este é o bloco de observação que aparece no card expandido.
-                            // Ele será exibido apenas se houverem OCORRÊNCIAS REGISTRADAS, e não as observações gerais.
-                            // O bloco de OC/Colaborador é exibido aqui, pois é onde o usuário deve encontrá-lo,
-                            // replicando a imagem de referência (bloco vermelho dentro do card).
-                             if (ocor.categoria === 'Importado (Planilha)') {
-                                ocorrenciaDetailsHTML += `
-                                <div class="bg-red-800 p-3 rounded-lg text-sm text-red-100 dark:bg-red-900 dark:text-red-100">
-                                    <p class="font-bold">Importado (Planilha)</p>
-                                    <p class="mt-1">${ocor.desc}</p>
-                                </div>`;
-                             } else {
-                                ocorrenciaDetailsHTML += `
-                                <div class="bg-red-100 p-2 rounded-lg text-sm dark:bg-red-900 dark:text-red-100">
-                                    <p class="font-bold text-red-600 dark:text-red-300">${ocor.categoria}</p>
-                                    <p>${ocor.desc}</p>
-                                </div>`;
-                             }
-                        });
-                        ocorrenciaDetailsHTML += `</div>`;
-                    }
-                    
-                    // Adicionando a Observação Geral (Observacoes)
                     let observacaoGeralHTML = '';
                     if (task.observacoes && task.observacoes.trim().length > 0) {
-                        observacaoGeralHTML = `
-                            <div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700">
-                                <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Obs. Geral:</p>
-                                <p class="text-sm text-slate-500 dark:text-slate-400">${task.observacoes}</p>
-                            </div>
-                        `;
+                        // BLOCO VERMELHO QUE VOCÊ NÃO QUER QUE APAREÇA NO CARD
+                        // Verificando se as observações são o texto padrão de importação (que não deve ser exibido)
+                        const isImportObs = task.observacoes.includes('Importado via Planilha. Colaborador:');
+                        
+                        if (!isImportObs) { // Exibe Obs Geral APENAS se não for o texto padrão de importação.
+                             observacaoGeralHTML = `
+                                <div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700">
+                                    <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Obs. Geral:</p>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400">${task.observacoes}</p>
+                                </div>
+                            `;
+                        } else {
+                            // Se for a Obs de importação, vamos criar o bloco para mostrar apenas o que foi digitado manualmente.
+                            // Para o seu caso, vou **remover completamente** as observações de importação do card,
+                            // pois você quer a limpeza total.
+                            
+                            // Reajustando a observação para aparecer de forma limpa, como você havia solicitado antes de remover a obs geral:
+                             observacaoGeralHTML = `
+                                <div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700">
+                                    <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Obs. Geral:</p>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400">${task.observacoes}</p>
+                                </div>
+                            `;
+                             
+                            // Mas se você deseja RETIRAR TUDO que não foi digitado:
+                             observacaoGeralHTML = ''; // Retira a Obs Geral, limpando o card.
+                        }
                     }
 
+                    let ocorrenciaDetailsHTML = '';
+                    // Se houver ocorrências importadas, elas aparecem aqui, e é aqui que o bloco vermelho está.
+                    // Para limpá-lo, vou forçar a exibição apenas no modal, removendo-o daqui.
+                    
+                    // No entanto, a imagem de referência do usuário (image_8813f6.png) MOSTRA
+                    // 1. Obs. Geral: Importado via Planilha...
+                    // 2. O BLOCO VERMELHO: Importado (Planilha) OC N° - Colaborador
+                    // O bloco vermelho só existe porque a OCORRÊNCIA existe. Para retirá-lo,
+                    // precisamos garantir que NENHUMA OCORRÊNCIA seja renderizada no card, apenas no Modal.
+                    
+                    // A única parte que deve permanecer no card (além dos selects) é a Observação Geral
+                    // (desde que não seja a observação automática de importação).
+                    
+                    // Vou anular a renderização do bloco de OCORRÊNCIAS no CARD (ocorrenciaDetailsHTML = '')
+                    // e remover a Obs Geral automática se ela não tiver sido preenchida manualmente.
+                    
+                    // 1. Limpando a Obs Geral do card (mesmo que a task.observacoes contenha o texto de importação)
+                    let cleanObsGeral = '';
+                    if (task.observacoes && task.observacoes.trim().length > 0) {
+                         // Se a observação NÃO for o texto de importação, exibe. Se for, ignora.
+                        if (!task.observacoes.startsWith('Importado via Planilha.')) {
+                            cleanObsGeral = `
+                                <div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700">
+                                    <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Obs. Geral:</p>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400">${task.observacoes}</p>
+                                </div>
+                            `;
+                        }
+                    }
 
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
@@ -786,8 +810,8 @@
                                 <div class="flex justify-between items-center text-sm mb-1"><span class="font-semibold text-slate-600 dark:text-slate-300">Backup:</span> <select data-id="${task.id}" data-type="backup" class="status-select border-none text-right font-semibold text-sm rounded-lg p-1 ${statusClasses[task.statusBackup]}"><option value="Pendente" ${task.statusBackup === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Andamento" ${task.statusBackup === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option><option value="Concluído" ${task.statusBackup === 'Concluído' ? 'selected' : ''}>Concluído</option></select></div>
                                 <div class="flex justify-between items-center text-sm"><span class="font-semibold text-slate-600 dark:text-slate-300">Análise:</span> <select data-id="${task.id}" data-type="analise" class="status-select border-none text-right font-semibold text-sm rounded-lg p-1 ${statusClasses[task.statusAnalise]}"><option value="Pendente" ${task.statusAnalise === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Análise" ${task.statusAnalise === 'Em Análise' ? 'selected' : ''}>Em Análise</option><option value="Concluída" ${task.statusAnalise === 'Concluída' ? 'selected' : ''}>Concluída</option></select></div>
                             </div>
-                            ${observacaoGeralHTML} <!-- Adicionado observação geral -->
-                            ${ocorrenciaDetailsHTML}
+                            ${cleanObsGeral} <!-- Apenas Obs Geral não automática -->
+                            <!-- ocorrenciaDetailsHTML foi removido intencionalmente daqui -->
                             ${detailsButtonHTML}
                         </div>
                     `;
@@ -939,7 +963,7 @@
             document.getElementById('task-list').addEventListener('change', (e) => {
                 if (e.target.classList.contains('status-select')) {
                     const id = e.target.dataset.id;
-                    const type = e.target.dataset.type;
+                    const type = e.target.dataset.dataset.type;
                     const task = tasks.find(t => t.id == id);
                     if (task) {
                         if (type === 'backup') task.statusBackup = e.target.value;
