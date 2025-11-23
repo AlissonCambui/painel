@@ -1,25 +1,21 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>vendPerto - Monitoramento Inteligente</title>
+    <title>Painel de Monitoramento - Acesso Seguro</title>
     
-    <!-- 1. Carrega o Tailwind CSS -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 2. Configura o Dark Mode e Cores -->
+    <!-- Configurações Tailwind -->
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            orange: '#f26324',
-                            yellow: '#f7b41e',
-                            dark: '#1e293b'
-                        }
+                        brand: { orange: '#f26324', yellow: '#f7b41e', dark: '#1e293b' }
                     }
                 }
             }
@@ -30,11 +26,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     
-    <!-- Ícones (Phosphor) -->
+    <!-- Ícones -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
-        /* Estilos Globais */
         body { transition: background-color 0.3s, color 0.3s; }
         .card-transition { transition: transform 0.2s, box-shadow 0.2s; }
         .card-transition:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
@@ -47,143 +42,388 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
         
-        /* Animações */
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Loader */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #f26324; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-300">
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-300 overflow-x-hidden">
 
-    <!-- Navbar -->
-    <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 border-b dark:border-slate-700">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="text-2xl font-extrabold tracking-tight select-none">
-                    <span class="text-brand-orange">vend</span><span class="text-brand-yellow">Perto</span>
-                </div>
-                <span class="hidden md:inline-block text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-500 dark:text-slate-400 font-medium ml-2">Monitor</span>
-            </div>
-            <div class="flex items-center gap-4">
-                <button id="theme-toggle" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-orange">
-                    <i class="ph ph-sun text-lg"></i>
-                    <span class="text-sm font-semibold hidden sm:inline">Tema</span>
-                </button>
-                <div class="text-right hidden sm:block">
-                    <p class="text-xs text-slate-500 dark:text-slate-400" id="current-date">...</p>
-                </div>
-            </div>
+    <!-- ================================================================== -->
+    <!-- TELA DE LOGIN (PORTARIA) -->
+    <!-- ================================================================== -->
+    <section id="login-view" class="fixed inset-0 z-50 bg-slate-100 dark:bg-slate-900 flex flex-col items-center justify-center p-4 transition-opacity duration-500">
+        <div class="absolute top-4 right-4 flex gap-2">
+             <!-- Botão Admin (Engrenagem) -->
+             <button onclick="App.openModalUI('cloud-config-modal')" class="text-slate-400 hover:text-brand-orange transition p-2" title="Configuração Técnica">
+                <i class="ph ph-gear text-2xl"></i>
+            </button>
         </div>
-    </nav>
 
-    <div class="container mx-auto p-4 md:p-6 lg:p-8 flex-grow">
-        <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-                <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Painel de Controle</h1>
-                <p class="text-slate-600 dark:text-slate-400 mt-1">Visão geral do monitoramento e ocorrências.</p>
-            </div>
-        </header>
-
-        <!-- KPIs -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                <h3 class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Ativas</h3>
-                <p id="total-solicitacoes" class="text-3xl font-bold text-slate-800 dark:text-white">0</p>
-            </div>
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                <h3 class="text-xs font-bold uppercase text-amber-600 dark:text-amber-500">Backups Pend.</h3>
-                <p id="backups-pendentes" class="text-3xl font-bold text-amber-500">0</p>
-            </div>
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Concluídas</h3>
-                <p id="analises-concluidas" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
-            </div>
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                <h3 class="text-xs font-bold uppercase text-red-600 dark:text-red-400">Ocorrências</h3>
-                <p id="total-ocorrencias-semana" class="text-3xl font-bold text-red-500">0</p>
-                <p class="text-xs text-slate-400 text-right">Total Painel</p>
-            </div>
-        </section>
-
-        <!-- Toolbar -->
-        <section class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm mb-8 border border-slate-100 dark:border-slate-700">
-            <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
-                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                    <input type="text" id="filtro-condominio" placeholder="Buscar condomínio..." class="pl-3 w-full lg:w-64 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none transition">
-                    
-                    <select id="filtro-analise" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
-                        <option value="">Status Análise: Todos</option>
-                        <option value="Pendente">Pendente</option>
-                        <option value="Em Análise">Em Análise</option>
-                        <option value="Concluída">Concluída</option>
-                    </select>
-                    
-                    <select id="filtro-backup" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
-                         <option value="">Status Backup: Todos</option>
-                         <option value="Pendente">Pendente</option>
-                         <option value="Em Andamento">Em Andamento</option>
-                         <option value="Concluído">Concluído</option>
-                    </select>
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-4 border-brand-orange animate-fade-in flex flex-col">
+            <div class="mb-6 flex justify-center">
+                <div class="w-16 h-16 bg-orange-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-brand-orange text-3xl shadow-inner">
+                    <i class="ph ph-user-focus"></i>
                 </div>
-                <div class="flex items-center gap-3 w-full lg:w-auto justify-end">
-                    <button id="add-task-btn" class="bg-brand-orange hover:bg-orange-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/20">
-                        <i class="ph ph-plus-circle text-lg"></i> Nova Análise
+            </div>
+            
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-extrabold tracking-tight select-none text-brand-orange uppercase">
+                    Painel de Monitoramento
+                </h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Acesso Seguro</p>
+            </div>
+
+            <!-- FORMULÁRIO DE LOGIN -->
+            <div id="login-form-container" class="space-y-4">
+                
+                <!-- ABAS -->
+                <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg mb-4">
+                    <button id="tab-login" class="flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-brand-orange shadow-sm transition-all" onclick="App.toggleAuthMode('login')">Entrar</button>
+                    <button id="tab-register" class="flex-1 py-2 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 transition-all" onclick="App.toggleAuthMode('register')">Primeiro Acesso</button>
+                </div>
+
+                <div id="auth-title" class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Acesso ao Sistema</div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Nome Completo</label>
+                    <div class="relative">
+                        <i class="ph ph-user absolute left-3 top-2.5 text-slate-400"></i>
+                        <input type="text" id="login-username" class="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none transition uppercase" placeholder="EX: LUIZ SILVA">
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between items-end mb-1">
+                        <label id="lbl-password" class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Sua Senha</label>
+                    </div>
+                    <div class="relative">
+                        <i class="ph ph-lock absolute left-3 top-2.5 text-slate-400"></i>
+                        <input type="password" id="login-password" class="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none transition" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div id="auth-error-msg" class="hidden text-red-500 text-xs text-center bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-100 dark:border-red-800 flex items-center justify-center gap-2">
+                    <i class="ph ph-warning-circle"></i> <span id="error-text-content">Erro ao autenticar.</span>
+                </div>
+
+                <button id="action-btn" type="button" class="w-full bg-brand-orange hover:bg-orange-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2">
+                    Acessar Painel
+                </button>
+            </div>
+
+            <div id="login-loading" class="hidden flex flex-col items-center justify-center py-4">
+                <div class="loader mb-3"></div>
+                <p class="text-xs text-slate-400 animate-pulse">Validando acesso...</p>
+            </div>
+
+            <p class="mt-6 text-[10px] text-center text-slate-400 leading-relaxed">
+                <span id="conn-status-icon" class="text-green-500 font-bold flex items-center justify-center gap-1"><i class="ph ph-shield-check"></i> Conexão Segura</span>
+                <span id="system-status">Inicializando...</span>
+            </p>
+        </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- PAINEL PRINCIPAL (DASHBOARD) -->
+    <!-- ================================================================== -->
+    <div id="dashboard-view" class="hidden flex-col min-h-screen w-full">
+        
+        <!-- Navbar -->
+        <nav class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-40 border-b dark:border-slate-700">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="text-xl font-extrabold tracking-tight select-none flex items-center gap-1 cursor-pointer" onclick="window.location.reload()">
+                        <i class="ph ph-video-camera text-brand-orange"></i>
+                        <span class="hidden md:inline text-brand-orange">Painel de Monitoramento</span>
+                    </div>
+                    <span id="app-mode-badge" class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold uppercase tracking-wider">ONLINE</span>
+                </div>
+                <div class="flex items-center gap-3 md:gap-4">
+                    <!-- DATA -->
+                    <div class="text-right hidden lg:block mr-2">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 capitalize" id="current-date">...</p>
+                    </div>
+                    <!-- BOTÃO DE ADMIN -->
+                    <button id="admin-panel-btn" onclick="App.openAdminPanel()" class="hidden bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-brand-orange p-2 rounded-lg transition relative" title="Painel do Administrador">
+                        <i class="ph ph-lock-key text-lg"></i>
+                        <div id="admin-indicator" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
                     </button>
-                    
-                    <div class="relative" id="actions-menu-container">
-                        <button id="actions-menu-btn" class="bg-slate-100 dark:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white flex items-center gap-2 transition-colors">
-                            Ações <i class="ph ph-caret-down"></i>
+                    <!-- BOTÃO MINHA CONTA -->
+                    <button onclick="App.openMyAccountModal()" class="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-brand-orange hover:text-white px-3 py-1.5 rounded-lg transition group">
+                         <div class="hidden md:block leading-tight text-right">
+                            <p class="text-[10px] uppercase font-bold opacity-70">Olá,</p>
+                            <p id="user-display-name" class="text-xs font-bold uppercase truncate max-w-[100px]">Utilizador</p>
+                        </div>
+                        <div id="user-avatar" class="w-8 h-8 rounded-full bg-white text-brand-orange flex items-center justify-center font-bold text-sm border border-slate-200 dark:border-slate-600 shadow-sm group-hover:text-brand-orange">U</div>
+                    </button>
+                    <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                    <button id="theme-toggle" class="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+                        <i class="ph ph-sun"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- BANNER DE ERRO DE CONEXÃO -->
+        <div id="db-error-banner" class="hidden bg-red-500 text-white p-4 text-center shadow-lg">
+            <p class="font-bold flex items-center justify-center gap-2">
+                <i class="ph ph-warning-circle text-xl"></i>
+                Acesso ao Banco de Dados Bloqueado!
+            </p>
+            <p class="text-xs mt-1 opacity-90">Verifique a conexão de internet ou permissões.</p>
+            <button onclick="window.location.reload()" class="mt-2 bg-white text-red-500 px-4 py-1 rounded text-xs font-bold hover:bg-slate-100 transition">
+                Tentar Novamente
+            </button>
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="container mx-auto p-4 md:p-6 lg:p-8 flex-grow animate-fade-in">
+            <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Painel de Monitoramento</h1>
+                    <p id="welcome-msg" class="text-slate-600 dark:text-slate-400 mt-1 text-sm">Gerencie as suas ocorrências com segurança.</p>
+                </div>
+                <div id="sync-status" class="text-xs font-mono text-slate-400 flex items-center gap-1 hidden">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> <span id="sync-text" class="hidden md:inline">Guardado na Nuvem</span>
+                </div>
+            </header>
+
+            <!-- KPIs -->
+            <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                    <h3 class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Ativas</h3>
+                    <p id="total-solicitacoes" class="text-3xl font-bold text-slate-800 dark:text-white">0</p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                    <h3 class="text-xs font-bold uppercase text-amber-600 dark:text-amber-500">Backups Pend.</h3>
+                    <p id="backups-pendentes" class="text-3xl font-bold text-amber-500">0</p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                    <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Concluídas</h3>
+                    <p id="analises-concluidas" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                    <h3 class="text-xs font-bold uppercase text-red-600 dark:text-red-400">Ocorrências</h3>
+                    <p id="total-ocorrencias-semana" class="text-3xl font-bold text-red-500">0</p>
+                    <p class="text-xs text-slate-400 text-right">Total Geral</p>
+                </div>
+                <!-- CARD MÉDIA -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                    <h3 class="text-xs font-bold uppercase text-purple-600 dark:text-purple-400">Média (Oc/Análise)</h3>
+                    <p id="media-ocorrencias" class="text-3xl font-bold text-purple-500">0.0</p>
+                    <p class="text-xs text-slate-400 text-right">Por Concluída</p>
+                </div>
+            </section>
+
+            <!-- Toolbar -->
+            <section class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm mb-8 border border-slate-100 dark:border-slate-700">
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                        <input type="text" id="filtro-condominio" placeholder="Buscar condomínio..." class="pl-3 w-full lg:w-64 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none transition">
+                        <select id="filtro-analise" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
+                            <option value="">Status Análise: Todos</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Em Análise">Em Análise</option>
+                            <option value="Concluída">Concluída</option>
+                        </select>
+                        <select id="filtro-backup" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
+                             <option value="">Status Backup: Todos</option>
+                             <option value="Pendente">Pendente</option>
+                             <option value="Em Andamento">Em Andamento</option>
+                             <option value="Concluído">Concluído</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3 w-full lg:w-auto justify-end">
+                        <button id="add-task-btn" class="bg-brand-orange hover:bg-orange-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/20">
+                            <i class="ph ph-plus-circle text-lg"></i> Nova Análise
                         </button>
-                        <div id="actions-menu" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
-                            <button id="excel-import-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors">
-                                <i class="ph ph-file-csv text-lg text-green-600"></i> Importar (Excel)
+                        
+                        <div class="relative" id="actions-menu-container">
+                            <button id="actions-menu-btn" class="bg-slate-100 dark:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white flex items-center gap-2 transition-colors">
+                                Ações <i class="ph ph-caret-down"></i>
                             </button>
-                            <button id="period-analysis-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                <i class="ph ph-chart-bar text-lg text-blue-500"></i> Relatório por Período
-                            </button>
-                            <button id="archive-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                <i class="ph ph-archive-box text-lg text-purple-500"></i> Arquivo Morto
-                            </button>
-                            <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
-                            <button id="export-data-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                <i class="ph ph-download-simple text-lg text-slate-500"></i> Backup (Salvar Dados)
-                            </button>
-                            <button id="import-data-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                <i class="ph ph-upload-simple text-lg text-slate-500"></i> Restaurar Backup
-                            </button>
+                            <div id="actions-menu" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
+                                <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
+                                <button id="excel-import-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors">
+                                    <i class="ph ph-file-csv text-lg text-green-600"></i> Importar (Excel)
+                                </button>
+                                <button id="archive-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <i class="ph ph-archive-box text-lg text-purple-500"></i> Arquivo Morto
+                                </button>
+                                <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
+                                <button id="export-data-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <i class="ph ph-download-simple text-lg text-slate-500"></i> Backup Local (JSON)
+                                </button>
+                                <button id="import-data-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <i class="ph ph-upload-simple text-lg text-slate-500"></i> Restaurar Backup (JSON)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Lista de Tarefas -->
-        <main id="task-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            <!-- JS preenche aqui -->
-        </main>
-        
-        <!-- Gráficos -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-             <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-                <h2 class="text-lg font-bold mb-4 dark:text-white flex items-center gap-2"><i class="ph ph-map-pin"></i> Ocorrências por Local</h2>
-                <div class="chart-container"><canvas id="ocorrenciasChart"></canvas></div>
-             </div>
-             <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-center items-center">
-                 <h2 class="text-lg font-bold mb-2 dark:text-white flex items-center gap-2"><i class="ph ph-lightning"></i> Produtividade Média</h2>
-                 <div class="text-center py-8">
-                     <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Média de Ocorrências por Condomínio</p>
-                     <p id="produtividade-semanal" class="text-6xl font-extrabold text-emerald-500 mt-4">0.0</p>
-                     <p class="text-xs text-slate-400 mt-2">Baseado nas análises concluídas</p>
+            <!-- Lista de Tarefas -->
+            <main id="task-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <!-- JS preenche aqui -->
+            </main>
+            
+            <!-- Gráficos -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                 <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <h2 class="text-lg font-bold mb-4 dark:text-white flex items-center gap-2"><i class="ph ph-map-pin"></i> Ocorrências por Local</h2>
+                    <div class="chart-container"><canvas id="ocorrenciasChart"></canvas></div>
                  </div>
-             </div>
-        </section>
+                 <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-center items-center">
+                     <h2 class="text-lg font-bold mb-2 dark:text-white flex items-center gap-2"><i class="ph ph-lightning"></i> Produtividade</h2>
+                     <div class="text-center py-8">
+                         <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Total de Análises Concluídas</p>
+                         <p id="produtividade-total" class="text-6xl font-extrabold text-emerald-500 mt-4">0</p>
+                     </div>
+                 </div>
+            </section>
+
+            <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
+                <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Local. Seus dados estão salvos apenas neste dispositivo.</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v17.0 (Stable Release)</p>
+            </footer>
+        </div>
     </div>
 
-    <!-- Modais -->
+    <!-- MODAIS -->
     
-    <!-- Modal Adicionar Tarefa -->
+    <!-- Modal Minha Conta -->
+    <div id="my-account-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-sm border dark:border-slate-700 shadow-2xl">
+             <div class="flex justify-between items-start mb-4">
+                 <div>
+                     <h2 class="text-lg font-bold dark:text-white">Minha Conta</h2>
+                     <p id="account-modal-name" class="text-sm text-slate-500 uppercase"></p>
+                 </div>
+                 <div class="w-10 h-10 rounded-full bg-brand-orange text-white flex items-center justify-center font-bold text-lg">U</div>
+             </div>
+             
+             <div class="space-y-2">
+                 <button onclick="App.openChangePasswordModal()" class="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 transition text-slate-700 dark:text-white">
+                     <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><i class="ph ph-key"></i></div>
+                     <div class="text-left">
+                         <p class="text-sm font-bold">Alterar Senha</p>
+                         <p class="text-[10px] text-slate-500">Defina uma nova senha de acesso</p>
+                     </div>
+                 </button>
+                 
+                 <button onclick="App.logout()" class="w-full flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 transition text-red-600">
+                     <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><i class="ph ph-sign-out"></i></div>
+                     <div class="text-left">
+                         <p class="text-sm font-bold">Sair do Sistema</p>
+                         <p class="text-[10px] opacity-70">Encerrar sessão atual</p>
+                     </div>
+                 </button>
+             </div>
+             
+             <button onclick="document.getElementById('my-account-modal').classList.add('hidden')" class="w-full mt-4 py-2 text-xs text-slate-400 hover:text-slate-600">Fechar</button>
+        </div>
+    </div>
+    
+    <!-- Modal Admin -->
+    <div id="admin-panel-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl border dark:border-slate-700 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-4">
+                <h2 class="text-xl font-bold dark:text-white flex items-center gap-2"><i class="ph ph-users-three text-brand-orange"></i> Gestão de Equipe</h2>
+                <button onclick="document.getElementById('admin-panel-modal').classList.add('hidden')" class="text-slate-400 hover:text-red-500 text-2xl transition">&times;</button>
+            </div>
+            <div class="mb-6 bg-slate-50 dark:bg-slate-700/50 p-5 rounded-lg border border-slate-200 dark:border-slate-600">
+                <h3 class="text-sm font-bold text-slate-700 dark:text-white mb-3 flex items-center gap-2"><i class="ph ph-user-plus text-blue-500"></i> Autorizar Novo Acesso</h3>
+                <div class="flex flex-col gap-2">
+                    <input type="text" id="new-user-name" class="w-full p-3 rounded border dark:bg-slate-800 dark:border-slate-600 dark:text-white text-sm uppercase focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Nome Completo do Funcionário">
+                    <button onclick="App.authorizeNewUser()" class="bg-blue-600 text-white py-2.5 rounded text-sm font-bold hover:bg-blue-700 transition shadow-sm">
+                        Autorizar Cadastro
+                    </button>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 leading-tight">* O funcionário deverá acessar a aba "Primeiro Acesso" para criar a própria senha.</p>
+            </div>
+            <div class="flex-grow overflow-y-auto pr-1">
+                <h3 class="text-xs font-bold text-slate-500 uppercase mb-3 tracking-wider">Equipe Autorizada</h3>
+                <ul id="admin-users-list" class="space-y-2 text-sm"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmação Exclusão -->
+    <div id="delete-confirmation-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[80]">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-sm border border-red-200 dark:border-red-900 shadow-2xl text-center">
+             <div class="w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="ph ph-trash"></i>
+             </div>
+             <h2 class="text-lg font-bold dark:text-white mb-2">Excluir Análise?</h2>
+             <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                 Esta ação moverá a análise para o histórico de exclusão. Você pode restaurá-la depois importando o Excel novamente.
+             </p>
+             <div class="flex gap-2 justify-center">
+                 <button onclick="App.closeModalUI('delete-confirmation-modal')" class="px-4 py-2 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-white font-bold text-sm transition-colors">Cancelar</button>
+                 <button onclick="App.confirmDeleteTask()" class="px-4 py-2 rounded bg-red-500 text-white font-bold text-sm hover:bg-red-600 shadow-lg transition-colors">Sim, Excluir</button>
+             </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajuda Esqueci Senha -->
+    <div id="forgot-password-help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[70]">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-sm border border-orange-200 dark:border-slate-700 shadow-2xl relative">
+             <button onclick="document.getElementById('forgot-password-help-modal').classList.add('hidden')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 text-xl">&times;</button>
+             <div class="text-center mb-4">
+                 <div class="w-12 h-12 bg-orange-100 text-brand-orange rounded-full flex items-center justify-center mx-auto mb-2 text-2xl"><i class="ph ph-warning-circle"></i></div>
+                 <h2 class="text-lg font-bold dark:text-white">Recuperação de Senha</h2>
+             </div>
+             <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 text-center leading-relaxed">
+                 Para recuperar a senha, contacte o Administrador do sistema.
+             </p>
+             <div class="bg-slate-50 dark:bg-slate-700 p-3 rounded text-xs text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-600">
+                 <strong>Procedimento:</strong><br>
+                 O Administrador deve remover o utilizador da lista de autorizações e adicioná-lo novamente para que uma nova senha possa ser criada.
+             </div>
+             <button onclick="document.getElementById('forgot-password-help-modal').classList.add('hidden')" class="w-full mt-4 bg-brand-orange text-white py-2 rounded text-sm font-bold hover:bg-orange-700">Entendi</button>
+        </div>
+    </div>
+
+    <!-- Modal Troca de Senha -->
+    <div id="change-password-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[65]">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-sm border dark:border-slate-700 shadow-2xl">
+             <h2 class="text-lg font-bold mb-1 dark:text-white flex items-center gap-2"><i class="ph ph-lock-key-open text-brand-orange"></i> Alterar Senha</h2>
+             <p class="text-xs text-slate-500 mb-4">Digite sua nova senha pessoal abaixo.</p>
+             <input type="password" id="new-password-input" class="w-full p-3 border rounded mb-4 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Nova Senha (mín. 6 dígitos)">
+             <div class="flex justify-end gap-2">
+                 <button onclick="document.getElementById('change-password-modal').classList.add('hidden')" class="px-4 py-2 rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm">Cancelar</button>
+                 <button onclick="App.changeUserPassword()" class="px-4 py-2 rounded bg-brand-orange text-white font-bold hover:bg-orange-700 text-sm shadow-md">Salvar Nova Senha</button>
+             </div>
+        </div>
+    </div>
+    
+    <!-- Modal Cloud Config -->
+    <div id="cloud-config-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-lg border dark:border-slate-700 shadow-2xl">
+            <h2 class="text-xl font-bold mb-2 dark:text-white flex items-center gap-2"><i class="ph ph-cloud-gear text-blue-500"></i> Instalação do Banco de Dados</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">O sistema já está pré-configurado com suas chaves.</p>
+            <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded text-xs text-green-800 dark:text-green-200 mb-3 border border-green-100 dark:border-green-800">
+                <strong>Status:</strong> Configuração Automática Ativa
+            </div>
+            <textarea id="firebase-config-input" rows="8" class="w-full p-3 text-xs font-mono bg-slate-100 dark:bg-slate-900 border rounded dark:text-white dark:border-slate-600 outline-none resize-none mb-4" readonly placeholder="Configuração embutida no código."></textarea>
+            <div class="flex justify-between items-center">
+                <button onclick="document.getElementById('cloud-config-modal').classList.add('hidden')" class="text-slate-500 hover:text-slate-700 text-sm">Fechar</button>
+                <div class="flex gap-2">
+                    <button id="reset-cloud-btn" class="px-4 py-2 rounded border border-red-200 text-red-500 hover:bg-red-50 text-sm">Redefinir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar/Editar Tarefa -->
     <div id="task-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 transition-opacity">
-        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md border dark:border-slate-700 shadow-2xl transform scale-100 transition-transform">
-            <h2 class="text-2xl font-bold mb-4 dark:text-white">Nova Análise</h2>
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md border dark:border-slate-700 shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4 dark:text-white" id="task-modal-title">Nova Análise</h2>
             <form id="task-form" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Condomínio</label>
@@ -194,7 +434,7 @@
                     <input type="date" id="form-data-analise" class="w-full border rounded p-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none" required>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Semana</label>
+                    <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Semana (Opcional)</label>
                     <input type="text" id="form-semana" class="w-full border rounded p-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Ex: Semana 47">
                 </div>
                 <div>
@@ -216,11 +456,7 @@
                 <h2 class="text-xl font-bold dark:text-white">Ocorrências: <span id="modal-condo-name" class="text-brand-orange"></span></h2>
                 <button id="ocorrencia-cancel-btn" class="text-slate-400 hover:text-red-500 text-2xl transition-colors">&times;</button>
             </div>
-            
-            <div id="ocorrencia-list" class="flex-grow overflow-y-auto mb-4 space-y-2 p-2 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700 shadow-inner">
-                <!-- Lista JS -->
-            </div>
-            
+            <div id="ocorrencia-list" class="flex-grow overflow-y-auto mb-4 space-y-2 p-2 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700 shadow-inner"></div>
             <div class="pt-4 border-t dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-2 mb-2">
                     <select id="add-ocorrencia-categoria" class="md:col-span-4 border rounded p-2 text-sm dark:bg-slate-700 dark:text-white dark:border-slate-600"></select>
@@ -238,17 +474,17 @@
                 </div>
                 <div class="flex gap-2 mt-3">
                     <button id="add-ocorrencia-btn" class="flex-1 bg-orange-100 text-brand-orange font-bold py-2 rounded hover:bg-orange-200 transition-colors border border-orange-200">+ Adicionar Item</button>
-                    <button id="save-ocorrencias-btn" class="flex-1 bg-brand-orange text-white font-bold py-2 rounded hover:bg-orange-700 transition-colors shadow-lg shadow-orange-500/20">Salvar Tudo</button>
+                    <button id="save-ocorrencias-btn" class="flex-1 bg-brand-orange text-white font-bold py-2 rounded hover:bg-orange-700 transition-colors shadow-lg shadow-orange-500/20">Salvar Alterações</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Importar -->
+    <!-- Outros Modais (Excel, Arquivo) -->
     <div id="excel-import-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl border dark:border-slate-700 shadow-2xl">
             <h2 class="text-xl font-bold mb-2 dark:text-white">Importar Dados (Excel)</h2>
-            <p class="text-xs text-slate-500 mb-4">Cole as linhas do Excel aqui. Formato esperado: Semana | Data | Condomínio | ...</p>
+            <p class="text-xs text-slate-500 mb-4">Cole as linhas do Excel aqui para importar em massa.</p>
             <textarea id="excel-paste-area" rows="10" class="w-full p-3 text-sm font-mono bg-slate-100 dark:bg-slate-900 border rounded dark:text-white dark:border-slate-600 focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Cole os dados aqui..."></textarea>
             <div class="flex justify-end gap-2 mt-4">
                 <button id="excel-import-close-btn" class="px-4 py-2 rounded bg-slate-200 dark:bg-slate-700 dark:text-white transition-colors">Cancelar</button>
@@ -257,7 +493,6 @@
         </div>
     </div>
     
-    <!-- Modal Arquivo Morto -->
     <div id="archive-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-3xl h-[80vh] flex flex-col shadow-2xl border dark:border-slate-700">
             <div class="flex justify-between mb-4 border-b dark:border-slate-700 pb-2">
@@ -266,93 +501,56 @@
             </div>
             <div id="archive-list" class="flex-grow overflow-y-auto space-y-2 pr-2"></div>
             <div class="mt-4 pt-2 border-t dark:border-slate-700 text-right">
-                <button id="clear-archive-btn" class="text-red-500 text-sm font-bold hover:text-red-700 px-3 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Limpar Arquivo Definitivamente</button>
+                <p class="text-xs text-slate-400 text-left mb-2">Itens arquivados não aparecem nas estatísticas principais.</p>
             </div>
         </div>
     </div>
 
-    <!-- Modal Relatório Período -->
-    <div id="period-analysis-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 animate-fade-in">
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-4xl h-5/6 flex flex-col border border-slate-200 dark:border-slate-700">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold dark:text-white flex items-center gap-2"><i class="ph ph-chart-line-up"></i> Relatório por Período</h2>
-                <button id="period-analysis-close-btn" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
-            </div>
-
-            <!-- Filtros de Data e Atalhos -->
-            <div class="mb-4 space-y-4 border-b dark:border-slate-700 pb-4">
-                <div class="flex gap-2 justify-center md:justify-start overflow-x-auto pb-2">
-                    <button id="preset-week-btn" class="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded hover:bg-brand-orange hover:text-white text-sm font-medium transition-colors whitespace-nowrap">Esta Semana</button>
-                    <button id="preset-month-btn" class="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded hover:bg-brand-orange hover:text-white text-sm font-medium transition-colors whitespace-nowrap">Este Mês</button>
-                    <button id="preset-year-btn" class="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded hover:bg-brand-orange hover:text-white text-sm font-medium transition-colors whitespace-nowrap">Este Ano</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input type="date" id="period-start-date" class="bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg p-2 dark:text-white">
-                    <input type="date" id="period-end-date" class="bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg p-2 dark:text-white">
-                    <button id="generate-report-btn" class="bg-brand-orange text-white font-bold rounded-lg hover:bg-orange-700 shadow-md transition-colors">Gerar Relatório</button>
-                </div>
-            </div>
-
-            <div id="period-results-content" class="flex-grow overflow-y-auto hidden pr-2">
-                <section class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg text-center border border-slate-200 dark:border-slate-600">
-                        <h3 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Total no Período</h3>
-                        <p id="period-total" class="text-xl font-bold text-slate-800 dark:text-white">0</p>
-                    </div>
-                    <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg text-center border border-emerald-200 dark:border-emerald-800">
-                        <h3 class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">Concluídas</h3>
-                        <p id="period-concluidas" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
-                    </div>
-                    <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-center border border-red-200 dark:border-red-800">
-                        <h3 class="text-xs font-bold text-red-600 dark:text-red-400 uppercase">Ocorrências</h3>
-                        <p id="period-oc" class="text-xl font-bold text-red-600 dark:text-red-400">0</p>
-                    </div>
-                </section>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 mb-4">
-                        <h3 class="text-center font-bold mb-4 dark:text-white">Ocorrências por Condomínio</h3>
-                        <div class="chart-container h-64">
-                            <canvas id="periodChart"></canvas>
-                        </div>
-                    </div>
-                     <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 mb-4">
-                        <h3 class="text-center font-bold mb-4 dark:text-white">Por Categoria</h3>
-                        <div class="chart-container h-64">
-                            <canvas id="periodCategoryChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                 <div class="mt-6">
-                    <h3 class="font-bold mb-2 dark:text-white">Detalhamento das Análises</h3>
-                    <ul id="period-task-list" class="space-y-2 max-h-40 overflow-y-auto bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-sm dark:text-slate-300"></ul>
-                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 text-white px-6 py-3 rounded shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
+    <!-- Toast Notificação -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 text-white px-6 py-3 rounded shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-[70] flex items-center gap-2">
         <i class="ph ph-check-circle text-green-400 text-xl"></i>
         <span id="toast-msg">Ação realizada</span>
     </div>
 
-    <!-- Inputs Ocultos -->
     <input type="file" id="file-input" class="hidden" accept=".json">
     <input type="hidden" id="ocorrencia-current-task-id">
 
-    <script>
-        // --- ESTADO CENTRALIZADO ---
+    <!-- SCRIPT TYPE MODULE PARA FIREBASE & APP -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, initializeAuth, browserLocalPersistence, updatePassword, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // CONFIG
+        const myConfig = {
+            apiKey: "AIzaSyC7uyQ7Xeu1WfnHbV4-KcngMsPKv5l6QmM",
+            authDomain: "painel-de-monitoramento-411b7.firebaseapp.com",
+            projectId: "painel-de-monitoramento-411b7",
+            storageBucket: "painel-de-monitoramento-411b7.firebasestorage.app",
+            messagingSenderId: "638200796920",
+            appId: "1:638200796920:web:8d668d52af2355b1c14d0d"
+        };
+
+        let auth, db, appFirebase;
+        let appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
         const App = {
             data: {
                 tasks: [],
                 archived: [],
-                categories: ['Furto', 'Fraude Pagamento', 'Consumo Indevido', 'Vandalismo', 'Defeito Técnico', 'Procedimento Incorreto', 'Outros']
+                deletedHistory: [],
+                categories: ['Furto', 'Fraude Pagamento', 'Consumo Indevido', 'Vandalismo', 'Defeito Técnico', 'Procedimento Incorreto', 'Outros'],
+                mode: 'cloud', 
+                authMode: 'login',
+                user: null,
+                isLoading: false,
+                adminCode: 'ADMIN123', 
+                adminEmail: 'alisson.cambui@vendperto.local',
+                editingId: null,
+                pendingDeleteId: null,
+                editingTaskId: null
             },
-            
-            // Inicializador para objetos chart
             charts: {},
-
-            // Cores fixas
             statusColors: {
                 'Pendente': 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400',
                 'Em Andamento': 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400',
@@ -361,98 +559,683 @@
                 'Concluída': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400',
             },
 
-            init() {
-                this.loadData();
+            // --- MÉTODOS AUXILIARES ---
+            
+            setupTheme() {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            },
+
+            setupDate() {
+                const dateEl = document.getElementById('current-date');
+                if (dateEl) {
+                    dateEl.textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+                }
+            },
+
+            setupCharts() {
+                 if (typeof Chart === 'undefined') return; 
+                 Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569';
+                 const c1 = document.getElementById('ocorrenciasChart');
+                 if(c1) this.charts.oc = new Chart(c1.getContext('2d'), { type: 'bar', data: {labels:[], datasets:[{label:'Ocs', data:[], backgroundColor:'#f26324', borderRadius:4}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
+            },
+            
+            setupEvents() {
+                const addListener = (id, event, handler) => { const el = document.getElementById(id); if (el) el.addEventListener(event, handler); };
+                
+                ['filtro-condominio', 'filtro-backup', 'filtro-analise'].forEach(id => addListener(id, 'input', () => App.render()));
+                
+                addListener('add-task-btn', 'click', () => { 
+                    App.data.editingTaskId = null;
+                    document.getElementById('task-modal-title').textContent = "Nova Análise";
+                    document.getElementById('task-form').reset(); 
+                    document.getElementById('form-data-analise').valueAsDate=new Date(); 
+                    App.openModalUI('task-modal'); 
+                });
+                addListener('cancel-btn', 'click', () => App.closeModalUI('task-modal'));
+                addListener('task-form', 'submit', (e) => { 
+                    e.preventDefault(); 
+                    App.saveTaskFromForm();
+                });
+                
+                addListener('actions-menu-btn', 'click', (e) => { e.stopPropagation(); document.getElementById('actions-menu').classList.toggle('hidden'); });
+                document.body.addEventListener('click', () => { const m = document.getElementById('actions-menu'); if(m) m.classList.add('hidden'); });
+                
+                addListener('cloud-config-btn', 'click', () => App.openModalUI('cloud-config-modal'));
+                addListener('reset-cloud-btn', 'click', () => { if(confirm('Redefinir configuração?')) App.resetToLocal(); });
+                
+                addListener('excel-import-btn', 'click', () => App.openModalUI('excel-import-modal'));
+                addListener('excel-import-close-btn', 'click', () => App.closeModalUI('excel-import-modal'));
+                addListener('process-import-btn', 'click', () => App.processExcel());
+                
+                addListener('archive-btn', 'click', () => { App.renderArchiveList(); App.openModalUI('archive-modal'); });
+                addListener('archive-close-btn', 'click', () => App.closeModalUI('archive-modal'));
+                
+                addListener('export-data-btn', 'click', () => App.exportData());
+                addListener('import-data-btn', 'click', () => document.getElementById('file-input').click());
+                addListener('file-input', 'change', (e) => { 
+                    if(e.target.files[0]) { 
+                        const r = new FileReader(); 
+                        r.onload = ev => { 
+                            try {
+                                const j = JSON.parse(ev.target.result); 
+                                App.data.tasks=j.tasks||[]; 
+                                App.data.archived=j.archived||[]; 
+                                App.saveData(); 
+                                App.showToast('Restaurado'); 
+                                setTimeout(()=>window.location.reload(), 500); 
+                            } catch(e) { alert("Erro ao ler arquivo."); }
+                        }; 
+                        r.readAsText(e.target.files[0]); 
+                    } 
+                });
+
+                addListener('add-ocorrencia-btn', 'click', () => App.addOccurrence());
+                addListener('save-ocorrencias-btn', 'click', () => { App.saveData(); App.closeModalUI('ocorrencia-modal'); App.showToast('Salvo'); });
+                addListener('ocorrencia-cancel-btn', 'click', () => { App.closeModalUI('ocorrencia-modal'); App.resetOcorrenciaForm(); });
+
+                addListener('theme-toggle', 'click', () => { 
+                    document.documentElement.classList.toggle('dark'); 
+                    localStorage.theme = document.documentElement.classList.contains('dark')?'dark':'light'; 
+                    App.updateCharts(); 
+                });
+            },
+
+            // --- INIT ---
+            async init() {
+                if(typeof __app_id !== 'undefined') appId = __app_id; 
+
                 this.setupTheme();
                 this.setupDate();
-                this.autoArchiveOldTasks();
                 this.setupCharts();
-                this.render();
-                this.events.setup();
-            },
-
-            // --- PERSISTÊNCIA (LocalStorage) ---
-            loadData() {
-                try {
-                    const t = localStorage.getItem('mon_tasks');
-                    const a = localStorage.getItem('mon_archived');
-                    if (t) this.data.tasks = JSON.parse(t);
-                    if (a) this.data.archived = JSON.parse(a);
-                } catch (e) { console.error("Erro load", e); }
-            },
-
-            saveData() {
-                localStorage.setItem('mon_tasks', JSON.stringify(this.data.tasks));
-                localStorage.setItem('mon_archived', JSON.stringify(this.data.archived));
-                this.render();
-            },
-            
-            // Exportar dados para JSON (Backup)
-            exportData() {
-                const dataStr = JSON.stringify(this.data);
-                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                this.setupEvents(); 
                 
-                const exportFileDefaultName = `backup_monitoramento_${new Date().toISOString().slice(0,10)}.json`;
+                const savedUser = localStorage.getItem('mon_user');
                 
-                const linkElement = document.createElement('a');
-                linkElement.setAttribute('href', dataUri);
-                linkElement.setAttribute('download', exportFileDefaultName);
-                linkElement.click();
-                this.showToast('Backup baixado com sucesso!');
-            },
+                this.loadDataLocal(); 
 
-            // Importar dados de JSON (Restaurar)
-            importData(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = (e) => {
+                if (savedUser) {
                     try {
-                        const json = JSON.parse(e.target.result);
-                        if (json.tasks && Array.isArray(json.tasks)) {
-                            if(confirm('Isso irá substituir os dados atuais pelos do arquivo. Deseja continuar?')) {
-                                this.data = json;
-                                this.saveData();
-                                this.showToast('Dados restaurados com sucesso!');
-                                window.location.reload(); // Recarrega para limpar gráficos e estados
-                            }
-                        } else {
-                            alert('Arquivo de backup inválido.');
-                        }
-                    } catch (err) {
-                        alert('Erro ao ler o arquivo.');
-                    }
-                };
-                reader.readAsText(file);
-                // Limpa o input para permitir selecionar o mesmo arquivo novamente
-                event.target.value = '';
+                        this.data.user = JSON.parse(savedUser);
+                        if (this.data.user.name === 'ALISSON CAMBUI' || this.data.user.email === this.data.adminEmail) this.data.user.isAdmin = true;
+                        this.updateUserInfo(this.data.user);
+                        this.toggleAuthMode('login'); 
+                        this.switchToDashboardView();
+                    } catch(e) { console.error(e); localStorage.removeItem('mon_user'); }
+                }
+
+                this.initFirebase(myConfig);
+                if (!this.data.user) this.toggleAuthMode('login');
             },
 
-            // --- UTILITÁRIOS ---
-            generateId() {
-                // CORREÇÃO: Uso de crypto.randomUUID para evitar colisões em loops rápidos
-                return crypto.randomUUID();
+            getTodayString() {
+                const now = new Date();
+                const offset = now.getTimezoneOffset();
+                const local = new Date(now.getTime() - (offset * 60 * 1000));
+                return local.toISOString().split('T')[0];
             },
             
-            normalize(str) {
-                return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase() : "";
+            updateCharts() {
+                 if(!this.charts.oc) return;
+                 const counts = {}; this.data.tasks.forEach(t => { if(t.ocorrencias?.length) counts[t.condominio] = (counts[t.condominio]||0)+t.ocorrencias.length; });
+                 const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+                 this.charts.oc.data.labels = sorted.map(x=>x[0]); this.charts.oc.data.datasets[0].data = sorted.map(x=>x[1]); this.charts.oc.update();
+            },
+
+            toggleAuthMode(mode) {
+                this.data.authMode = mode;
+                const loginBtn = document.getElementById('tab-login');
+                const regBtn = document.getElementById('tab-register');
+                const actionBtn = document.getElementById('action-btn');
+                const title = document.getElementById('auth-title');
+                const errorMsg = document.getElementById('auth-error-msg');
+                const passLabel = document.getElementById('lbl-password');
+                
+                if (errorMsg) errorMsg.classList.add('hidden');
+
+                if (mode === 'login') {
+                    loginBtn.className = "flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-brand-orange shadow-sm transition-all";
+                    regBtn.className = "flex-1 py-2 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 transition-all";
+                    actionBtn.textContent = "Acessar Painel";
+                    title.textContent = "Entrar no Sistema";
+                    if (passLabel) passLabel.textContent = "Sua Senha"; 
+                    actionBtn.onclick = () => App.loginWithUser();
+                } else {
+                    regBtn.className = "flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-brand-orange shadow-sm transition-all";
+                    loginBtn.className = "flex-1 py-2 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 transition-all";
+                    actionBtn.textContent = "Criar Minha Senha";
+                    title.textContent = "Primeiro Acesso";
+                    if (passLabel) passLabel.textContent = "Crie uma Senha"; 
+                    actionBtn.onclick = () => App.registerWithUser();
+                }
+            },
+
+            openModalUI(id) { document.getElementById(id).classList.remove('hidden'); },
+            closeModalUI(id) { document.getElementById(id).classList.add('hidden'); },
+            openMyAccountModal() { document.getElementById('my-account-modal').classList.remove('hidden'); },
+            openForgotPasswordHelp() { document.getElementById('forgot-password-help-modal').classList.remove('hidden'); },
+            openAdminPanel() { 
+                if (this.data.user && this.data.user.isAdmin) {
+                     this.openModalUI('admin-panel-modal');
+                     this.loadAuthorizedUsers();
+                } else {
+                    alert("Acesso restrito a administradores.");
+                }
             },
             
-            // CORREÇÃO DE DATA: Formata string YYYY-MM-DD para DD/MM/YYYY sem alterar fuso horário
-            formatDate(dateString) {
-                if (!dateString) return '--/--/----';
-                const parts = dateString.split('-');
-                if (parts.length !== 3) return dateString;
-                const [y, m, d] = parts;
-                return `${d}/${m}/${y}`;
+            switchToLoginView() { document.getElementById('login-view').classList.remove('hidden'); document.getElementById('dashboard-view').classList.add('hidden'); },
+            switchToDashboardView() { document.getElementById('login-view').classList.add('hidden'); document.getElementById('dashboard-view').classList.remove('hidden'); document.getElementById('dashboard-view').classList.add('flex'); setTimeout(() => this.updateCharts(), 100); },
+            parseConfig(str) { try { return JSON.parse(str); } catch (e) { try { const jsonStr = str.replace(/(\w+):/g, '"$1":'); return JSON.parse(jsonStr); } catch (e2) { return null; } } },
+            
+            // FIREBASE INIT
+            async initFirebase(config) {
+                try {
+                    appFirebase = initializeApp(config);
+                    auth = getAuth(appFirebase);
+                    db = getFirestore(appFirebase);
+                    
+                    const isCustomProject = config.projectId === "painel-de-monitoramento-411b7";
+                    
+                    if (!isCustomProject && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token).catch(e => {
+                            console.warn("Falha token customizado", e);
+                            return signInAnonymously(auth);
+                        });
+                    } else {
+                        if (!auth.currentUser) {
+                            await signInAnonymously(auth).catch(e => console.warn("Anon fail", e));
+                        }
+                    }
+
+                    onAuthStateChanged(auth, (user) => {
+                        this.data.firebaseUser = user;
+                        if (user) {
+                            document.getElementById('system-status').textContent = "Conectado";
+                            if (this.data.user && this.data.user.uid) {
+                                this.subscribeToUserData(this.data.user.uid);
+                            }
+                        }
+                        this.updateUIMode();
+                    });
+
+                } catch(e) { 
+                    console.error("Falha Firebase Total", e);
+                }
             },
             
-            clearFilters() {
-                document.getElementById('filtro-condominio').value = '';
-                document.getElementById('filtro-analise').value = '';
-                document.getElementById('filtro-backup').value = '';
-                this.render();
+            forceSync() { if (this.data.user && this.data.user.uid) { this.showToast("Forçando sincronização..."); this.subscribeToUserData(this.data.user.uid); } else { alert("Erro: Usuário não identificado."); this.logout(); } },
+            
+            subscribeToUserData(uid) {
+                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_records', 'app_user_data_' + uid);
+                onSnapshot(userDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const d = docSnap.data();
+                        if (d.tasks) this.data.tasks = d.tasks;
+                        if (d.archived) this.data.archived = d.archived;
+                        if (d.deletedHistory) this.data.deletedHistory = d.deletedHistory;
+                        this.saveToLocalStorageCache();
+                        document.getElementById('sync-status').classList.remove('hidden');
+                        this.autoArchive();
+                        this.render(); 
+                    }
+                }, (error) => { console.error("Firestore Error:", error); document.getElementById('db-error-banner').classList.remove('hidden'); });
+            },
+
+            // --- AUTO ARQUIVAMENTO (CORRIGIDO) ---
+            autoArchive() {
+                // Lógica de Arquivamento Baseada em Semanas Completas (Segunda-feira)
+                // N = Semana Atual
+                // N-1 = Semana Passada (Visível)
+                // N-2 = Semana Retrasada (Arquivar tudo - Pendente ou Concluída)
+                
+                const now = new Date();
+                now.setHours(0,0,0,0);
+                
+                const day = now.getDay(); 
+                const diffToMon = (day + 6) % 7; 
+                
+                const mondayCurrentWeek = new Date(now);
+                mondayCurrentWeek.setDate(now.getDate() - diffToMon);
+                
+                const mondayLastWeek = new Date(mondayCurrentWeek);
+                mondayLastWeek.setDate(mondayLastWeek.getDate() - 7);
+                
+                const limitStr = mondayLastWeek.toISOString().split('T')[0];
+                
+                let changed = false;
+                const active = [];
+                
+                this.data.tasks.forEach(t => {
+                    // SE ESTIVER MARCADA COMO RESTAURAÇÃO MANUAL (t.manualRestore == true), NÃO ARQUIVA.
+                    if (t.manualRestore) {
+                        active.push(t);
+                        return;
+                    }
+
+                    // Regra normal: Arquiva se for anterior à semana passada
+                    if (t.dataAnalise < limitStr) {
+                        this.data.archived.push(t);
+                        changed = true;
+                    } else {
+                        active.push(t);
+                    }
+                });
+                
+                if (changed) {
+                    this.data.tasks = active;
+                    this.saveData();
+                    this.showToast('Auto-arquivamento: Semanas antigas limpas.');
+                }
+            },
+            
+            generateEmail(name) { return `${name.trim().toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}@vendperto.local`; },
+            
+            // LOGIN CORRIGIDO
+            async loginWithUser() { 
+                const errorMsg = document.getElementById('auth-error-msg');
+                errorMsg.classList.add('hidden'); 
+                if(!auth.currentUser) { try { await signInAnonymously(auth); } catch(e) {} }
+                const name = document.getElementById('login-username').value.trim().toUpperCase();
+                const pass = document.getElementById('login-password').value;
+                if(!name || !pass) { errorMsg.innerHTML = "Preencha nome e senha."; errorMsg.classList.remove('hidden'); return; }
+                const email = this.generateEmail(name);
+                const safeId = email.replace(/[^a-zA-Z0-9]/g, '_');
+                
+                document.getElementById('login-loading').classList.remove('hidden');
+                document.getElementById('login-form-container').classList.add('hidden');
+                
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', 'app_users_' + safeId);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        if (userData.password === pass) {
+                            let isAdmin = userData.isAdmin || false;
+                            if (userData.name === 'ALISSON CAMBUI' || userData.email === this.data.adminEmail) isAdmin = true;
+                            
+                            this.data.user = { ...userData, uid: safeId, displayName: userData.name, isAdmin: isAdmin };
+                            localStorage.setItem('mon_user', JSON.stringify(this.data.user));
+                            this.updateUserInfo(this.data.user);
+                            this.switchToDashboardView();
+                            this.subscribeToUserData(safeId);
+                        } else { throw new Error("Senha incorreta."); }
+                    } else { throw new Error("Utilizador não encontrado. Use a aba 'Primeiro Acesso'."); }
+                } catch(e) {
+                    document.getElementById('login-loading').classList.add('hidden');
+                    document.getElementById('login-form-container').classList.remove('hidden');
+                    errorMsg.classList.remove('hidden');
+                    errorMsg.innerHTML = e.message || "Erro de conexão.";
+                }
+            },
+
+            // REGISTRO CORRIGIDO
+            async registerWithUser() {
+                const name = document.getElementById('login-username').value.trim().toUpperCase();
+                const pass = document.getElementById('login-password').value;
+                
+                if (!name || !pass) return alert('Preencha nome e senha para o primeiro acesso.');
+                if (pass.length < 6) return alert('A senha deve ter 6 dígitos ou mais.');
+
+                const email = this.generateEmail(name);
+                const safeId = email.replace(/[^a-zA-Z0-9]/g, '_');
+                
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', 'app_users_' + safeId);
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                         const data = docSnap.data();
+                         if (data.password && data.password.length > 0) {
+                             return alert('Utilizador já cadastrado. Faça login.');
+                         }
+                         await updateDoc(docRef, { password: pass, registeredAt: new Date().toISOString() });
+                         alert('Senha cadastrada com sucesso! Faça login.');
+                         this.toggleAuthMode('login');
+                    } else {
+                        await setDoc(docRef, {
+                            name: name,
+                            email: email,
+                            password: pass,
+                            isAdmin: false,
+                            createdAt: new Date().toISOString()
+                        });
+                        alert('Cadastro realizado! Faça login.');
+                        this.toggleAuthMode('login');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Erro ao registrar: ' + e.message);
+                }
+            },
+
+            // ADMIN: AUTORIZAR USUÁRIO
+            async authorizeNewUser() {
+                const nameInput = document.getElementById('new-user-name');
+                const name = nameInput.value.trim().toUpperCase();
+                if (!name) return alert('Digite o nome.');
+                
+                const email = this.generateEmail(name);
+                const safeId = email.replace(/[^a-zA-Z0-9]/g, '_');
+                
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', 'app_users_' + safeId);
+                    await setDoc(docRef, {
+                        name: name,
+                        email: email,
+                        password: '', 
+                        authorized: true,
+                        isAdmin: false,
+                        createdAt: new Date().toISOString()
+                    }, { merge: true });
+                    
+                    nameInput.value = '';
+                    this.loadAuthorizedUsers();
+                    alert('Autorizado com sucesso.');
+                } catch (e) {
+                    alert('Erro: ' + e.message);
+                }
+            },
+            
+            async loadAuthorizedUsers() {
+                try {
+                     const q = collection(db, 'artifacts', appId, 'public', 'data', 'auth_users');
+                     const querySnapshot = await getDocs(q);
+                     const list = document.getElementById('admin-users-list');
+                     list.innerHTML = '';
+                     querySnapshot.forEach((doc) => {
+                         const u = doc.data();
+                         list.innerHTML += `
+                            <li class="flex justify-between items-center border-b dark:border-slate-700 py-2">
+                                <div>
+                                    <p class="font-bold dark:text-white">${u.name}</p>
+                                    <p class="text-[10px] text-slate-400">${u.email}</p>
+                                </div>
+                                <span class="text-xs ${u.password ? 'text-green-500' : 'text-amber-500'} font-bold">${u.password ? 'Ativo' : 'Pendente'}</span>
+                            </li>
+                         `;
+                     });
+                } catch(e) {
+                    console.error("Erro ao listar users", e);
+                }
+            },
+
+            openChangePasswordModal() { document.getElementById('change-password-modal').classList.remove('hidden'); },
+            
+            async changeUserPassword() {
+                const newPass = document.getElementById('new-password-input').value;
+                if (!newPass || newPass.length < 6) return alert("Mínimo 6 caracteres.");
+                
+                try {
+                    const safeId = this.data.user.uid;
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', 'app_users_' + safeId);
+                    await updateDoc(docRef, { password: newPass });
+                    alert("Senha alterada com sucesso.");
+                    this.closeModalUI('change-password-modal');
+                } catch(e) {
+                    alert("Erro ao alterar senha.");
+                }
+            },
+            
+            async logout() { this.data.user = null; localStorage.removeItem('mon_user'); this.switchToLoginView(); },
+            
+            updateUserInfo(u) { 
+                let displayName = u.name || 'Utilizador';
+                if (u.isAdmin) displayName += ' (ADMIN)';
+                document.getElementById('user-display-name').textContent = displayName; 
+                document.getElementById('account-modal-name').textContent = displayName;
+                if (u.isAdmin) document.getElementById('admin-panel-btn').classList.remove('hidden');
+            },
+            
+            resetToLocal() { localStorage.removeItem('mon_firebase_config'); window.location.reload(); },
+            updateUIMode() { /* ... */ },
+            
+            async saveData() { 
+                 const cleanTasks = JSON.parse(JSON.stringify(this.data.tasks));
+                 const cleanArchived = JSON.parse(JSON.stringify(this.data.archived));
+                 this.saveToLocalStorageCache();
+                 
+                 if (this.data.mode === 'cloud' && this.data.user) {
+                    try {
+                        const safeId = this.data.user.uid;
+                        const dataRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_records', 'app_user_data_' + safeId);
+                        await setDoc(dataRef, { tasks: cleanTasks, archived: cleanArchived, deletedHistory: this.data.deletedHistory, lastUpdate: new Date().toISOString(), ownerEmail: this.data.user.email }, { merge: true });
+                    } catch(e) { console.error("Erro save cloud", e); }
+                 }
+                 this.render(); 
+                 this.updateCharts();
+            },
+            
+            saveToLocalStorageCache() { localStorage.setItem('mon_tasks', JSON.stringify(this.data.tasks)); localStorage.setItem('mon_archived', JSON.stringify(this.data.archived)); },
+            loadDataLocal() { try { const t = localStorage.getItem('mon_tasks'); if(t) this.data.tasks = JSON.parse(t); this.render(); } catch(e){} },
+            
+            addTask(task) {
+                const t = { id: crypto.randomUUID(), ...task, statusBackup: 'Pendente', statusAnalise: 'Pendente', ocorrencias: [], createdAt: new Date().toISOString() };
+                this.data.tasks.unshift(t);
+                this.saveData();
+                this.showToast('Análise criada!');
+            },
+
+            editTask(id) {
+                const task = this.data.tasks.find(t => t.id === id);
+                if (!task) return;
+
+                this.data.editingTaskId = id;
+                document.getElementById('task-modal-title').textContent = "Editar Análise";
+                document.getElementById('form-condominio').value = task.condominio;
+                document.getElementById('form-data-analise').value = task.dataAnalise;
+                document.getElementById('form-semana').value = task.semana || '';
+                document.getElementById('form-observacoes').value = task.observacoes || '';
+                App.openModalUI('task-modal');
+            },
+
+            saveTaskFromForm() {
+                const id = this.data.editingTaskId;
+                const newData = {
+                    condominio: document.getElementById('form-condominio').value,
+                    dataAnalise: document.getElementById('form-data-analise').value,
+                    semana: document.getElementById('form-semana').value,
+                    observacoes: document.getElementById('form-observacoes').value
+                };
+
+                if (id) {
+                    // Editing existing task
+                    const task = this.data.tasks.find(t => t.id === id);
+                    if (task) {
+                        Object.assign(task, newData);
+                        this.showToast('Análise atualizada!');
+                    }
+                } else {
+                    // Creating new task
+                    this.addTask(newData);
+                }
+                
+                this.saveData();
+                this.closeModalUI('task-modal');
+            },
+            
+            addOccurrence() {
+                const cat = document.getElementById('add-ocorrencia-categoria').value;
+                const desc = document.getElementById('add-ocorrencia-desc').value;
+                const ini = document.getElementById('add-horario-inicial').value;
+                const fim = document.getElementById('add-horario-final').value;
+                
+                if (!desc) return alert("Descreva a ocorrência.");
+                
+                const taskId = document.getElementById('ocorrencia-current-task-id').value;
+                const task = this.data.tasks.find(t => t.id === taskId);
+                
+                if (task) {
+                    if (!task.ocorrencias) task.ocorrencias = [];
+
+                    if (this.data.editingId) {
+                        const oc = task.ocorrencias.find(o => o.id === this.data.editingId);
+                        if (oc) {
+                            oc.categoria = cat;
+                            oc.descricao = desc;
+                            oc.inicio = ini;
+                            oc.fim = fim;
+                            this.showToast('Item atualizado!');
+                        }
+                        this.data.editingId = null; 
+                        this.resetOcorrenciaFormUI();
+                    } else {
+                        task.ocorrencias.push({ id: crypto.randomUUID(), categoria: cat, descricao: desc, inicio: ini, fim: fim });
+                        this.showToast('Item adicionado!');
+                    }
+                    
+                    this.saveData(); 
+                    this.renderOcorrenciasList(task);
+                    
+                    document.getElementById('add-ocorrencia-desc').value = '';
+                    document.getElementById('add-horario-inicial').value = '';
+                    document.getElementById('add-horario-final').value = '';
+                }
+            },
+
+            prepareEditOcorrencia(taskId, ocId) {
+                const task = this.data.tasks.find(t => t.id === taskId);
+                if (!task) return;
+                const oc = task.ocorrencias.find(o => o.id === ocId);
+                if (!oc) return;
+
+                document.getElementById('add-ocorrencia-categoria').value = oc.categoria;
+                document.getElementById('add-ocorrencia-desc').value = oc.descricao;
+                document.getElementById('add-horario-inicial').value = oc.inicio;
+                document.getElementById('add-horario-final').value = oc.fim;
+
+                this.data.editingId = ocId;
+
+                const btn = document.getElementById('add-ocorrencia-btn');
+                btn.innerHTML = `<i class="ph ph-floppy-disk text-lg"></i> Salvar Edição`;
+                btn.className = "flex-1 bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition-colors shadow-lg";
+            },
+
+            resetOcorrenciaForm() {
+                 this.data.editingId = null;
+                 document.getElementById('add-ocorrencia-desc').value = '';
+                 document.getElementById('add-horario-inicial').value = '';
+                 document.getElementById('add-horario-final').value = '';
+                 this.resetOcorrenciaFormUI();
+            },
+
+            resetOcorrenciaFormUI() {
+                const btn = document.getElementById('add-ocorrencia-btn');
+                btn.innerHTML = `+ Adicionar Item`;
+                btn.className = "flex-1 bg-orange-100 text-brand-orange font-bold py-2 rounded hover:bg-orange-200 transition-colors border border-orange-200";
+            },
+
+            processExcel() {
+                const text = document.getElementById('excel-paste-area').value;
+                if (!text) return alert("Cole os dados do Excel.");
+
+                const regex = /Semana\s*(\d{1,2})\s*?(\d{2}\/\d{2}\/\d{4})(.*?)(?=Semana\s*\d+|$)/gs;
+                
+                let match;
+                let count = 0;
+                
+                while ((match = regex.exec(text)) !== null) {
+                    const semanaNum = match[1].trim();
+                    const dataRaw = match[2].trim();
+                    const resto = match[3].trim(); 
+                    
+                    let finalDate = dataRaw;
+                    try { 
+                        const [d, m, y] = dataRaw.split('/'); 
+                        finalDate = `${y}-${m}-${d}`; 
+                    } catch (e) {}
+
+                    let condominio = "Desconhecido";
+                    let statusAnalise = "Pendente";
+                    let numOcorrencias = 0;
+                    let statusRaw = "";
+
+                    const pivotMatch = resto.match(/(\d*)\s*([A-Z][a-z\u00C0-\u00FF]+)/);
+
+                    if (pivotMatch) {
+                        const endOfCondoIndex = pivotMatch.index;
+                        condominio = resto.substring(0, endOfCondoIndex).trim();
+                        
+                        const ocStr = pivotMatch[1]; 
+                        const endOfNameIndex = endOfCondoIndex + pivotMatch[0].length;
+                        statusRaw = resto.substring(endOfNameIndex).trim();
+
+                        if (ocStr) {
+                            numOcorrencias = parseInt(ocStr, 10);
+                        }
+
+                        if (numOcorrencias > 0 || statusRaw.toLowerCase().includes('finalizado') || statusRaw.toLowerCase().includes('conclu')) {
+                            statusAnalise = 'Concluída';
+                        } else {
+                            statusAnalise = 'Pendente';
+                        }
+                    } else {
+                        condominio = resto;
+                    }
+
+                    // ---- LÓGICA DE RESTAURAÇÃO E PROTEÇÃO ----
+                    const historyIndex = this.data.deletedHistory.findIndex(t => t.condominio.toLowerCase() === condominio.toLowerCase() && t.dataAnalise === finalDate);
+                    
+                    if (historyIndex > -1) {
+                         const restoredTask = this.data.deletedHistory[historyIndex];
+                         this.data.deletedHistory.splice(historyIndex, 1);
+                         this.data.tasks.push(restoredTask);
+                         count++;
+                         continue; 
+                    }
+
+                    const existingIndex = this.data.tasks.findIndex(t => t.condominio.toLowerCase() === condominio.toLowerCase() && t.dataAnalise === finalDate);
+                    
+                    const novasOcorrencias = [];
+                    if (numOcorrencias > 0) {
+                        for(let i=0; i<numOcorrencias; i++) {
+                            novasOcorrencias.push({
+                                id: crypto.randomUUID(),
+                                categoria: 'Outros', 
+                                descricao: 'Ocorrência Importada (Verificar detalhes)',
+                                inicio: '',
+                                fim: ''
+                            });
+                        }
+                    }
+
+                    if (existingIndex > -1) {
+                        const task = this.data.tasks[existingIndex];
+                        if (numOcorrencias > 0 && (!task.ocorrencias || task.ocorrencias.length === 0)) {
+                             task.ocorrencias = novasOcorrencias;
+                             task.statusAnalise = 'Concluída';
+                        }
+                        if (statusAnalise === 'Concluída' && task.statusAnalise !== 'Concluída') {
+                            task.statusAnalise = 'Concluída';
+                        }
+                        task.semana = `Semana ${semanaNum}`;
+                        count++;
+                    } else {
+                        this.data.tasks.push({ 
+                            id: crypto.randomUUID(), 
+                            condominio: condominio, 
+                            dataAnalise: finalDate, 
+                            semana: `Semana ${semanaNum}`, 
+                            observacoes: statusRaw ? `Status original: ${statusRaw}` : '', 
+                            statusBackup: 'Pendente', 
+                            statusAnalise: statusAnalise, 
+                            ocorrencias: novasOcorrencias, 
+                            createdAt: new Date().toISOString() 
+                        });
+                        count++;
+                    }
+                }
+                
+                this.saveData(); 
+                this.closeModalUI('excel-import-modal'); 
+                
+                if (count === 0) {
+                    alert("Nenhum dado novo encontrado.");
+                } else {
+                    this.showToast(`${count} análises processadas.`);
+                }
             },
 
             showToast(msg) {
@@ -461,623 +1244,221 @@
                 t.classList.remove('translate-y-20', 'opacity-0');
                 setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
             },
-
-            // Arquiva tarefas concluídas há mais de 30 dias automaticamente
-            autoArchiveOldTasks() {
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                
-                let archivedCount = 0;
-                // Itera de trás para frente para remover com segurança
-                for (let i = this.data.tasks.length - 1; i >= 0; i--) {
-                    const task = this.data.tasks[i];
-                    const taskDate = new Date(task.dataAnalise);
-                    
-                    if (task.statusAnalise === 'Concluída' && taskDate < thirtyDaysAgo) {
-                        task.archivedDate = new Date().toISOString();
-                        this.data.archived.unshift(task);
-                        this.data.tasks.splice(i, 1);
-                        archivedCount++;
-                    }
-                }
-                
-                if (archivedCount > 0) {
-                    this.saveData();
-                    console.log(`${archivedCount} tarefas antigas arquivadas automaticamente.`);
-                }
+            
+            exportData() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({tasks: this.data.tasks, archived: this.data.archived}));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href",     dataStr);
+                downloadAnchorNode.setAttribute("download", "backup_painel_" + new Date().toISOString().split('T')[0] + ".json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
             },
 
-            // --- UI MODAL HANDLERS (Genéricos) ---
-            openModalUI(modalId) {
-                document.getElementById(modalId).classList.remove('hidden');
+            renderArchiveList() {
+                 const list = document.getElementById('archive-list');
+                 list.innerHTML = this.data.archived.map(t => 
+                    `<div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700">
+                        <div><p class="font-bold text-sm dark:text-white">${t.condominio}</p><p class="text-xs text-slate-500">${t.dataAnalise}</p></div>
+                        <button onclick="App.restoreTask('${t.id}')" class="text-green-500 hover:text-green-700 text-xs font-bold">Restaurar</button>
+                    </div>`
+                 ).join('');
+            },
+
+            restoreTask(id) {
+                const idx = this.data.archived.findIndex(t => t.id === id);
+                if (idx > -1) {
+                    const t = this.data.archived.splice(idx, 1)[0];
+                    
+                    // CALCULAR LIMITE DA DATA (N-2)
+                    const now = new Date();
+                    now.setHours(0,0,0,0);
+                    const day = now.getDay(); 
+                    const diffToMon = (day + 6) % 7; 
+                    const mondayCurrentWeek = new Date(now);
+                    mondayCurrentWeek.setDate(now.getDate() - diffToMon);
+                    const mondayLastWeek = new Date(mondayCurrentWeek);
+                    mondayLastWeek.setDate(mondayLastWeek.getDate() - 7);
+                    const limitStr = mondayLastWeek.toISOString().split('T')[0];
+
+                    // SE FOR VELHA, MARCAR COMO RESTAURADA MANUALMENTE
+                    if (t.dataAnalise < limitStr) {
+                        t.manualRestore = true; 
+                        this.showToast('Restaurado (Mantido temporariamente)');
+                    }
+
+                    this.data.tasks.push(t);
+                    this.saveData();
+                    this.renderArchiveList();
+                }
             },
             
-            closeModalUI(modalId) {
-                document.getElementById(modalId).classList.add('hidden');
+            requestDeleteTask(id) {
+                this.data.pendingDeleteId = id;
+                document.getElementById('delete-confirmation-modal').classList.remove('hidden');
             },
 
-            // --- RENDERIZAÇÃO ---
-            render() {
-                // Atualiza KPIs
-                document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
-                document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
-                document.getElementById('analises-concluidas').textContent = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length;
+            confirmDeleteTask() {
+                const id = this.data.pendingDeleteId;
+                if(!id) return;
                 
-                const totalOcc = this.data.tasks.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
-                document.getElementById('total-ocorrencias-semana').textContent = totalOcc;
+                const task = this.data.tasks.find(t => t.id === id);
+                if (task) {
+                    if(!this.data.deletedHistory) this.data.deletedHistory = [];
+                    this.data.deletedHistory.push(task);
+                }
+                this.data.tasks = this.data.tasks.filter(t => t.id !== id);
                 
-                const concluded = this.data.tasks.filter(t => t.statusAnalise === 'Concluída');
-                const occInConcluded = concluded.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
-                const avg = concluded.length ? (occInConcluded / concluded.length).toFixed(1) : "0.0";
-                document.getElementById('produtividade-semanal').textContent = avg;
+                this.saveData();
+                this.closeModalUI('delete-confirmation-modal');
+                this.data.pendingDeleteId = null;
+                this.showToast('Análise excluída (pode ser restaurada)');
+            },
+            
+            archiveTask(id) {
+                const idx = this.data.tasks.findIndex(t => t.id === id);
+                if (idx > -1) {
+                    const t = this.data.tasks.splice(idx, 1)[0];
+                    t.statusAnalise = 'Concluída';
+                    this.data.archived.push(t);
+                    this.saveData();
+                }
+            },
 
-                // Renderiza Lista
-                const filterCondo = document.getElementById('filtro-condominio').value.toLowerCase();
-                const filterBackup = document.getElementById('filtro-backup').value;
-                const filterAnalise = document.getElementById('filtro-analise').value;
+            openOcorrenciaModal(id) {
+                document.getElementById('ocorrencia-current-task-id').value = id;
+                const t = this.data.tasks.find(x => x.id === id);
+                if(!t) return;
+                document.getElementById('modal-condo-name').textContent = t.condominio;
                 
-                const container = document.getElementById('task-list');
-                container.innerHTML = '';
-
-                // CORREÇÃO: .trim() remove espaços invisíveis que quebram o filtro
-                let filtered = this.data.tasks.filter(t => {
-                    const sBackup = t.statusBackup ? t.statusBackup.trim() : '';
-                    const sAnalise = t.statusAnalise ? t.statusAnalise.trim() : '';
-
-                    return t.condominio.toLowerCase().includes(filterCondo) &&
-                           (!filterBackup || sBackup === filterBackup) &&
-                           (!filterAnalise || sAnalise === filterAnalise);
-                });
-
-                // CORREÇÃO: Ordenação (Data mais recente primeiro)
-                filtered.sort((a, b) => {
-                    if (a.dataAnalise > b.dataAnalise) return -1;
-                    if (a.dataAnalise < b.dataAnalise) return 1;
-                    return 0;
-                });
-
-                if (filtered.length === 0) {
-                    container.innerHTML = `
-                        <div class="col-span-full text-center text-slate-500 py-12 flex flex-col items-center">
-                            <i class="ph ph-magnifying-glass text-4xl mb-2 opacity-50"></i>
-                            <p class="mb-4">Nenhuma análise encontrada com estes filtros.</p>
-                            <button onclick="App.clearFilters()" class="text-brand-orange font-bold hover:underline text-sm border border-brand-orange px-4 py-2 rounded hover:bg-orange-50 dark:hover:bg-slate-800 transition-colors">Limpar Filtros</button>
-                        </div>`;
+                const sel = document.getElementById('add-ocorrencia-categoria');
+                sel.innerHTML = this.data.categories.map(c => `<option>${c}</option>`).join('');
+                
+                this.renderOcorrenciasList(t);
+                this.openModalUI('ocorrencia-modal');
+            },
+            
+            renderOcorrenciasList(task) {
+                const list = document.getElementById('ocorrencia-list');
+                if (!task.ocorrencias || task.ocorrencias.length === 0) {
+                    list.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Nenhuma ocorrência registrada.</p>';
                     return;
                 }
-
-                filtered.forEach(task => {
-                    const div = document.createElement('div');
-                    div.className = 'bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition relative overflow-hidden group';
-                    
-                    const borderClass = task.statusAnalise === 'Concluída' ? 'bg-emerald-500' : (task.statusAnalise === 'Pendente' ? 'bg-slate-300' : 'bg-orange-500');
-                    const badge = task.semana ? `<span class="absolute top-3 right-3 text-[10px] font-bold bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-500 dark:text-slate-400">${task.semana}</span>` : '';
-                    const obsHtml = task.observacoes ? `<span class="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded ml-2 cursor-help" title="${task.observacoes}">Obs</span>` : '';
-
-                    // Lista de Ocorrências Simplificada no Card
-                    let occHtml = '';
-                    if (task.ocorrencias && task.ocorrencias.length > 0) {
-                        occHtml = '<div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1">';
-                        // Mostra apenas as 3 primeiras
-                        task.ocorrencias.slice(0, 3).forEach(oc => {
-                            occHtml += `<div class="text-xs text-slate-600 dark:text-slate-400 flex justify-between">
-                                <span class="truncate pr-2">• ${oc.desc}</span>
-                                <span class="font-mono text-brand-orange whitespace-nowrap">${oc.horarioInicial || '--:--'}</span>
-                            </div>`;
-                        });
-                        if(task.ocorrencias.length > 3) {
-                             occHtml += `<div class="text-[10px] text-center text-slate-400 mt-1">+ ${task.ocorrencias.length - 3} outras</div>`
-                        }
-                        occHtml += '</div>';
-                    }
-
-                    div.innerHTML = `
-                        <div class="absolute top-0 left-0 w-1.5 h-full ${borderClass}"></div>
-                        ${badge}
-                        <div class="pl-2">
-                            <div class="flex justify-between items-start mb-2 pr-10">
-                                <h3 class="font-bold text-lg dark:text-white leading-tight">${task.condominio}${obsHtml}</h3>
-                            </div>
-                            <p class="text-sm text-slate-500 mb-4 flex items-center gap-1"><i class="ph ph-calendar-blank"></i> ${this.formatDate(task.dataAnalise)}</p>
-                            
-                            <div class="space-y-2 mb-4 bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg">
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="dark:text-slate-400 text-xs uppercase font-bold">Backup</span>
-                                    <select onchange="App.updateStatus('${task.id}', 'statusBackup', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer outline-none ${this.statusColors[task.statusBackup] || 'bg-slate-100 text-slate-600'}">
-                                        <option value="Pendente" ${task.statusBackup==='Pendente'?'selected':''}>Pendente</option>
-                                        <option value="Em Andamento" ${task.statusBackup==='Em Andamento'?'selected':''}>Baixando</option>
-                                        <option value="Concluído" ${task.statusBackup==='Concluído'?'selected':''}>Salvo</option>
-                                    </select>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="dark:text-slate-400 text-xs uppercase font-bold">Análise</span>
-                                    <select onchange="App.updateStatus('${task.id}', 'statusAnalise', this.value)" class="text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer outline-none ${this.statusColors[task.statusAnalise] || 'bg-slate-100 text-slate-600'}">
-                                        <option value="Pendente" ${task.statusAnalise==='Pendente'?'selected':''}>Pendente</option>
-                                        <option value="Em Análise" ${task.statusAnalise==='Em Análise'?'selected':''}>Em Análise</option>
-                                        <option value="Concluída" ${task.statusAnalise==='Concluída'?'selected':''}>Concluída</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            ${occHtml}
-
-                            <div class="flex justify-between items-center mt-4 pt-2 border-t dark:border-slate-700">
-                                <span class="text-xs text-slate-400">${task.ocorrencias?.length||0} Ocorrências</span>
-                                <div class="flex gap-2">
-                                    <button onclick="App.openOccurrenceModal('${task.id}')" class="text-xs bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded hover:bg-brand-orange hover:text-white transition font-medium flex items-center gap-1"><i class="ph ph-pencil-simple"></i> Detalhes</button>
-                                    <button onclick="App.archiveTask('${task.id}')" class="text-slate-400 hover:text-purple-500 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Arquivar"><i class="ph ph-archive-box text-lg"></i></button>
-                                </div>
-                            </div>
+                list.innerHTML = task.ocorrencias.map((o, idx) => `
+                    <div class="p-2 bg-white dark:bg-slate-800 rounded border dark:border-slate-700 mb-2 shadow-sm flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase text-brand-orange bg-orange-50 dark:bg-orange-900/30 px-1 rounded border border-orange-100 dark:border-orange-900">${o.categoria}</span>
+                            <p class="text-sm dark:text-white mt-1">${o.descricao}</p>
+                            <p class="text-[10px] text-slate-400 font-mono mt-1">${o.inicio || '--:--'} às ${o.fim || '--:--'}</p>
                         </div>
-                    `;
-                    container.appendChild(div);
-                });
-                
-                this.updateCharts();
+                        <div class="flex gap-2">
+                            <button onclick="App.prepareEditOcorrencia('${task.id}', '${o.id}')" class="text-blue-400 hover:text-blue-600"><i class="ph ph-pencil-simple text-lg"></i></button>
+                            <button onclick="App.removeOcorrencia('${task.id}', '${o.id}')" class="text-red-400 hover:text-red-600"><i class="ph ph-trash text-lg"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+            
+            removeOcorrencia(taskId, ocId) {
+                const t = this.data.tasks.find(x => x.id === taskId);
+                if (t) {
+                    t.ocorrencias = t.ocorrencias.filter(o => o.id !== ocId);
+                    this.saveData(); 
+                    this.renderOcorrenciasList(t);
+                }
             },
 
-            // --- AÇÕES ---
-            addTask(data) {
-                this.data.tasks.unshift({
-                    id: this.generateId(),
-                    ...data,
-                    statusBackup: 'Pendente',
-                    statusAnalise: 'Pendente',
-                    ocorrencias: []
-                });
-                this.saveData();
-                this.showToast('Adicionado!');
-            },
-
-            updateStatus(id, field, value) {
+            updateStatus(id, field, val) {
                 const t = this.data.tasks.find(x => x.id === id);
                 if (t) { 
-                    t[field] = value; 
+                    t[field] = val; 
                     this.saveData(); 
                 }
             },
 
-            archiveTask(id) {
-                const idx = this.data.tasks.findIndex(x => x.id === id);
-                if (idx > -1) {
-                    const t = this.data.tasks[idx];
-                    t.archivedDate = new Date().toISOString();
-                    this.data.archived.unshift(t);
-                    this.data.tasks.splice(idx, 1);
-                    this.saveData();
-                    this.showToast('Análise arquivada');
-                }
-            },
-            
-            restoreTask(id) {
-                const idx = this.data.archived.findIndex(x => x.id === id);
-                if (idx > -1) {
-                    this.data.tasks.unshift(this.data.archived[idx]);
-                    this.data.archived.splice(idx, 1);
-                    this.saveData();
-                    this.renderArchiveList(); // Atualiza lista do modal
-                    this.showToast('Análise restaurada');
-                }
-            },
+            render() { 
+                const list = document.getElementById('task-list');
+                const fCondo = document.getElementById('filtro-condominio').value.toLowerCase();
+                const fAnalise = document.getElementById('filtro-analise').value;
+                const fBackup = document.getElementById('filtro-backup').value;
 
-            // --- MODAL OCORRÊNCIAS (Específico) ---
-            openOccurrenceModal(id) {
-                // Procura em ativos ou arquivados
-                let t = this.data.tasks.find(x => x.id === id) || this.data.archived.find(x => x.id === id);
-                if(!t) return;
-                
-                document.getElementById('ocorrencia-current-task-id').value = id;
-                document.getElementById('modal-condo-name').textContent = t.condominio;
-                
-                // Preenche Select
-                const sel = document.getElementById('add-ocorrencia-categoria');
-                sel.innerHTML = '';
-                this.data.categories.forEach(c => {
-                    const opt = document.createElement('option'); opt.value = c; opt.textContent = c; sel.appendChild(opt);
+                const filtered = this.data.tasks.filter(t => {
+                    return t.condominio.toLowerCase().includes(fCondo) &&
+                           (fAnalise === '' || t.statusAnalise === fAnalise) &&
+                           (fBackup === '' || t.statusBackup === fBackup);
                 });
+                
+                // KPIs
+                document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
+                document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
+                document.getElementById('analises-concluidas').textContent = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length + this.data.archived.length;
+                
+                const totalOc = this.data.tasks.reduce((acc, t) => acc + (t.ocorrencias?.length||0), 0);
+                document.getElementById('total-ocorrencias-semana').textContent = totalOc;
+                
+                const conc = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length;
+                document.getElementById('media-ocorrencias').textContent = conc > 0 ? (totalOc / conc).toFixed(1) : "0.0";
+                
+                document.getElementById('produtividade-total').textContent = conc + this.data.archived.length;
 
-                this.renderModalList(t);
-                this.openModalUI('ocorrencia-modal');
-            },
-
-            renderModalList(task) {
-                const list = document.getElementById('ocorrencia-list');
-                list.innerHTML = '';
-                if(!task.ocorrencias) task.ocorrencias = [];
-                
-                if(task.ocorrencias.length === 0) {
-                    list.innerHTML = '<div class="text-center py-8 text-slate-400 italic">Nenhuma ocorrência registrada nesta data.</div>';
-                }
-                
-                task.ocorrencias.forEach((oc, idx) => {
-                    const el = document.createElement('div');
-                    el.className = 'p-3 bg-white dark:bg-slate-800 rounded border-l-4 border-l-brand-orange border dark:border-slate-600 flex justify-between group shadow-sm';
-                    el.innerHTML = `
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border border-slate-200 dark:border-slate-600 px-1 rounded">${oc.categoria}</span>
-                            <p class="text-sm dark:text-white mt-1 font-medium">${oc.desc}</p>
-                            <p class="text-xs text-slate-500 mt-1 font-mono flex items-center gap-1"><i class="ph ph-clock"></i> ${oc.horarioInicial} - ${oc.horarioFinal}</p>
-                        </div>
-                        <div class="flex items-start gap-2 ml-2">
-                            <button onclick="App.editOccurrence('${task.id}', ${idx})" class="text-blue-400 hover:text-blue-600 p-1"><i class="ph ph-pencil-simple"></i></button>
-                            <button onclick="App.deleteOccurrence('${task.id}', ${idx})" class="text-slate-400 hover:text-red-500 p-1"><i class="ph ph-x"></i></button>
-                        </div>
-                    `;
-                    list.appendChild(el);
-                });
-            },
-
-            addOccurrence() {
-                const cat = document.getElementById('add-ocorrencia-categoria').value;
-                const desc = document.getElementById('add-ocorrencia-desc').value;
-                const ini = document.getElementById('add-horario-inicial').value || '00:00:00';
-                const fim = document.getElementById('add-horario-final').value || '00:00:00';
-                
-                if(!desc) return alert('Preencha a descrição');
-                
-                const id = document.getElementById('ocorrencia-current-task-id').value;
-                const t = this.data.tasks.find(x => x.id === id) || this.data.archived.find(x => x.id === id);
-                
-                if(t) {
-                    if(!t.ocorrencias) t.ocorrencias = [];
-                    t.ocorrencias.push({ categoria: cat, desc, horarioInicial: ini, horarioFinal: fim });
-                    // Auto update status if not concluded
-                    if(t.statusAnalise !== 'Concluída') t.statusAnalise = 'Em Análise';
+                list.innerHTML = filtered.map(t => {
+                    const ocCount = t.ocorrencias ? t.ocorrencias.length : 0;
                     
-                    this.saveData();
-                    this.renderModalList(t);
-                    
-                    // Limpa campos
-                    document.getElementById('add-ocorrencia-desc').value = '';
-                    document.getElementById('add-horario-inicial').value = '';
-                    document.getElementById('add-horario-final').value = '';
-                    document.getElementById('add-ocorrencia-desc').focus();
-                }
-            },
-            
-            deleteOccurrence(taskId, occIdx) {
-                const t = this.data.tasks.find(x => x.id === taskId) || this.data.archived.find(x => x.id === taskId);
-                if(t && t.ocorrencias) {
-                    if(confirm('Deletar esta ocorrência?')) {
-                        t.ocorrencias.splice(occIdx, 1);
-                        this.saveData();
-                        this.renderModalList(t);
-                    }
-                }
-            },
+                    const optionsAnalise = ['Pendente', 'Em Análise', 'Concluída'].map(opt => 
+                        `<option value="${opt}" ${t.statusAnalise === opt ? 'selected' : ''}>${opt}</option>`
+                    ).join('');
 
-            editOccurrence(taskId, occIdx) {
-                const t = this.data.tasks.find(x => x.id === taskId) || this.data.archived.find(x => x.id === taskId);
-                if(t && t.ocorrencias[occIdx]) {
-                    const item = t.ocorrencias[occIdx];
-                    document.getElementById('add-ocorrencia-categoria').value = item.categoria;
-                    document.getElementById('add-ocorrencia-desc').value = item.desc;
-                    document.getElementById('add-horario-inicial').value = item.horarioInicial;
-                    document.getElementById('add-horario-final').value = item.horarioFinal;
-                    // Remove para re-adicionar editado (padrão simples)
-                    t.ocorrencias.splice(occIdx, 1);
-                    this.saveData();
-                    this.renderModalList(t);
-                }
-            },
+                    const optionsBackup = ['Pendente', 'Em Andamento', 'Concluído'].map(opt => 
+                        `<option value="${opt}" ${t.statusBackup === opt ? 'selected' : ''}>${opt}</option>`
+                    ).join('');
 
-            // --- IMPORTAÇÃO INTELIGENTE ---
-            processExcel() {
-                const text = document.getElementById('excel-paste-area').value;
-                if(!text.trim()) return alert('Cole os dados no campo!');
-                
-                const rows = text.split('\n');
-                let countNew = 0, countUpd = 0;
-
-                rows.forEach(row => {
-                    if(!row.trim()) return;
-                    let cols = row.split('\t');
-                    if(cols.length < 3) cols = row.split(/ {2,}/); // Tenta espaço duplo se tab falhar
-
-                    // Validação básica da linha
-                    const colData = cols[1]?.trim();
-                    if(!colData || !colData.includes('/')) return; // Pula cabeçalhos ou lixo
-
-                    // Extração e LIMPEZA (trim)
-                    const week = cols[0]?.trim();
-                    const dateRaw = cols[1]?.trim();
-                    const condo = cols[2]?.trim();
-                    
-                    // Lógica para colunas variáveis (OC/Colaborador)
-                    let oc = '0', colab = '', statusRaw = '';
-                    const col3 = cols[3]?.trim();
-                    
-                    // Tenta adivinhar onde estão os dados baseado se é número ou texto
-                    if(col3 && !isNaN(col3)) { 
-                        oc = col3;
-                        colab = cols[4]?.trim() || '';
-                        statusRaw = cols[5]?.trim();
-                    } else {
-                        colab = col3;
-                        statusRaw = cols[4]?.trim();
-                    }
-
-                    // Define status padrão se vazio
-                    let status = statusRaw || 'Pendente';
-
-                    if(status && status.includes('Finalizado')) status = 'Concluída';
-                    
-                    // Formata Data (dd/mm/yyyy -> yyyy-mm-dd)
-                    const parts = dateRaw.split('/');
-                    if(parts.length !== 3) return;
-                    const dateIso = `${parts[2]}-${parts[1]}-${parts[0]}`;
-
-                    // BUSCA EXISTENTE (Ignora Acentos/Case)
-                    const existing = this.data.tasks.find(t => 
-                        this.normalize(t.condominio) === this.normalize(condo) && 
-                        t.dataAnalise === dateIso
-                    );
-
-                    if(existing) {
-                        // ATUALIZA
-                        existing.semana = week;
-                        if(status === 'Concluída') existing.statusAnalise = 'Concluída';
+                    return `
+                    <div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 card-transition relative group">
                         
-                        // Adiciona placeholders de ocorrências se o número importado for maior que o atual
-                        const qtd = parseInt(oc);
-                        const currentQtd = existing.ocorrencias ? existing.ocorrencias.length : 0;
-                        if(qtd > currentQtd) {
-                            for(let i=0; i < (qtd - currentQtd); i++) {
-                                existing.ocorrencias.push({
-                                    categoria: 'Importada', 
-                                    desc: 'Ocorrência importada via Excel (pendente de preenchimento)', 
-                                    horarioInicial: '00:00:00', 
-                                    horarioFinal: '00:00:00'
-                                });
-                            }
-                        }
-                        countUpd++;
-                    } else {
-                        // CRIA NOVO
-                        const newOcs = [];
-                        const qtd = parseInt(oc);
-                        if(qtd > 0) {
-                            for(let i=0; i<qtd; i++) {
-                                newOcs.push({
-                                    categoria: 'Importada', 
-                                    desc: 'Ocorrência importada via Excel', 
-                                    horarioInicial: '00:00:00', 
-                                    horarioFinal: '00:00:00'
-                                });
-                            }
-                        }
-                        
-                        this.data.tasks.unshift({
-                            id: this.generateId(),
-                            condominio: condo,
-                            dataAnalise: dateIso,
-                            semana: week,
-                            statusBackup: 'Pendente',
-                            statusAnalise: status,
-                            ocorrencias: newOcs,
-                            observacoes: colab ? `Colab: ${colab}` : ''
-                        });
-                        countNew++;
-                    }
-                });
-
-                this.saveData();
-                this.closeModalUI('excel-import-modal');
-                document.getElementById('excel-paste-area').value = '';
-                this.showToast(`${countNew} criadas, ${countUpd} atualizadas`);
-            },
-            
-            renderArchiveList() {
-                 const list = document.getElementById('archive-list');
-                 list.innerHTML = this.data.archived.map(t => `
-                    <div class="flex justify-between items-center p-3 border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
-                        <div>
-                            <p class="font-bold dark:text-white text-sm">${t.condominio} <span class="text-xs font-normal text-slate-400 ml-2">(${t.semana||'N/A'})</span></p>
-                            <p class="text-xs text-slate-500">${this.formatDate(t.dataAnalise)} - ${t.ocorrencias?.length||0} ocorrências</p>
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-lg text-slate-800 dark:text-white uppercase tracking-tight">${t.condominio}</h3>
+                                    ${t.manualRestore ? `<span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold uppercase">RESTAURADO</span>` : ''}
+                                    <button onclick="App.editTask('${t.id}')" class="text-blue-400 hover:text-blue-600" title="Editar Dados"><i class="ph ph-pencil-simple"></i></button>
+                                </div>
+                                <p class="text-xs text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${t.dataAnalise.split('-').reverse().join('/')} <span class="bg-slate-100 dark:bg-slate-700 px-1.5 rounded ml-2">${t.semana||'-'}</span></p>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="App.openOcorrenciaModal('${t.id}')" class="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-brand-orange hover:bg-orange-100 dark:hover:bg-orange-900/40 transition relative">
+                                    <i class="ph ph-list-checks text-xl"></i>
+                                    ${ocCount > 0 ? `<span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-sm">${ocCount}</span>` : ''}
+                                </button>
+                            </div>
                         </div>
-                        <div class="flex gap-2">
-                             <button onclick="App.openOccurrenceModal('${t.id}')" class="text-xs text-brand-orange border border-brand-orange px-2 py-1 rounded hover:bg-orange-50 dark:hover:bg-slate-800">Ver</button>
-                             <button onclick="App.restoreTask('${t.id}')" class="text-xs text-blue-500 border border-blue-500 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-800">Restaurar</button>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Análise</label>
+                                <select onchange="App.updateStatus('${t.id}', 'statusAnalise', this.value)" class="w-full text-xs font-bold rounded p-1.5 border dark:border-slate-600 dark:bg-slate-700 outline-none ${this.statusColors[t.statusAnalise]}">
+                                    ${optionsAnalise}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Backup</label>
+                                <select onchange="App.updateStatus('${t.id}', 'statusBackup', this.value)" class="w-full text-xs font-bold rounded p-1.5 border dark:border-slate-600 dark:bg-slate-700 outline-none ${this.statusColors[t.statusBackup]}">
+                                    ${optionsBackup}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        ${t.observacoes ? `<p class="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 p-2 rounded mb-3 italic border-l-2 border-slate-300 dark:border-slate-600 line-clamp-2">"${t.observacoes}"</p>` : ''}
+                        
+                        <div class="flex justify-end gap-2 mt-2 pt-3 border-t dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <button onclick="App.archiveTask('${t.id}')" class="text-xs text-purple-500 hover:text-purple-700 font-bold flex items-center gap-1"><i class="ph ph-archive"></i> Arquivar</button>
+                             <button onclick="App.requestDeleteTask('${t.id}')" class="text-xs text-red-400 hover:text-red-600 font-bold ml-2 flex items-center gap-1"><i class="ph ph-trash"></i> Excluir</button>
                         </div>
                     </div>
-                 `).join('') || '<div class="text-center text-slate-400 py-4">O arquivo morto está vazio.</div>';
-            },
-            
-            // --- CHARTS ---
-            setupCharts() {
-                Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569';
-                
-                const ctx = document.getElementById('ocorrenciasChart').getContext('2d');
-                this.charts.oc = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels: [], datasets: [{ label: 'Ocorrências', data: [], backgroundColor: '#f26324', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-                });
-                
-                const ctxPeriod = document.getElementById('periodChart').getContext('2d');
-                this.charts.period = new Chart(ctxPeriod, {
-                    type: 'bar',
-                    data: { labels: [], datasets: [{ label: 'Ocorrências', data: [], backgroundColor: '#f26324', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} } }
-                });
-                
-                const ctxCat = document.getElementById('periodCategoryChart').getContext('2d');
-                this.charts.periodCategory = new Chart(ctxCat, {
-                    type: 'doughnut',
-                    data: { labels: [], datasets: [{ label: 'Ocorrências', data: [], backgroundColor: ['#f26324', '#f7b41e', '#1e293b', '#10b981', '#6366f1', '#ef4444', '#8b5cf6'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
-                });
-            },
-
-            updateCharts() {
-                // CORREÇÃO: Evita atualizar gráficos que não existem
-                if(!this.charts.oc || !this.charts.oc.canvas) return;
-                
-                const counts = {};
-                this.data.tasks.forEach(t => {
-                    if(t.ocorrencias?.length) counts[t.condominio] = (counts[t.condominio] || 0) + t.ocorrencias.length;
-                });
-                // Top 5 condomínios
-                const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,5);
-                this.charts.oc.data.labels = sorted.map(x => x[0]);
-                this.charts.oc.data.datasets[0].data = sorted.map(x => x[1]);
-                this.charts.oc.update();
-            },
-
-            // --- EVENTOS ---
-            setupTheme() {
-                 if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                 }
-            },
-            setupDate() {
-                 document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-            },
-            
-            events: {
-                setup() {
-                    // Filtros
-                    ['filtro-condominio', 'filtro-backup', 'filtro-analise'].forEach(id => 
-                        document.getElementById(id).addEventListener('input', () => App.render())
-                    );
-
-                    // Modal Adicionar Tarefa
-                    document.getElementById('add-task-btn').addEventListener('click', () => {
-                        document.getElementById('task-form').reset();
-                        document.getElementById('form-data-analise').valueAsDate = new Date();
-                        App.openModalUI('task-modal');
-                    });
-                    document.getElementById('cancel-btn').addEventListener('click', () => App.closeModalUI('task-modal'));
-                    
-                    document.getElementById('task-form').addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        App.addTask({
-                            condominio: document.getElementById('form-condominio').value,
-                            dataAnalise: document.getElementById('form-data-analise').value,
-                            semana: document.getElementById('form-semana').value,
-                            observacoes: document.getElementById('form-observacoes').value
-                        });
-                        App.closeModalUI('task-modal');
-                    });
-
-                    // Menu Ações
-                    document.getElementById('actions-menu-btn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        document.getElementById('actions-menu').classList.toggle('hidden');
-                    });
-                    document.body.addEventListener('click', () => document.getElementById('actions-menu').classList.add('hidden'));
-
-                    // Importar Excel
-                    document.getElementById('excel-import-btn').addEventListener('click', () => App.openModalUI('excel-import-modal'));
-                    document.getElementById('excel-import-close-btn').addEventListener('click', () => App.closeModalUI('excel-import-modal'));
-                    document.getElementById('process-import-btn').addEventListener('click', () => App.processExcel());
-
-                    // Ocorrências
-                    document.getElementById('add-ocorrencia-btn').addEventListener('click', () => App.addOccurrence());
-                    document.getElementById('save-ocorrencias-btn').addEventListener('click', () => {
-                        App.saveData();
-                        App.closeModalUI('ocorrencia-modal');
-                        App.showToast('Ocorrências salvas!');
-                    });
-                    document.getElementById('ocorrencia-cancel-btn').addEventListener('click', () => App.closeModalUI('ocorrencia-modal'));
-
-                    // Arquivo Morto
-                    document.getElementById('archive-btn').addEventListener('click', () => {
-                        App.renderArchiveList();
-                        App.openModalUI('archive-modal');
-                    });
-                    document.getElementById('archive-close-btn').addEventListener('click', () => App.closeModalUI('archive-modal'));
-                    document.getElementById('clear-archive-btn').addEventListener('click', () => {
-                        if(confirm('Tem certeza? Isso apagará todo o histórico antigo permanentemente.')) {
-                            App.data.archived = [];
-                            App.saveData();
-                            App.renderArchiveList();
-                            App.showToast('Histórico limpo.');
-                        }
-                    });
-
-                    // Backup (JSON)
-                    document.getElementById('export-data-btn').addEventListener('click', () => App.exportData());
-                    document.getElementById('import-data-btn').addEventListener('click', () => document.getElementById('file-input').click());
-                    document.getElementById('file-input').addEventListener('change', (e) => App.importData(e));
-
-                    // Theme Toggle
-                    document.getElementById('theme-toggle').addEventListener('click', () => {
-                        document.documentElement.classList.toggle('dark');
-                        localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-                        // Update chart colors
-                        Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569';
-                        App.updateCharts();
-                    });
-
-                    // Period Report - Lógica do relatório
-                    document.getElementById('period-analysis-btn').addEventListener('click', () => App.openModalUI('period-analysis-modal'));
-                    document.getElementById('period-analysis-close-btn').addEventListener('click', () => App.closeModalUI('period-analysis-modal'));
-                    
-                    // Date presets
-                    const setPeriodDates = (type) => {
-                        const today = new Date();
-                        let start = new Date(today), end = new Date(today);
-                        if(type==='week') { 
-                            const day = today.getDay() || 7; 
-                            if(day !== 1) start.setHours(-24 * (day - 1)); 
-                            end.setHours(24 * (7 - day));
-                        }
-                        if(type==='month') { start.setDate(1); end = new Date(today.getFullYear(), today.getMonth()+1, 0); }
-                        if(type==='year') { start.setMonth(0,1); end.setMonth(11,31); }
-                        
-                        document.getElementById('period-start-date').value = start.toISOString().split('T')[0];
-                        document.getElementById('period-end-date').value = end.toISOString().split('T')[0];
-                    };
-                    document.getElementById('preset-week-btn').addEventListener('click', ()=>setPeriodDates('week'));
-                    document.getElementById('preset-month-btn').addEventListener('click', ()=>setPeriodDates('month'));
-                    document.getElementById('preset-year-btn').addEventListener('click', ()=>setPeriodDates('year'));
-
-                    document.getElementById('generate-report-btn').addEventListener('click', () => {
-                        const s = document.getElementById('period-start-date').value;
-                        const e = document.getElementById('period-end-date').value;
-                        if(!s || !e) return alert('Selecione as datas de início e fim');
-                        
-                        // Filtra tarefas (inclusive arquivadas para relatório completo)
-                        const allTasks = [...App.data.tasks, ...App.data.archived];
-                        const filtered = allTasks.filter(t => t.dataAnalise >= s && t.dataAnalise <= e);
-                        const concl = filtered.filter(t => t.statusAnalise === 'Concluída');
-                        
-                        document.getElementById('period-results-content').classList.remove('hidden');
-                        document.getElementById('period-total').textContent = filtered.length;
-                        document.getElementById('period-concluidas').textContent = concl.length;
-                        document.getElementById('period-oc').textContent = filtered.reduce((acc,t)=>acc+(t.ocorrencias?.length||0),0);
-
-                        // Atualiza gráficos do modal
-                        const counts = {}, cats = {};
-                        filtered.forEach(t => {
-                            if(t.ocorrencias?.length) {
-                                counts[t.condominio] = (counts[t.condominio]||0) + t.ocorrencias.length;
-                                t.ocorrencias.forEach(o => cats[o.categoria] = (cats[o.categoria]||0)+1);
-                            }
-                        });
-                        
-                        App.charts.period.data.labels = Object.keys(counts);
-                        App.charts.period.data.datasets[0].data = Object.values(counts);
-                        App.charts.period.update();
-                        
-                        App.charts.periodCategory.data.labels = Object.keys(cats);
-                        App.charts.periodCategory.data.datasets[0].data = Object.values(cats);
-                        App.charts.periodCategory.update();
-                        
-                        document.getElementById('period-task-list').innerHTML = filtered.length > 0 ? filtered.map(t => 
-                            `<li class="border-b border-slate-200 dark:border-slate-700 pb-1 flex justify-between items-center">
-                                <span>${t.condominio} <span class="text-xs text-slate-400 ml-1">(${App.formatDate(t.dataAnalise)})</span></span> 
-                                <span class="font-bold ${t.ocorrencias?.length > 0 ? 'text-red-500' : 'text-green-500'}">${t.ocorrencias?.length||0} Ocs</span>
-                            </li>`
-                        ).join('') : '<li class="text-center text-slate-400">Nenhum dado neste período.</li>';
-                    });
-                }
+                `}).join('');
             }
         };
-
-        // Start
-        window.App = App; // Expor para onclicks inline
+        
+        window.App = App; 
         document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
