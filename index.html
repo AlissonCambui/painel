@@ -205,6 +205,7 @@
                 <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
                     <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Concluídas</h3>
                     <p id="analises-concluidas" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
+                    <p class="text-xs text-slate-400 text-right">Em Tela (N + N-1)</p>
                 </div>
                 <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
                     <h3 class="text-xs font-bold uppercase text-red-600 dark:text-red-400">Ocorrências</h3>
@@ -1391,7 +1392,12 @@
                 // KPIs
                 document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
                 document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
-                document.getElementById('analises-concluidas').textContent = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length + this.data.archived.length;
+                
+                // === KPI CONCLUÍDAS (TOTAL VISÍVEL) ===
+                // Conta todas as tarefas com status 'Concluída' que estão na lista ativa (N + N-1 + Restauradas)
+                const concluidasAtual = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length;
+                document.getElementById('analises-concluidas').textContent = concluidasAtual;
+                // ============================================================
                 
                 const totalOc = this.data.tasks.reduce((acc, t) => acc + (t.ocorrencias?.length||0), 0);
                 document.getElementById('total-ocorrencias-semana').textContent = totalOc;
