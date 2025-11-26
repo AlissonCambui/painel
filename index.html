@@ -203,7 +203,7 @@
                     <p id="backups-pendentes" class="text-3xl font-bold text-amber-500">0</p>
                 </div>
                 <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                    <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Concluídas</h3>
+                    <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Análises Concluídas</h3>
                     <p id="analises-concluidas" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
                     <p class="text-xs text-slate-400 text-right">Em Tela (N + N-1)</p>
                 </div>
@@ -1377,6 +1377,15 @@
                 }
             },
 
+            formatDate(dateStr) {
+                if(!dateStr) return '-';
+                const [y, m, d] = dateStr.split('-');
+                const date = new Date(y, m - 1, d);
+                const week = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+                const weekCap = week.charAt(0).toUpperCase() + week.slice(1);
+                return `${d}/${m}/${y} • ${weekCap}`;
+            },
+
             render() { 
                 const list = document.getElementById('task-list');
                 const fCondo = document.getElementById('filtro-condominio').value.toLowerCase();
@@ -1428,7 +1437,7 @@
                                     ${t.manualRestore ? `<span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold uppercase">RESTAURADO</span>` : ''}
                                     <button onclick="App.editTask('${t.id}')" class="text-blue-400 hover:text-blue-600" title="Editar Dados"><i class="ph ph-pencil-simple"></i></button>
                                 </div>
-                                <p class="text-xs text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${t.dataAnalise.split('-').reverse().join('/')} <span class="bg-slate-100 dark:bg-slate-700 px-1.5 rounded ml-2">${t.semana||'-'}</span></p>
+                                <p class="text-xs text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${this.formatDate(t.dataAnalise)} <span class="bg-slate-100 dark:bg-slate-700 px-1.5 rounded ml-2">${t.semana||'-'}</span></p>
                             </div>
                             <div class="flex gap-1">
                                 <button onclick="App.openOcorrenciaModal('${t.id}')" class="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-brand-orange hover:bg-orange-100 dark:hover:bg-orange-900/40 transition relative">
