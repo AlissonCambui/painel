@@ -290,7 +290,7 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Local. Seus dados estão salvos apenas neste dispositivo.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v18.2 (Blindagem Arquivo Morto)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v18.4 (Deep Recovery)</p>
             </footer>
         </div>
     </div>
@@ -483,15 +483,22 @@
         </div>
     </div>
     
-    <!-- FIX: Z-INDEX AUMENTADO PARA 75 -->
+    <!-- FIX: Z-INDEX AUMENTADO PARA 75 E BOTÃO DE RECUPERAÇÃO FORÇADA -->
     <div id="archive-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[75]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-3xl h-[80vh] flex flex-col shadow-2xl border dark:border-slate-700">
-            <div class="flex justify-between mb-4 border-b dark:border-slate-700 pb-2">
-                <h2 class="text-2xl font-bold dark:text-white flex items-center gap-2">
-                    <i class="ph ph-archive-box"></i> Arquivo Morto
-                    <span id="archive-count-badge" class="text-sm bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-white px-2 py-0.5 rounded-full ml-2">0</span>
-                </h2>
-                <button id="archive-close-btn" class="text-2xl text-slate-400 hover:text-slate-600">&times;</button>
+            <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-2">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold dark:text-white flex items-center gap-2">
+                        <i class="ph ph-archive-box"></i> Arquivo Morto
+                        <span id="archive-count-badge" class="text-sm bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-white px-2 py-0.5 rounded-full ml-2">0</span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="App.recoverLostData()" class="text-xs font-bold text-blue-500 hover:text-white hover:bg-blue-500 border border-blue-500 px-3 py-1.5 rounded transition-all flex items-center gap-1 shadow-sm" title="Buscar em backups locais">
+                        <i class="ph ph-magnifying-glass"></i> Buscar em Backups
+                    </button>
+                    <button id="archive-close-btn" class="text-2xl text-slate-400 hover:text-slate-600 ml-2">&times;</button>
+                </div>
             </div>
             
             <input type="text" id="archive-search" placeholder="Pesquisar no arquivo..." class="mb-3 w-full p-2 text-sm border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-brand-orange">
@@ -1002,10 +1009,16 @@
                  const cleanArchived = JSON.parse(JSON.stringify(this.data.archived));
                  this.saveToLocalStorageCache();
                  
+                 // BLINDAGEM DE DADOS VAZIOS
+                 if (cleanTasks.length > 0 || cleanArchived.length > 0) {
+                     localStorage.setItem('mon_safe_backup', JSON.stringify({t: cleanTasks, a: cleanArchived}));
+                 }
+
                  if (this.data.mode === 'cloud' && this.data.user) {
                     try {
                         const safeId = this.data.user.uid;
                         const dataRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_records', 'app_user_data_' + safeId);
+                        // EVITA SALVAR VAZIO SE JÁ TIVER COISA (Lógica simples, o Firestore merge ajuda, mas vamos garantir)
                         await setDoc(dataRef, { tasks: cleanTasks, archived: cleanArchived, deletedHistory: this.data.deletedHistory, lastUpdate: new Date().toISOString(), ownerEmail: this.data.user.email }, { merge: true });
                     } catch(e) { console.error("Erro save cloud", e); }
                  }
@@ -1281,7 +1294,7 @@
                 downloadAnchorNode.remove();
             },
 
-            // --- LISTAGEM DE ARQUIVOS BLINDADA ---
+            // --- LISTAGEM DE ARQUIVOS BLINDADA COM RECUPERAÇÃO ---
             renderArchiveList() {
                  if (!Array.isArray(this.data.archived)) this.data.archived = []; // SEGURANÇA
 
@@ -1300,7 +1313,12 @@
                      list.innerHTML = `
                         <div class="flex flex-col items-center justify-center py-8 text-slate-400">
                             <i class="ph ph-tray text-3xl mb-2 opacity-50"></i>
-                            <p class="text-xs">Nenhum item encontrado.</p>
+                            <p class="text-xs mb-4">Nenhum item encontrado.</p>
+                            
+                            <button onclick="App.recoverLostData()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded text-xs font-bold hover:bg-blue-200 transition flex items-center gap-2">
+                                <i class="ph ph-life-buoy"></i> Tentar Recuperar Dados Perdidos
+                            </button>
+                            <p class="text-[9px] text-slate-300 mt-2 max-w-xs text-center">Busca de emergência no cache local do navegador.</p>
                         </div>`;
                      return;
                  }
@@ -1331,6 +1349,58 @@
                         </button>
                     </div>`
                  }).join('');
+            },
+            
+            // --- NOVA FUNÇÃO DE RECUPERAÇÃO DE EMERGÊNCIA ---
+            recoverLostData() {
+                if(!confirm("Atenção: Isso tentará forçar a leitura de dados antigos salvos no navegador. Deseja continuar?")) return;
+                
+                let recoveredCount = 0;
+                const currentIds = new Set(this.data.archived.map(t => t.id));
+                const taskIds = new Set(this.data.tasks.map(t => t.id));
+
+                try {
+                    // 1. Tentar ler mon_archived puro
+                    const rawArch = localStorage.getItem('mon_archived');
+                    if (rawArch) {
+                        const arr = JSON.parse(rawArch);
+                        if(Array.isArray(arr)) {
+                            arr.forEach(t => {
+                                if (!currentIds.has(t.id) && !taskIds.has(t.id)) {
+                                    this.data.archived.push(t);
+                                    currentIds.add(t.id);
+                                    recoveredCount++;
+                                }
+                            });
+                        }
+                    }
+                    
+                    // 2. Tentar ler mon_safe_backup (Backup de Segurança Novo)
+                    const safe = localStorage.getItem('mon_safe_backup');
+                    if (safe) {
+                        const safeObj = JSON.parse(safe);
+                        if (safeObj.a && Array.isArray(safeObj.a)) {
+                             safeObj.a.forEach(t => {
+                                if (!currentIds.has(t.id) && !taskIds.has(t.id)) {
+                                    this.data.archived.push(t);
+                                    currentIds.add(t.id);
+                                    recoveredCount++;
+                                }
+                            });
+                        }
+                    }
+
+                    if (recoveredCount > 0) {
+                        this.saveData(); // Salva imediatamente para a nuvem
+                        this.renderArchiveList();
+                        alert(`Sucesso! ${recoveredCount} itens foram recuperados e salvos novamente.`);
+                    } else {
+                        alert("O sistema verificou a memória local mas não encontrou itens novos para restaurar. Verifique se os itens não estão na lista principal.");
+                    }
+
+                } catch(e) {
+                    alert("Erro ao tentar recuperar: " + e.message);
+                }
             },
             
             restoreTask(id) {
