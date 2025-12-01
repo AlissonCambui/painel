@@ -483,7 +483,8 @@
         </div>
     </div>
     
-    <div id="archive-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <!-- FIX: Z-INDEX AUMENTADO PARA 75 -->
+    <div id="archive-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[75]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-3xl h-[80vh] flex flex-col shadow-2xl border dark:border-slate-700">
             <div class="flex justify-between mb-4 border-b dark:border-slate-700 pb-2">
                 <h2 class="text-2xl font-bold dark:text-white flex items-center gap-2">
@@ -607,8 +608,10 @@
                 addListener('excel-import-close-btn', 'click', () => App.closeModalUI('excel-import-modal'));
                 addListener('process-import-btn', 'click', () => App.processExcel());
                 
-                // --- CORREÇÃO: LIMPAR CAMPO DE PESQUISA AO ABRIR O ARQUIVO MORTO ---
-                addListener('archive-btn', 'click', () => { 
+                // --- FIX: STOP PROPAGATION NO ARQUIVO MORTO ---
+                addListener('archive-btn', 'click', (e) => { 
+                    if(e) e.stopPropagation(); // Impede que o clique feche o menu imediatamente
+                    document.getElementById('actions-menu').classList.add('hidden'); // Fecha o menu manualmente
                     document.getElementById('archive-search').value = ''; 
                     App.renderArchiveList(); 
                     App.openModalUI('archive-modal'); 
@@ -1278,9 +1281,9 @@
                 downloadAnchorNode.remove();
             },
 
-            // --- LISTAGEM DE ARQUIVOS (COM PESQUISA) ---
+            // --- LISTAGEM DE ARQUIVOS BLINDADA ---
             renderArchiveList() {
-                 if (!this.data.archived) this.data.archived = []; // SEGURANÇA CONTRA ERROS
+                 if (!Array.isArray(this.data.archived)) this.data.archived = []; // SEGURANÇA
 
                  const list = document.getElementById('archive-list');
                  const searchInput = document.getElementById('archive-search');
@@ -1294,7 +1297,11 @@
                  const filtered = this.data.archived.filter(t => (t.condominio || '').toLowerCase().includes(search));
 
                  if (filtered.length === 0) {
-                     list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Nenhum item encontrado.</p>';
+                     list.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-8 text-slate-400">
+                            <i class="ph ph-tray text-3xl mb-2 opacity-50"></i>
+                            <p class="text-xs">Nenhum item encontrado.</p>
+                        </div>`;
                      return;
                  }
 
@@ -1305,17 +1312,23 @@
                         if (t.dataAnalise && t.dataAnalise.includes('-')) {
                             dateDisplay = this.formatDate(t.dataAnalise);
                         } else {
-                            dateDisplay = 'Data n/d';
+                            dateDisplay = t.dataAnalise || 'Data n/d';
                         }
                     } catch(e) { dateDisplay = 'Erro Data'; }
 
                     return `
-                    <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700">
+                    <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         <div>
-                            <p class="font-bold text-sm dark:text-white">${t.condominio}</p>
-                            <p class="text-xs text-slate-500">${dateDisplay} • ${t.semana||'-'}</p>
+                            <p class="font-bold text-sm dark:text-white uppercase">${t.condominio || 'Sem Nome'}</p>
+                            <p class="text-[10px] text-slate-500 flex items-center gap-1">
+                                <i class="ph ph-calendar"></i> ${dateDisplay} 
+                                <span class="mx-1">•</span> 
+                                ${t.semana || '-'}
+                            </p>
                         </div>
-                        <button onclick="App.restoreTask('${t.id}')" class="text-green-500 hover:text-green-700 text-xs font-bold border border-green-200 px-2 py-1 rounded">Restaurar</button>
+                        <button onclick="App.restoreTask('${t.id}')" class="flex items-center gap-1 text-green-600 hover:text-white hover:bg-green-600 text-[10px] font-bold border border-green-200 dark:border-green-900 px-3 py-1.5 rounded transition-all shadow-sm">
+                            <i class="ph ph-arrow-u-up-left"></i> Restaurar
+                        </button>
                     </div>`
                  }).join('');
             },
