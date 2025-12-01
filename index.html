@@ -292,7 +292,7 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Local. Seus dados estão salvos apenas neste dispositivo.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v20.0 (Native Persistence + Shadow Vault)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v20.1 (Smart Weekly Clean)</p>
             </footer>
         </div>
     </div>
@@ -870,49 +870,79 @@
 
             // --- AUTO ARQUIVAMENTO (CORRIGIDO) ---
             autoArchive() {
-                // Lógica de Arquivamento Baseada em Semanas Completas (Segunda-feira)
-                // N = Semana Atual
-                // N-1 = Semana Passada (Visível)
-                // N-2 = Semana Retrasada (Arquivar tudo - Pendente ou Concluída)
+                // Nova Lógica: Limpeza Semanal (Começou a semana nova, arquiva a anterior se concluída)
                 
+                // 1. Definir o "Hoje" ajustado ao fuso horário local para evitar erro de UTC
                 const now = new Date();
-                now.setHours(0,0,0,0);
+                const offset = now.getTimezoneOffset();
+                const localNow = new Date(now.getTime() - (offset * 60 * 1000));
                 
-                const day = now.getDay(); 
-                const diffToMon = (day + 6) % 7; 
+                // 2. Encontrar a Segunda-feira da semana ATUAL
+                const day = localNow.getUTCDay(); // 0 (Dom) a 6 (Sab)
+                const diffToMon = (day + 6) % 7; // Quanto voltar para chegar na seg
                 
-                const mondayCurrentWeek = new Date(now);
-                mondayCurrentWeek.setDate(now.getDate() - diffToMon);
+                const mondayCurrentWeek = new Date(localNow);
+                mondayCurrentWeek.setUTCDate(localNow.getUTCDate() - diffToMon);
+                mondayCurrentWeek.setUTCHours(0,0,0,0);
                 
-                const mondayLastWeek = new Date(mondayCurrentWeek);
-                mondayLastWeek.setDate(mondayLastWeek.getDate() - 7);
+                const limitCurrentWeekStr = mondayCurrentWeek.toISOString().split('T')[0];
                 
-                const limitStr = mondayLastWeek.toISOString().split('T')[0];
-                
+                // 3. Encontrar a Segunda-feira da semana RETRASADA (Para forçar arquivamento de tudo, mesmo pendente)
+                const mondayRetrasada = new Date(mondayCurrentWeek);
+                mondayRetrasada.setUTCDate(mondayRetrasada.getUTCDate() - 14); // 2 semanas atrás
+                const limitOldStr = mondayRetrasada.toISOString().split('T')[0];
+
                 let changed = false;
                 const active = [];
                 
                 this.data.tasks.forEach(t => {
-                    // SE ESTIVER MARCADA COMO RESTAURAÇÃO MANUAL (t.manualRestore == true), NÃO ARQUIVA.
+                    // Proteção de restauração manual
                     if (t.manualRestore) {
                         active.push(t);
                         return;
                     }
 
-                    // Regra normal: Arquiva se for anterior à semana passada
-                    if (t.dataAnalise < limitStr) {
+                    // Regra 1: Se for muito antigo (2 semanas+), arquiva tudo (limpeza geral)
+                    if (t.dataAnalise < limitOldStr) {
                         this.data.archived.push(t);
+                        // Safe Backup do Item no Cofre
+                        this.backupToShadow(t); 
                         changed = true;
-                    } else {
-                        active.push(t);
+                        return;
                     }
+
+                    // Regra 2: Se for da semana passada (anterior à atual) E estiver Concluída -> Arquiva
+                    if (t.dataAnalise < limitCurrentWeekStr && t.statusAnalise === 'Concluída') {
+                        this.data.archived.push(t);
+                        // Safe Backup do Item no Cofre
+                        this.backupToShadow(t); 
+                        changed = true;
+                        return;
+                    }
+
+                    // Caso contrário, mantem no painel (Ex: Semana Atual ou Pendente da Semana Passada)
+                    active.push(t);
                 });
                 
                 if (changed) {
                     this.data.tasks = active;
                     this.saveData();
-                    this.showToast('Auto-arquivamento: Semanas antigas limpas.');
+                    this.showToast('Auto-arquivamento: Painel limpo.');
                 }
+            },
+            
+            // Helper para salvar no cofre individualmente
+            backupToShadow(item) {
+                 try {
+                     const raw = localStorage.getItem('mon_shadow_archive_latest');
+                     let arr = raw ? JSON.parse(raw) : [];
+                     if(!Array.isArray(arr)) arr = [];
+                     // Evitar duplicatas
+                     if(!arr.find(x => x.id === item.id)) {
+                         arr.push(item);
+                         localStorage.setItem('mon_shadow_archive_latest', JSON.stringify(arr));
+                     }
+                 } catch(e) {}
             },
             
             generateEmail(name) { return `${name.trim().toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}@vendperto.local`; },
