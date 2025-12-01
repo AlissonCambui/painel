@@ -290,7 +290,7 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Local. Seus dados estão salvos apenas neste dispositivo.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v18.1 (Correção Arquivo Morto)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v18.2 (Blindagem Arquivo Morto)</p>
             </footer>
         </div>
     </div>
@@ -776,7 +776,7 @@
                     if (docSnap.exists()) {
                         const d = docSnap.data();
                         if (d.tasks) this.data.tasks = d.tasks;
-                        if (d.archived) this.data.archived = d.archived;
+                        if (d.archived) this.data.archived = d.archived || []; // --- CORREÇÃO: GARANTIR ARRAY SE VAZIO ---
                         if (d.deletedHistory) this.data.deletedHistory = d.deletedHistory;
                         this.saveToLocalStorageCache();
                         document.getElementById('sync-status').classList.remove('hidden');
@@ -1298,15 +1298,26 @@
                      return;
                  }
 
-                 list.innerHTML = filtered.map(t => 
-                    `<div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700">
+                 list.innerHTML = filtered.map(t => {
+                    // BLINDAGEM CONTRA ERROS DE DATA
+                    let dateDisplay = '-';
+                    try {
+                        if (t.dataAnalise && t.dataAnalise.includes('-')) {
+                            dateDisplay = this.formatDate(t.dataAnalise);
+                        } else {
+                            dateDisplay = 'Data n/d';
+                        }
+                    } catch(e) { dateDisplay = 'Erro Data'; }
+
+                    return `
+                    <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700">
                         <div>
                             <p class="font-bold text-sm dark:text-white">${t.condominio}</p>
-                            <p class="text-xs text-slate-500">${this.formatDate(t.dataAnalise)} • ${t.semana||'-'}</p>
+                            <p class="text-xs text-slate-500">${dateDisplay} • ${t.semana||'-'}</p>
                         </div>
                         <button onclick="App.restoreTask('${t.id}')" class="text-green-500 hover:text-green-700 text-xs font-bold border border-green-200 px-2 py-1 rounded">Restaurar</button>
                     </div>`
-                 ).join('');
+                 }).join('');
             },
             
             restoreTask(id) {
@@ -1441,11 +1452,15 @@
 
             formatDate(dateStr) {
                 if(!dateStr) return '-';
-                const [y, m, d] = dateStr.split('-');
-                const date = new Date(y, m - 1, d);
-                const week = date.toLocaleDateString('pt-BR', { weekday: 'long' });
-                const weekCap = week.charAt(0).toUpperCase() + week.slice(1);
-                return `${d}/${m}/${y} • ${weekCap}`;
+                try {
+                    const [y, m, d] = dateStr.split('-');
+                    const date = new Date(y, m - 1, d);
+                    const week = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+                    const weekCap = week.charAt(0).toUpperCase() + week.slice(1);
+                    return `${d}/${m}/${y} • ${weekCap}`;
+                } catch(e) {
+                    return dateStr;
+                }
             },
 
             render() { 
