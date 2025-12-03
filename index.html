@@ -57,7 +57,6 @@
     <!-- ================================================================== -->
     <section id="login-view" class="fixed inset-0 z-50 bg-slate-100 dark:bg-slate-900 flex flex-col items-center justify-center p-4 transition-opacity duration-500">
         <div class="absolute top-4 right-4 flex gap-2">
-             <!-- Botão Admin (Engrenagem) -->
              <button onclick="App.openModalUI('cloud-config-modal')" class="text-slate-400 hover:text-brand-orange transition p-2" title="Configuração Técnica">
                 <i class="ph ph-gear text-2xl"></i>
             </button>
@@ -79,8 +78,6 @@
 
             <!-- FORMULÁRIO DE LOGIN -->
             <div id="login-form-container" class="space-y-4">
-                
-                <!-- ABAS -->
                 <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg mb-4">
                     <button id="tab-login" class="flex-1 py-2 text-xs font-bold rounded-md bg-white dark:bg-slate-600 text-brand-orange shadow-sm transition-all" onclick="App.toggleAuthMode('login')">Entrar</button>
                     <button id="tab-register" class="flex-1 py-2 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 transition-all" onclick="App.toggleAuthMode('register')">Primeiro Acesso</button>
@@ -145,16 +142,13 @@
                     </span>
                 </div>
                 <div class="flex items-center gap-3 md:gap-4">
-                    <!-- DATA -->
                     <div class="text-right hidden lg:block mr-2">
                         <p class="text-xs text-slate-500 dark:text-slate-400 capitalize" id="current-date">...</p>
                     </div>
-                    <!-- BOTÃO DE ADMIN -->
                     <button id="admin-panel-btn" onclick="App.openAdminPanel()" class="hidden bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-brand-orange p-2 rounded-lg transition relative" title="Painel do Administrador">
                         <i class="ph ph-lock-key text-lg"></i>
                         <div id="admin-indicator" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
                     </button>
-                    <!-- BOTÃO MINHA CONTA -->
                     <button onclick="App.openMyAccountModal()" class="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-brand-orange hover:text-white px-3 py-1.5 rounded-lg transition group">
                          <div class="hidden md:block leading-tight text-right">
                             <p class="text-[10px] uppercase font-bold opacity-70">Olá,</p>
@@ -183,123 +177,233 @@
         </div>
 
         <!-- CONTEÚDO PRINCIPAL -->
-        <div class="container mx-auto p-4 md:p-6 lg:p-8 flex-grow animate-fade-in">
-            <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Painel de Monitoramento</h1>
-                    <p id="welcome-msg" class="text-slate-600 dark:text-slate-400 mt-1 text-sm">Gerencie as suas ocorrências com segurança.</p>
+        <div class="container mx-auto p-4 md:p-6 lg:p-8 flex-grow animate-fade-in flex flex-col">
+            
+            <!-- HEADER DA PÁGINA COM ABAS -->
+            <header class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Painel de Monitoramento</h1>
+                        <p id="welcome-msg" class="text-slate-600 dark:text-slate-400 mt-1 text-sm">Gerencie as suas ocorrências com segurança.</p>
+                    </div>
+                    <div id="sync-status" class="text-xs font-mono text-slate-400 flex items-center gap-1 hidden">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> <span id="sync-text" class="hidden md:inline">Sincronizando...</span>
+                    </div>
                 </div>
-                <div id="sync-status" class="text-xs font-mono text-slate-400 flex items-center gap-1 hidden">
-                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> <span id="sync-text" class="hidden md:inline">Sincronizando...</span>
+
+                <!-- MENU DE ABAS (NOVO) -->
+                <div class="mt-6 flex gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg w-full md:w-auto inline-flex">
+                    <button onclick="App.switchMainView('monitoring')" id="btn-view-monitoring" class="flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all bg-white dark:bg-slate-600 text-brand-orange shadow-sm flex items-center gap-2 justify-center">
+                        <i class="ph ph-video-camera"></i> Monitoramento
+                    </button>
+                    <button onclick="App.switchMainView('productivity')" id="btn-view-productivity" class="flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center">
+                        <i class="ph ph-chart-line-up"></i> Produtividade
+                    </button>
                 </div>
             </header>
 
-            <!-- KPIs -->
-            <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                    <h3 class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Ativas</h3>
-                    <p id="total-solicitacoes" class="text-3xl font-bold text-slate-800 dark:text-white">0</p>
-                </div>
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                    <h3 class="text-xs font-bold uppercase text-amber-600 dark:text-amber-500">Backups Pend.</h3>
-                    <p id="backups-pendentes" class="text-3xl font-bold text-amber-500">0</p>
-                </div>
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                    <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Análises Concluídas</h3>
-                    <p id="analises-concluidas" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
-                    <p class="text-xs text-slate-400 text-right">Estatística Semanal</p>
-                </div>
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                    <h3 class="text-xs font-bold uppercase text-red-600 dark:text-red-400">Ocorrências</h3>
-                    <p id="total-ocorrencias-semana" class="text-3xl font-bold text-red-500">0</p>
-                    <p class="text-xs text-slate-400 text-right">Estatística Semanal</p>
-                </div>
-                <!-- CARD MÉDIA -->
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
-                    <h3 class="text-xs font-bold uppercase text-purple-600 dark:text-purple-400">Média (Oc/Análise)</h3>
-                    <p id="media-ocorrencias" class="text-3xl font-bold text-purple-500">0.0</p>
-                    <p class="text-xs text-slate-400 text-right">Por Concluída</p>
-                </div>
-            </section>
-
-            <!-- Toolbar -->
-            <section class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm mb-8 border border-slate-100 dark:border-slate-700">
-                <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
-                    <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <input type="text" id="filtro-condominio" placeholder="Buscar condomínio..." class="pl-3 w-full lg:w-64 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none transition">
-                        <select id="filtro-analise" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
-                            <option value="">Status Análise: Todos</option>
-                            <option value="Pendente">Pendente</option>
-                            <option value="Em Análise">Em Análise</option>
-                            <option value="Concluída">Concluída</option>
-                        </select>
-                        <select id="filtro-backup" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
-                             <option value="">Status Backup: Todos</option>
-                             <option value="Pendente">Pendente</option>
-                             <option value="Em Andamento">Em Andamento</option>
-                             <option value="Concluído">Concluído</option>
-                        </select>
+            <!-- ======================================================= -->
+            <!-- VIEW: MONITORAMENTO (Telas originais) -->
+            <!-- ======================================================= -->
+            <div id="view-monitoring" class="flex-col gap-6">
+                
+                <!-- KPIs -->
+                <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                        <h3 class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Ativas</h3>
+                        <p id="total-solicitacoes" class="text-3xl font-bold text-slate-800 dark:text-white">0</p>
                     </div>
-                    <div class="flex items-center gap-3 w-full lg:w-auto justify-end">
-                        <button id="add-task-btn" class="bg-brand-orange hover:bg-orange-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/20">
-                            <i class="ph ph-plus-circle text-lg"></i> Nova Análise
-                        </button>
-                        
-                        <div class="relative" id="actions-menu-container">
-                            <button id="actions-menu-btn" class="bg-slate-100 dark:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white flex items-center gap-2 transition-colors">
-                                Ações <i class="ph ph-caret-down"></i>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                        <h3 class="text-xs font-bold uppercase text-amber-600 dark:text-amber-500">Backups Pend.</h3>
+                        <p id="backups-pendentes" class="text-3xl font-bold text-amber-500">0</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                        <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Análises Concluídas</h3>
+                        <p id="analises-concluidas" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
+                        <p class="text-xs text-slate-400 text-right">Estatística Semanal</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                        <h3 class="text-xs font-bold uppercase text-red-600 dark:text-red-400">Ocorrências</h3>
+                        <p id="total-ocorrencias-semana" class="text-3xl font-bold text-red-500">0</p>
+                        <p class="text-xs text-slate-400 text-right">Estatística Semanal</p>
+                    </div>
+                    <!-- CARD MÉDIA -->
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                        <h3 class="text-xs font-bold uppercase text-purple-600 dark:text-purple-400">Média (Oc/Análise)</h3>
+                        <p id="media-ocorrencias" class="text-3xl font-bold text-purple-500">0.0</p>
+                        <p class="text-xs text-slate-400 text-right">Por Concluída</p>
+                    </div>
+                </section>
+
+                <!-- Toolbar -->
+                <section class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm mb-4 border border-slate-100 dark:border-slate-700">
+                    <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                            <input type="text" id="filtro-condominio" placeholder="Buscar condomínio..." class="pl-3 w-full lg:w-64 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none transition">
+                            <select id="filtro-analise" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
+                                <option value="">Status Análise: Todos</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Análise">Em Análise</option>
+                                <option value="Concluída">Concluída</option>
+                            </select>
+                            <select id="filtro-backup" class="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
+                                <option value="">Status Backup: Todos</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Concluído">Concluído</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-3 w-full lg:w-auto justify-end">
+                            <button id="add-task-btn" class="bg-brand-orange hover:bg-orange-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/20">
+                                <i class="ph ph-plus-circle text-lg"></i> Nova Análise
                             </button>
-                            <div id="actions-menu" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
-                                <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
-                                <button id="excel-import-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors">
-                                    <i class="ph ph-file-csv text-lg text-green-600"></i> Importar (Excel)
+                            
+                            <div class="relative" id="actions-menu-container">
+                                <button id="actions-menu-btn" class="bg-slate-100 dark:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white flex items-center gap-2 transition-colors">
+                                    Ações <i class="ph ph-caret-down"></i>
                                 </button>
-                                <button id="archive-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <i class="ph ph-archive-box text-lg text-purple-500"></i> Arquivo Morto
-                                </button>
-                                <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
-                                <button id="export-data-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <i class="ph ph-download-simple text-lg text-slate-500"></i> Backup Local (JSON)
-                                </button>
-                                <button id="import-data-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <i class="ph ph-upload-simple text-lg text-slate-500"></i> Restaurar Backup (JSON)
-                                </button>
+                                <div id="actions-menu" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
+                                    <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
+                                    <button id="excel-import-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors">
+                                        <i class="ph ph-file-csv text-lg text-green-600"></i> Importar (Excel)
+                                    </button>
+                                    <button id="archive-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                        <i class="ph ph-archive-box text-lg text-purple-500"></i> Arquivo Morto
+                                    </button>
+                                    <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
+                                    <button id="export-data-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                        <i class="ph ph-download-simple text-lg text-slate-500"></i> Backup Local (JSON)
+                                    </button>
+                                    <button id="import-data-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                        <i class="ph ph-upload-simple text-lg text-slate-500"></i> Restaurar Backup (JSON)
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- Lista de Tarefas -->
-            <main id="task-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                <!-- JS preenche aqui -->
-            </main>
-            
-            <!-- Gráficos -->
-            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                 <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-                    <h2 class="text-lg font-bold mb-4 dark:text-white flex items-center gap-2"><i class="ph ph-map-pin"></i> Ocorrências por Local</h2>
-                    <div class="chart-container"><canvas id="ocorrenciasChart"></canvas></div>
-                 </div>
-                 <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-center items-center">
-                     <h2 class="text-lg font-bold mb-2 dark:text-white flex items-center gap-2"><i class="ph ph-lightning"></i> Produtividade</h2>
-                     <div class="text-center py-8">
-                         <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Total de Análises Concluídas</p>
-                         <p id="produtividade-total" class="text-6xl font-extrabold text-emerald-500 mt-4">0</p>
-                     </div>
-                 </div>
-            </section>
+                <!-- Lista de Tarefas -->
+                <main id="task-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- JS preenche aqui -->
+                </main>
+                
+                <!-- Gráficos -->
+                <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                        <h2 class="text-lg font-bold mb-4 dark:text-white flex items-center gap-2"><i class="ph ph-map-pin"></i> Ocorrências por Local</h2>
+                        <div class="chart-container"><canvas id="ocorrenciasChart"></canvas></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-center items-center">
+                        <h2 class="text-lg font-bold mb-2 dark:text-white flex items-center gap-2"><i class="ph ph-lightning"></i> Produtividade</h2>
+                        <div class="text-center py-8">
+                            <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Total de Análises Concluídas</p>
+                            <p id="produtividade-total" class="text-6xl font-extrabold text-emerald-500 mt-4">0</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ======================================================= -->
+            <!-- VIEW: PRODUTIVIDADE (Nova Tela) -->
+            <!-- ======================================================= -->
+            <div id="view-productivity" class="hidden flex-col gap-6 animate-fade-in">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Coluna da Esquerda: Formulário e Tabela -->
+                    <div class="lg:col-span-1 flex flex-col gap-6">
+                        
+                        <!-- Card de Input -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                            <h2 class="text-lg font-bold mb-4 dark:text-white flex items-center gap-2 text-brand-orange">
+                                <i class="ph ph-plus-square"></i> Registro Diário/Semanal
+                            </h2>
+                            <form onsubmit="App.addProductivityEntry(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Referência (Data/Nome)</label>
+                                    <input type="text" id="prod-input-ref" class="w-full border rounded p-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Ex: Semana 42 ou 02/12" required>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1" title="Dias Visualizados">Dias (Vis.)</label>
+                                        <input type="number" id="prod-input-dias" class="w-full border rounded p-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none text-center font-bold text-blue-600" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">PDV</label>
+                                        <input type="number" id="prod-input-pdv" class="w-full border rounded p-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none text-center font-bold text-orange-600" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">OC</label>
+                                        <input type="number" id="prod-input-oc" class="w-full border rounded p-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none text-center font-bold text-red-600" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-2 mt-2">
+                                     <button type="submit" id="btn-save-prod" class="flex-1 bg-brand-orange text-white font-bold py-2 rounded hover:bg-orange-700 transition shadow-lg">
+                                        Adicionar Registro
+                                    </button>
+                                    <button type="button" id="btn-cancel-prod" onclick="App.cancelProductivityEdit()" class="hidden px-4 py-2 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-white font-bold hover:bg-slate-300 transition">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Tabela de Dados -->
+                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex-grow">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-300">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3">Ref.</th>
+                                        <th scope="col" class="px-2 py-3 text-center">Dias</th>
+                                        <th scope="col" class="px-2 py-3 text-center">PDV</th>
+                                        <th scope="col" class="px-2 py-3 text-center">OC</th>
+                                        <th scope="col" class="px-2 py-3"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productivity-table-body" class="divide-y divide-slate-100 dark:divide-slate-700">
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Coluna da Direita: Gráfico e Estatísticas -->
+                    <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col">
+                         <h2 class="text-lg font-bold mb-4 dark:text-white flex items-center gap-2"><i class="ph ph-chart-line-up"></i> Evolução da Produtividade</h2>
+                         <p class="text-xs text-slate-500 mb-4">Acompanhamento de Dias Visualizados vs. Ocorrências Geradas.</p>
+                         
+                         <!-- NOVO PAINEL DE ESTATÍSTICAS -->
+                         <div class="grid grid-cols-3 gap-4 mb-6">
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800 text-center">
+                                <p class="text-[10px] uppercase font-bold text-blue-500">Total Dias</p>
+                                <p id="kpi-total-dias" class="text-2xl font-extrabold text-blue-700 dark:text-blue-400">0</p>
+                            </div>
+                            <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-100 dark:border-red-800 text-center">
+                                <p class="text-[10px] uppercase font-bold text-red-500">Total Ocorrências</p>
+                                <p id="kpi-total-oc" class="text-2xl font-extrabold text-red-700 dark:text-red-400">0</p>
+                            </div>
+                            <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800 text-center">
+                                <p class="text-[10px] uppercase font-bold text-purple-500">Média (OC/Dia)</p>
+                                <p id="kpi-media" class="text-2xl font-extrabold text-purple-700 dark:text-purple-400">0.0</p>
+                            </div>
+                         </div>
+
+                         <div class="chart-container flex-grow relative" style="height: 400px;">
+                             <canvas id="productivityChart"></canvas>
+                         </div>
+                    </div>
+                </div>
+            </div>
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Local. Seus dados estão salvos apenas neste dispositivo.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v20.1 (Smart Weekly Clean)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v21.2 (Produtividade + Edição)</p>
             </footer>
         </div>
     </div>
 
-    <!-- MODAIS -->
-    
-    <!-- Modal Minha Conta -->
+    <!-- MODAIS (Inalterados) -->
     <div id="my-account-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-sm border dark:border-slate-700 shadow-2xl">
              <div class="flex justify-between items-start mb-4">
@@ -332,7 +436,6 @@
         </div>
     </div>
     
-    <!-- Modal Admin -->
     <div id="admin-panel-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl border dark:border-slate-700 shadow-2xl flex flex-col max-h-[85vh]">
             <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-4">
@@ -356,7 +459,6 @@
         </div>
     </div>
 
-    <!-- Modal Confirmação Exclusão -->
     <div id="delete-confirmation-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[80]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-sm border border-red-200 dark:border-red-900 shadow-2xl text-center">
              <div class="w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
@@ -364,7 +466,7 @@
              </div>
              <h2 class="text-lg font-bold dark:text-white mb-2">Excluir Análise?</h2>
              <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                 Esta ação moverá a análise para o histórico de exclusão. Você pode restaurá-la depois importando o Excel novamente.
+                 Esta ação moverá a análise para o histórico de exclusão.
              </p>
              <div class="flex gap-2 justify-center">
                  <button onclick="App.closeModalUI('delete-confirmation-modal')" class="px-4 py-2 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-white font-bold text-sm transition-colors">Cancelar</button>
@@ -373,7 +475,6 @@
         </div>
     </div>
 
-    <!-- Modal Troca de Senha -->
     <div id="change-password-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[65]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-sm border dark:border-slate-700 shadow-2xl">
              <h2 class="text-lg font-bold mb-1 dark:text-white flex items-center gap-2"><i class="ph ph-lock-key-open text-brand-orange"></i> Alterar Senha</h2>
@@ -386,14 +487,9 @@
         </div>
     </div>
     
-    <!-- Modal Cloud Config -->
     <div id="cloud-config-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-lg border dark:border-slate-700 shadow-2xl">
             <h2 class="text-xl font-bold mb-2 dark:text-white flex items-center gap-2"><i class="ph ph-cloud-gear text-blue-500"></i> Instalação do Banco de Dados</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">O sistema já está pré-configurado com suas chaves.</p>
-            <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded text-xs text-green-800 dark:text-green-200 mb-3 border border-green-100 dark:border-green-800">
-                <strong>Status:</strong> Configuração Automática Ativa
-            </div>
             <textarea id="firebase-config-input" rows="8" class="w-full p-3 text-xs font-mono bg-slate-100 dark:bg-slate-900 border rounded dark:text-white dark:border-slate-600 outline-none resize-none mb-4" readonly placeholder="Configuração embutida no código."></textarea>
             <div class="flex justify-between items-center">
                 <button onclick="document.getElementById('cloud-config-modal').classList.add('hidden')" class="text-slate-500 hover:text-slate-700 text-sm">Fechar</button>
@@ -404,7 +500,6 @@
         </div>
     </div>
 
-    <!-- Modal Adicionar/Editar Tarefa -->
     <div id="task-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 transition-opacity">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md border dark:border-slate-700 shadow-2xl">
             <h2 class="text-2xl font-bold mb-4 dark:text-white" id="task-modal-title">Nova Análise</h2>
@@ -433,26 +528,18 @@
         </div>
     </div>
 
-    <!-- Modal Ocorrências (ATUALIZADO) -->
     <div id="ocorrencia-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl h-[90vh] flex flex-col border dark:border-slate-700 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold dark:text-white">Ocorrências: <span id="modal-condo-name" class="text-brand-orange"></span></h2>
                 <button id="ocorrencia-cancel-btn" class="text-slate-400 hover:text-red-500 text-2xl transition-colors">&times;</button>
             </div>
-            
-            <div id="ocorrencia-list" class="flex-grow overflow-y-auto mb-4 space-y-2 p-2 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700 shadow-inner">
-                <!-- Lista de Ocorrências aqui -->
-            </div>
-            
+            <div id="ocorrencia-list" class="flex-grow overflow-y-auto mb-4 space-y-2 p-2 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700 shadow-inner"></div>
             <div class="pt-4 border-t dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
-                <!-- LINHA 1: Categoria e Descrição -->
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-2 mb-2">
                     <select id="add-ocorrencia-categoria" class="md:col-span-4 border rounded p-2 text-sm dark:bg-slate-700 dark:text-white dark:border-slate-600 focus:ring-2 focus:ring-brand-orange outline-none"></select>
                     <input type="text" id="add-ocorrencia-desc" placeholder="Descrição da ocorrência..." class="md:col-span-8 border rounded p-2 text-sm dark:bg-slate-700 dark:text-white dark:border-slate-600 focus:ring-2 focus:ring-brand-orange outline-none">
                 </div>
-                
-                <!-- LINHA 2: Horário Inicial e Final -->
                 <div class="grid grid-cols-2 gap-2 mb-2">
                     <div class="flex flex-col">
                         <label class="text-[10px] text-slate-500 uppercase font-bold mb-1">Início</label>
@@ -463,7 +550,6 @@
                          <input type="time" id="add-horario-final" step="1" class="border rounded p-2 text-sm dark:bg-slate-700 dark:text-white dark:border-slate-600 focus:ring-2 focus:ring-brand-orange outline-none">
                     </div>
                 </div>
-                
                 <div class="flex gap-2 mt-3">
                     <button id="add-ocorrencia-btn" class="flex-1 bg-orange-100 text-brand-orange font-bold py-2 rounded hover:bg-orange-200 transition-colors border border-orange-200">+ Adicionar Item</button>
                     <button id="save-ocorrencias-btn" class="flex-1 bg-brand-orange text-white font-bold py-2 rounded hover:bg-orange-700 transition-colors shadow-lg shadow-orange-500/20">Salvar Alterações</button>
@@ -472,7 +558,6 @@
         </div>
     </div>
 
-    <!-- Outros Modais (Excel, Arquivo) -->
     <div id="excel-import-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl border dark:border-slate-700 shadow-2xl">
             <h2 class="text-xl font-bold mb-2 dark:text-white">Importar Dados (Excel)</h2>
@@ -485,7 +570,6 @@
         </div>
     </div>
     
-    <!-- FIX: Z-INDEX AUMENTADO PARA 75 E BOTÃO DE RECUPERAÇÃO FORÇADA -->
     <div id="archive-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[75]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-3xl h-[80vh] flex flex-col shadow-2xl border dark:border-slate-700">
             <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-2">
@@ -504,15 +588,10 @@
             </div>
             
             <input type="text" id="archive-search" placeholder="Pesquisar no arquivo..." class="mb-3 w-full p-2 text-sm border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-brand-orange">
-            
             <div id="archive-list" class="flex-grow overflow-y-auto space-y-2 pr-2"></div>
-            <div class="mt-4 pt-2 border-t dark:border-slate-700 text-right">
-                <p class="text-xs text-slate-400 text-left mb-2">Itens arquivados não aparecem nas estatísticas principais.</p>
-            </div>
         </div>
     </div>
 
-    <!-- Modal Recuperação Avançada -->
     <div id="recovery-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[90]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-3xl h-[80vh] flex flex-col shadow-2xl border-2 border-blue-500 dark:border-blue-700">
             <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-2">
@@ -521,16 +600,11 @@
                 </h2>
                 <button onclick="App.closeModalUI('recovery-modal')" class="text-2xl text-slate-400 hover:text-slate-600">&times;</button>
             </div>
-            
             <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg mb-4 text-xs text-blue-800 dark:text-blue-200 border border-blue-100 dark:border-blue-800">
                 <i class="ph ph-info"></i> Estes itens foram encontrados nos backups internos do seu navegador mas não estão na lista principal.
             </div>
-
             <input type="text" id="recovery-search" placeholder="Pesquisar no cofre (Nome do condomínio...)" class="mb-3 w-full p-2 text-sm border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
-            
-            <div id="recovery-list" class="flex-grow overflow-y-auto space-y-2 pr-2">
-                <!-- Lista preenchida via JS -->
-            </div>
+            <div id="recovery-list" class="flex-grow overflow-y-auto space-y-2 pr-2"></div>
         </div>
     </div>
 
@@ -547,7 +621,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, initializeAuth, browserLocalPersistence, updatePassword, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        // --- ADICIONADO: enableIndexedDbPersistence para SUPORTE OFFLINE NATIVO ---
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, collection, getDocs, updateDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         // CONFIG
@@ -567,18 +640,20 @@
             data: {
                 tasks: [],
                 archived: [],
+                productivity: [],
                 recoveryList: [],
                 deletedHistory: [],
                 categories: ['Furto', 'Fraude Pagamento', 'Consumo Indevido', 'Vandalismo', 'Defeito Técnico', 'Procedimento Incorreto', 'Outros'],
                 mode: 'cloud', 
                 authMode: 'login',
+                currentView: 'monitoring',
                 user: null,
                 isLoading: false,
-                adminCode: 'ADMIN123', 
                 adminEmail: 'alisson.cambui@vendperto.local',
                 editingId: null,
                 pendingDeleteId: null,
-                editingTaskId: null
+                editingTaskId: null,
+                editingProductivityId: null // NOVO: Controle de Edição de Produtividade
             },
             charts: {},
             statusColors: {
@@ -609,8 +684,71 @@
             setupCharts() {
                  if (typeof Chart === 'undefined') return; 
                  Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569';
+                 
+                 // Gráfico 1: Ocorrências
                  const c1 = document.getElementById('ocorrenciasChart');
                  if(c1) this.charts.oc = new Chart(c1.getContext('2d'), { type: 'bar', data: {labels:[], datasets:[{label:'Ocs', data:[], backgroundColor:'#f26324', borderRadius:4}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
+
+                 // --- NOVO: Gráfico de Produtividade ---
+                 const c2 = document.getElementById('productivityChart');
+                 if(c2) {
+                     this.charts.prod = new Chart(c2.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [
+                                {
+                                    label: 'Dias (Vis.)',
+                                    data: [],
+                                    borderColor: '#3b82f6', // Blue
+                                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                                    type: 'line',
+                                    yAxisID: 'y',
+                                    tension: 0.3,
+                                    borderWidth: 3
+                                },
+                                {
+                                    label: 'OC',
+                                    data: [],
+                                    backgroundColor: '#f26324', // Orange
+                                    borderRadius: 4,
+                                    yAxisID: 'y1'
+                                },
+                                {
+                                    label: 'PDV',
+                                    data: [],
+                                    backgroundColor: '#10b981', // Green
+                                    borderRadius: 4,
+                                    hidden: true // Oculto por padrão para não poluir, usuário pode clicar
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: { display: true, text: 'Dias Visualizados' },
+                                    grid: { display: false }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: { display: true, text: 'Ocorrências' },
+                                    grid: { color: document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
+                                }
+                            }
+                        }
+                     });
+                 }
             },
             
             setupEvents() {
@@ -641,18 +779,15 @@
                 addListener('excel-import-close-btn', 'click', () => App.closeModalUI('excel-import-modal'));
                 addListener('process-import-btn', 'click', () => App.processExcel());
                 
-                // --- FIX: STOP PROPAGATION NO ARQUIVO MORTO ---
                 addListener('archive-btn', 'click', (e) => { 
-                    if(e) e.stopPropagation(); // Impede que o clique feche o menu imediatamente
-                    document.getElementById('actions-menu').classList.add('hidden'); // Fecha o menu manualmente
+                    if(e) e.stopPropagation(); 
+                    document.getElementById('actions-menu').classList.add('hidden'); 
                     document.getElementById('archive-search').value = ''; 
                     App.renderArchiveList(); 
                     App.openModalUI('archive-modal'); 
                 });
                 addListener('archive-close-btn', 'click', () => App.closeModalUI('archive-modal'));
                 addListener('archive-search', 'input', () => App.renderArchiveList());
-                
-                // --- NOVA PESQUISA DO COFRE ---
                 addListener('recovery-search', 'input', () => App.renderRecoveryList());
 
                 addListener('export-data-btn', 'click', () => App.exportData());
@@ -665,6 +800,8 @@
                                 const j = JSON.parse(ev.target.result); 
                                 App.data.tasks=j.tasks||[]; 
                                 App.data.archived=j.archived||[]; 
+                                // Restore productivity too
+                                if(j.productivity) App.data.productivity = j.productivity;
                                 App.saveData(); 
                                 App.showToast('Restaurado'); 
                                 setTimeout(()=>window.location.reload(), 500); 
@@ -683,6 +820,205 @@
                     localStorage.theme = document.documentElement.classList.contains('dark')?'dark':'light'; 
                     App.updateCharts(); 
                 });
+            },
+
+            // --- CONTROLE DE ABAS (NOVO) ---
+            switchMainView(viewName) {
+                this.data.currentView = viewName;
+                const btnMon = document.getElementById('btn-view-monitoring');
+                const btnProd = document.getElementById('btn-view-productivity');
+                const viewMon = document.getElementById('view-monitoring');
+                const viewProd = document.getElementById('view-productivity');
+
+                if (viewName === 'monitoring') {
+                    // Ativa Monitoramento
+                    btnMon.className = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all bg-white dark:bg-slate-600 text-brand-orange shadow-sm flex items-center gap-2 justify-center";
+                    btnProd.className = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center";
+                    viewMon.classList.remove('hidden');
+                    viewMon.classList.add('flex');
+                    viewProd.classList.add('hidden');
+                    this.updateCharts(); // Redesenha charts visíveis
+                } else {
+                    // Ativa Produtividade
+                    btnProd.className = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all bg-white dark:bg-slate-600 text-brand-orange shadow-sm flex items-center gap-2 justify-center";
+                    btnMon.className = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center";
+                    viewProd.classList.remove('hidden');
+                    viewProd.classList.add('flex');
+                    viewMon.classList.add('hidden');
+                    viewMon.classList.remove('flex');
+                    this.renderProductivityChart(); // Redesenha chart de prod
+                }
+            },
+
+            // --- LÓGICA DE PRODUTIVIDADE COM EDIÇÃO ---
+            
+            // 1. Adicionar ou Salvar Edição
+            addProductivityEntry(e) {
+                e.preventDefault();
+                const ref = document.getElementById('prod-input-ref').value;
+                const dias = parseInt(document.getElementById('prod-input-dias').value);
+                const pdv = parseInt(document.getElementById('prod-input-pdv').value);
+                const oc = parseInt(document.getElementById('prod-input-oc').value);
+
+                if (!ref || isNaN(dias)) return;
+
+                // VERIFICA SE ESTÁ EM MODO DE EDIÇÃO
+                if (this.data.editingProductivityId) {
+                    const index = this.data.productivity.findIndex(p => p.id === this.data.editingProductivityId);
+                    if (index > -1) {
+                        this.data.productivity[index] = {
+                            ...this.data.productivity[index],
+                            ref: ref,
+                            dias: dias,
+                            pdv: pdv || 0,
+                            oc: oc || 0
+                        };
+                        this.showToast('Registro atualizado!');
+                    }
+                    this.cancelProductivityEdit(); // Sai do modo de edição
+                } else {
+                    // MODO ADICIONAR (Cria novo)
+                    const entry = {
+                        id: crypto.randomUUID(),
+                        ref: ref,
+                        dias: dias,
+                        pdv: pdv || 0,
+                        oc: oc || 0,
+                        createdAt: new Date().toISOString()
+                    };
+                    this.data.productivity.unshift(entry);
+                    this.showToast('Registro adicionado!');
+                    
+                    // Limpa formulário
+                    document.getElementById('prod-input-ref').value = '';
+                    document.getElementById('prod-input-dias').value = '';
+                    document.getElementById('prod-input-pdv').value = '';
+                    document.getElementById('prod-input-oc').value = '';
+                }
+
+                this.saveData();
+                this.renderProductivityTable();
+                this.renderProductivityChart();
+            },
+
+            // 2. Preparar Edição (Carrega dados no form)
+            editProductivityEntry(id) {
+                const item = this.data.productivity.find(p => p.id === id);
+                if (!item) return;
+
+                this.data.editingProductivityId = id;
+
+                // Preenche form
+                document.getElementById('prod-input-ref').value = item.ref;
+                document.getElementById('prod-input-dias').value = item.dias;
+                document.getElementById('prod-input-pdv').value = item.pdv;
+                document.getElementById('prod-input-oc').value = item.oc;
+
+                // Altera botão para "Salvar"
+                const btn = document.getElementById('btn-save-prod');
+                btn.textContent = "Salvar Alterações";
+                btn.classList.remove('bg-brand-orange', 'hover:bg-orange-700');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+
+                // Mostra botão cancelar
+                document.getElementById('btn-cancel-prod').classList.remove('hidden');
+                
+                // Scroll suave para o form (útil em mobile)
+                document.getElementById('view-productivity').scrollIntoView({ behavior: 'smooth' });
+            },
+
+            // 3. Cancelar Edição
+            cancelProductivityEdit() {
+                this.data.editingProductivityId = null;
+                
+                // Limpa form
+                document.getElementById('prod-input-ref').value = '';
+                document.getElementById('prod-input-dias').value = '';
+                document.getElementById('prod-input-pdv').value = '';
+                document.getElementById('prod-input-oc').value = '';
+
+                // Reseta botão
+                const btn = document.getElementById('btn-save-prod');
+                btn.textContent = "Adicionar Registro";
+                btn.classList.add('bg-brand-orange', 'hover:bg-orange-700');
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+
+                // Esconde cancelar
+                document.getElementById('btn-cancel-prod').classList.add('hidden');
+            },
+
+            removeProductivityEntry(id) {
+                if(confirm('Remover este registro?')) {
+                    // Se estiver editando este mesmo item, cancela a edição antes de remover
+                    if (this.data.editingProductivityId === id) {
+                        this.cancelProductivityEdit();
+                    }
+                    this.data.productivity = this.data.productivity.filter(p => p.id !== id);
+                    this.saveData();
+                    this.renderProductivityTable();
+                    this.renderProductivityChart();
+                }
+            },
+
+            renderProductivityTable() {
+                const tbody = document.getElementById('productivity-table-body');
+                if(!tbody) return;
+
+                if (this.data.productivity.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-3 text-center text-xs text-slate-400">Nenhum registro ainda.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = this.data.productivity.map(p => `
+                    <tr class="bg-white border-b dark:bg-slate-800 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition ${this.data.editingProductivityId === p.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}">
+                        <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">${p.ref}</td>
+                        <td class="px-2 py-3 text-center text-blue-600 font-bold">${p.dias}</td>
+                        <td class="px-2 py-3 text-center text-slate-500">${p.pdv}</td>
+                        <td class="px-2 py-3 text-center text-red-500 font-bold">${p.oc}</td>
+                        <td class="px-2 py-3 text-right flex justify-end gap-1">
+                            <button onclick="App.editProductivityEntry('${p.id}')" class="text-blue-400 hover:text-blue-600 p-1" title="Editar"><i class="ph ph-pencil-simple text-lg"></i></button>
+                            <button onclick="App.removeProductivityEntry('${p.id}')" class="text-slate-400 hover:text-red-500 p-1" title="Excluir"><i class="ph ph-trash text-lg"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            // --- NOVO: CÁLCULO E EXIBIÇÃO DE ESTATÍSTICAS ---
+            updateProductivityStats() {
+                const data = this.data.productivity;
+                
+                // Soma totais
+                const totalDias = data.reduce((acc, curr) => acc + (parseInt(curr.dias)||0), 0);
+                const totalOC = data.reduce((acc, curr) => acc + (parseInt(curr.oc)||0), 0);
+                
+                // Calcula média
+                const media = totalDias > 0 ? (totalOC / totalDias).toFixed(3) : "0.000";
+
+                // Atualiza UI se os elementos existirem
+                const elDias = document.getElementById('kpi-total-dias');
+                const elOC = document.getElementById('kpi-total-oc');
+                const elMedia = document.getElementById('kpi-media');
+
+                if(elDias) elDias.textContent = totalDias;
+                if(elOC) elOC.textContent = totalOC;
+                if(elMedia) elMedia.textContent = media;
+            },
+
+            renderProductivityChart() {
+                if (!this.charts.prod) return;
+                
+                // Atualiza também os números do painel
+                this.updateProductivityStats();
+
+                // Inverter ordem para o gráfico (Mais antigo -> Mais novo)
+                const dataReversed = [...this.data.productivity].reverse();
+                
+                this.charts.prod.data.labels = dataReversed.map(p => p.ref);
+                this.charts.prod.data.datasets[0].data = dataReversed.map(p => p.dias); // Line (Dias)
+                this.charts.prod.data.datasets[1].data = dataReversed.map(p => p.oc);   // Bar (OC)
+                this.charts.prod.data.datasets[2].data = dataReversed.map(p => p.pdv);  // Bar (PDV)
+                
+                this.charts.prod.update();
             },
 
             // --- INIT ---
@@ -720,10 +1056,19 @@
             },
             
             updateCharts() {
-                 if(!this.charts.oc) return;
-                 const counts = {}; this.data.tasks.forEach(t => { if(t.ocorrencias?.length) counts[t.condominio] = (counts[t.condominio]||0)+t.ocorrencias.length; });
-                 const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-                 this.charts.oc.data.labels = sorted.map(x=>x[0]); this.charts.oc.data.datasets[0].data = sorted.map(x=>x[1]); this.charts.oc.update();
+                 // Update Monitoramento Chart
+                 if(this.charts.oc) {
+                     const counts = {}; 
+                     this.data.tasks.forEach(t => { 
+                         if(t.ocorrencias?.length) counts[t.condominio] = (counts[t.condominio]||0)+t.ocorrencias.length; 
+                     });
+                     const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+                     this.charts.oc.data.labels = sorted.map(x=>x[0]); 
+                     this.charts.oc.data.datasets[0].data = sorted.map(x=>x[1]); 
+                     this.charts.oc.update();
+                 }
+                 // Update Produtividade Chart
+                 this.renderProductivityChart();
             },
 
             toggleAuthMode(mode) {
@@ -768,8 +1113,15 @@
             },
             
             switchToLoginView() { document.getElementById('login-view').classList.remove('hidden'); document.getElementById('dashboard-view').classList.add('hidden'); },
-            switchToDashboardView() { document.getElementById('login-view').classList.add('hidden'); document.getElementById('dashboard-view').classList.remove('hidden'); document.getElementById('dashboard-view').classList.add('flex'); setTimeout(() => this.updateCharts(), 100); },
-            parseConfig(str) { try { return JSON.parse(str); } catch (e) { try { const jsonStr = str.replace(/(\w+):/g, '"$1":'); return JSON.parse(jsonStr); } catch (e2) { return null; } } },
+            switchToDashboardView() { 
+                document.getElementById('login-view').classList.add('hidden'); 
+                document.getElementById('dashboard-view').classList.remove('hidden'); 
+                document.getElementById('dashboard-view').classList.add('flex'); 
+                setTimeout(() => {
+                    this.updateCharts();
+                    this.renderProductivityTable(); // Ensure table is rendered on load
+                }, 100); 
+            },
             
             // FIREBASE INIT
             async initFirebase(config) {
@@ -778,29 +1130,12 @@
                     auth = getAuth(appFirebase);
                     db = getFirestore(appFirebase);
                     
-                    // --- ATIVAÇÃO DE PERSISTÊNCIA OFFLINE ---
                     try {
                         await enableIndexedDbPersistence(db);
-                        console.log("Persistência offline ativada com sucesso!");
-                    } catch (err) {
-                        if (err.code == 'failed-precondition') {
-                            console.warn("Múltiplas abas abertas. Persistência offline pode falhar.");
-                        } else if (err.code == 'unimplemented') {
-                            console.warn("Seu navegador não suporta persistência offline.");
-                        }
-                    }
+                    } catch (err) {}
                     
-                    const isCustomProject = config.projectId === "painel-de-monitoramento-411b7";
-                    
-                    if (!isCustomProject && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token).catch(e => {
-                            console.warn("Falha token customizado", e);
-                            return signInAnonymously(auth);
-                        });
-                    } else {
-                        if (!auth.currentUser) {
-                            await signInAnonymously(auth).catch(e => console.warn("Anon fail", e));
-                        }
+                    if (!auth.currentUser) {
+                        await signInAnonymously(auth).catch(e => console.warn("Anon fail", e));
                     }
 
                     onAuthStateChanged(auth, (user) => {
@@ -811,20 +1146,14 @@
                                 this.subscribeToUserData(this.data.user.uid);
                             }
                         }
-                        this.updateUIMode();
                     });
 
-                } catch(e) { 
-                    console.error("Falha Firebase Total", e);
-                }
+                } catch(e) { console.error("Falha Firebase Total", e); }
             },
-            
-            forceSync() { if (this.data.user && this.data.user.uid) { this.showToast("Forçando sincronização..."); this.subscribeToUserData(this.data.user.uid); } else { alert("Erro: Usuário não identificado."); this.logout(); } },
             
             subscribeToUserData(uid) {
                 const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_records', 'app_user_data_' + uid);
                 
-                // USANDO includeMetadataChanges: true PARA DETECTAR MUDANÇAS LOCAIS/CACHE
                 onSnapshot(userDocRef, { includeMetadataChanges: true }, (docSnap) => {
                     const syncStatusEl = document.getElementById('app-mode-badge');
                     
@@ -842,44 +1171,37 @@
                         // BLINDAGEM: Se o cloud vier vazio mas tivermos shadow local, preferir local
                         const localShadow = localStorage.getItem('mon_shadow_archive_latest');
                         let cloudArchived = d.archived || [];
-                        
-                        // Mesclar inteligente para evitar que o cloud antigo apague o novo
                         if (localShadow) {
                             try {
                                 const shadowArr = JSON.parse(localShadow);
-                                if (shadowArr.length > cloudArchived.length) {
-                                    // Local é mais rico, vamos mesclar
-                                    // (Simplificado: mantemos local para evitar perda imediata, save força push depois)
-                                    cloudArchived = shadowArr;
-                                }
+                                if (shadowArr.length > cloudArchived.length) cloudArchived = shadowArr;
                             } catch(e){}
                         }
 
                         if (d.tasks) this.data.tasks = d.tasks;
                         this.data.archived = cloudArchived;
                         if (d.deletedHistory) this.data.deletedHistory = d.deletedHistory;
+                        if (d.productivity) this.data.productivity = d.productivity; // --- SYNC PROD ---
                         
                         this.saveToLocalStorageCache();
                         document.getElementById('sync-status').classList.remove('hidden');
                         document.getElementById('sync-text').textContent = "Sincronizado";
                         this.autoArchive();
-                        this.render(); 
+                        this.render();
+                        this.renderProductivityTable(); 
+                        this.updateCharts();
                     }
                 }, (error) => { console.error("Firestore Error:", error); document.getElementById('db-error-banner').classList.remove('hidden'); });
             },
 
             // --- AUTO ARQUIVAMENTO (CORRIGIDO) ---
             autoArchive() {
-                // Nova Lógica: Limpeza Semanal (Começou a semana nova, arquiva a anterior se concluída)
-                
-                // 1. Definir o "Hoje" ajustado ao fuso horário local para evitar erro de UTC
                 const now = new Date();
                 const offset = now.getTimezoneOffset();
                 const localNow = new Date(now.getTime() - (offset * 60 * 1000));
                 
-                // 2. Encontrar a Segunda-feira da semana ATUAL
-                const day = localNow.getUTCDay(); // 0 (Dom) a 6 (Sab)
-                const diffToMon = (day + 6) % 7; // Quanto voltar para chegar na seg
+                const day = localNow.getUTCDay(); 
+                const diffToMon = (day + 6) % 7; 
                 
                 const mondayCurrentWeek = new Date(localNow);
                 mondayCurrentWeek.setUTCDate(localNow.getUTCDate() - diffToMon);
@@ -887,40 +1209,30 @@
                 
                 const limitCurrentWeekStr = mondayCurrentWeek.toISOString().split('T')[0];
                 
-                // 3. Encontrar a Segunda-feira da semana RETRASADA (Para forçar arquivamento de tudo, mesmo pendente)
                 const mondayRetrasada = new Date(mondayCurrentWeek);
-                mondayRetrasada.setUTCDate(mondayRetrasada.getUTCDate() - 14); // 2 semanas atrás
+                mondayRetrasada.setUTCDate(mondayRetrasada.getUTCDate() - 14); 
                 const limitOldStr = mondayRetrasada.toISOString().split('T')[0];
 
                 let changed = false;
                 const active = [];
                 
                 this.data.tasks.forEach(t => {
-                    // Proteção de restauração manual
-                    if (t.manualRestore) {
-                        active.push(t);
-                        return;
-                    }
+                    if (t.manualRestore) { active.push(t); return; }
 
-                    // Regra 1: Se for muito antigo (2 semanas+), arquiva tudo (limpeza geral)
                     if (t.dataAnalise < limitOldStr) {
                         this.data.archived.push(t);
-                        // Safe Backup do Item no Cofre
                         this.backupToShadow(t); 
                         changed = true;
                         return;
                     }
 
-                    // Regra 2: Se for da semana passada (anterior à atual) E estiver Concluída -> Arquiva
                     if (t.dataAnalise < limitCurrentWeekStr && t.statusAnalise === 'Concluída') {
                         this.data.archived.push(t);
-                        // Safe Backup do Item no Cofre
                         this.backupToShadow(t); 
                         changed = true;
                         return;
                     }
 
-                    // Caso contrário, mantem no painel (Ex: Semana Atual ou Pendente da Semana Passada)
                     active.push(t);
                 });
                 
@@ -931,13 +1243,11 @@
                 }
             },
             
-            // Helper para salvar no cofre individualmente
             backupToShadow(item) {
                  try {
                      const raw = localStorage.getItem('mon_shadow_archive_latest');
                      let arr = raw ? JSON.parse(raw) : [];
                      if(!Array.isArray(arr)) arr = [];
-                     // Evitar duplicatas
                      if(!arr.find(x => x.id === item.id)) {
                          arr.push(item);
                          localStorage.setItem('mon_shadow_archive_latest', JSON.stringify(arr));
@@ -947,7 +1257,6 @@
             
             generateEmail(name) { return `${name.trim().toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}@vendperto.local`; },
             
-            // LOGIN CORRIGIDO
             async loginWithUser() { 
                 const errorMsg = document.getElementById('auth-error-msg');
                 errorMsg.classList.add('hidden'); 
@@ -985,7 +1294,6 @@
                 }
             },
 
-            // REGISTRO CORRIGIDO
             async registerWithUser() {
                 const name = document.getElementById('login-username').value.trim().toUpperCase();
                 const pass = document.getElementById('login-password').value;
@@ -1025,7 +1333,6 @@
                 }
             },
 
-            // ADMIN: AUTORIZAR USUÁRIO
             async authorizeNewUser() {
                 const nameInput = document.getElementById('new-user-name');
                 const name = nameInput.value.trim().toUpperCase();
@@ -1104,11 +1411,12 @@
             },
             
             resetToLocal() { localStorage.removeItem('mon_firebase_config'); window.location.reload(); },
-            updateUIMode() { /* ... */ },
             
             async saveData() { 
                  const cleanTasks = JSON.parse(JSON.stringify(this.data.tasks));
                  const cleanArchived = JSON.parse(JSON.stringify(this.data.archived));
+                 const cleanProd = JSON.parse(JSON.stringify(this.data.productivity));
+
                  this.saveToLocalStorageCache();
                  
                  // BLINDAGEM DE DADOS VAZIOS
@@ -1120,17 +1428,27 @@
                     try {
                         const safeId = this.data.user.uid;
                         const dataRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_records', 'app_user_data_' + safeId);
-                        // EVITA SALVAR VAZIO SE JÁ TIVER COISA (Lógica simples, o Firestore merge ajuda, mas vamos garantir)
-                        await setDoc(dataRef, { tasks: cleanTasks, archived: cleanArchived, deletedHistory: this.data.deletedHistory, lastUpdate: new Date().toISOString(), ownerEmail: this.data.user.email }, { merge: true });
+                        
+                        await setDoc(dataRef, { 
+                            tasks: cleanTasks, 
+                            archived: cleanArchived, 
+                            deletedHistory: this.data.deletedHistory,
+                            productivity: cleanProd, // Salvando Produtividade
+                            lastUpdate: new Date().toISOString(), 
+                            ownerEmail: this.data.user.email 
+                        }, { merge: true });
                     } catch(e) { console.error("Erro save cloud", e); }
                  }
                  this.render(); 
                  this.updateCharts();
             },
             
-            saveToLocalStorageCache() { localStorage.setItem('mon_tasks', JSON.stringify(this.data.tasks)); localStorage.setItem('mon_archived', JSON.stringify(this.data.archived)); },
+            saveToLocalStorageCache() { 
+                localStorage.setItem('mon_tasks', JSON.stringify(this.data.tasks)); 
+                localStorage.setItem('mon_archived', JSON.stringify(this.data.archived)); 
+                localStorage.setItem('mon_prod', JSON.stringify(this.data.productivity)); // Cache local
+            },
             
-            // --- CORREÇÃO: CARREGAR ARQUIVO MORTO DO LOCAL STORAGE ---
             loadDataLocal() { 
                 try { 
                     const t = localStorage.getItem('mon_tasks'); 
@@ -1138,8 +1456,12 @@
                     
                     const a = localStorage.getItem('mon_archived');
                     if(a) this.data.archived = JSON.parse(a);
+
+                    const p = localStorage.getItem('mon_prod');
+                    if(p) this.data.productivity = JSON.parse(p);
                     
-                    if (!this.data.archived) this.data.archived = []; // Garantia extra
+                    if (!this.data.archived) this.data.archived = []; 
+                    if (!this.data.productivity) this.data.productivity = [];
                     
                     this.render(); 
                 } catch(e){} 
@@ -1175,14 +1497,12 @@
                 };
 
                 if (id) {
-                    // Editing existing task
                     const task = this.data.tasks.find(t => t.id === id);
                     if (task) {
                         Object.assign(task, newData);
                         this.showToast('Análise atualizada!');
                     }
                 } else {
-                    // Creating new task
                     this.addTask(newData);
                 }
                 
@@ -1190,7 +1510,6 @@
                 this.closeModalUI('task-modal');
             },
             
-            // --- NOVA FUNÇÃO DE OCORRÊNCIA SIMPLIFICADA (SEM CAMERA, COM INICIO/FIM) ---
             addOccurrence() {
                 const cat = document.getElementById('add-ocorrencia-categoria').value;
                 const desc = document.getElementById('add-ocorrencia-desc').value;
@@ -1387,7 +1706,11 @@
             },
             
             exportData() {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({tasks: this.data.tasks, archived: this.data.archived}));
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                    tasks: this.data.tasks, 
+                    archived: this.data.archived,
+                    productivity: this.data.productivity 
+                }));
                 const downloadAnchorNode = document.createElement('a');
                 downloadAnchorNode.setAttribute("href",     dataStr);
                 downloadAnchorNode.setAttribute("download", "backup_painel_" + new Date().toISOString().split('T')[0] + ".json");
@@ -1398,17 +1721,15 @@
 
             // --- LISTAGEM DE ARQUIVOS BLINDADA COM RECUPERAÇÃO ---
             renderArchiveList() {
-                 if (!Array.isArray(this.data.archived)) this.data.archived = []; // SEGURANÇA
+                 if (!Array.isArray(this.data.archived)) this.data.archived = []; 
 
                  const list = document.getElementById('archive-list');
                  const searchInput = document.getElementById('archive-search');
                  const search = searchInput ? searchInput.value.toLowerCase() : '';
                  
-                 // Atualizar contador
                  const countBadge = document.getElementById('archive-count-badge');
                  if(countBadge) countBadge.textContent = this.data.archived.length;
 
-                 // CORREÇÃO: Evitar erro se condominio não existir
                  const filtered = this.data.archived.filter(t => (t.condominio || '').toLowerCase().includes(search));
 
                  if (filtered.length === 0) {
@@ -1420,13 +1741,11 @@
                             <button onclick="App.recoverLostData()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded text-xs font-bold hover:bg-blue-200 transition flex items-center gap-2">
                                 <i class="ph ph-life-buoy"></i> Tentar Recuperar Dados Perdidos
                             </button>
-                            <p class="text-[9px] text-slate-300 mt-2 max-w-xs text-center">Busca de emergência no cache local do navegador.</p>
                         </div>`;
                      return;
                  }
 
                  list.innerHTML = filtered.map(t => {
-                    // BLINDAGEM CONTRA ERROS DE DATA
                     let dateDisplay = '-';
                     try {
                         if (t.dataAnalise && t.dataAnalise.includes('-')) {
@@ -1453,12 +1772,9 @@
                  }).join('');
             },
             
-            // --- NOVA FUNÇÃO DE RECUPERAÇÃO SELETIVA ---
             recoverLostData() {
-                // 1. Gather all unique items from all storage sources
-                const candidates = new Map(); // Use Map to dedup by ID easily
+                const candidates = new Map();
 
-                // Helper to process raw string
                 const process = (key) => {
                     try {
                         const raw = localStorage.getItem(key);
@@ -1466,7 +1782,7 @@
                         const parsed = JSON.parse(raw);
                         let arr = [];
                         if (Array.isArray(parsed)) arr = parsed;
-                        else if (parsed.a) arr = parsed.a.concat(parsed.t || []); // Safe backup format
+                        else if (parsed.a) arr = parsed.a.concat(parsed.t || []); 
                         
                         arr.forEach(t => {
                             if (t && t.id) candidates.set(t.id, t);
@@ -1475,11 +1791,10 @@
                 };
 
                 process('mon_archived');
-                process('mon_tasks'); // Also check old tasks cache just in case
+                process('mon_tasks'); 
                 process('mon_safe_backup');
                 process('mon_shadow_archive_latest');
 
-                // 2. Filter out items that ALREADY exist in the app
                 const currentIds = new Set([
                     ...this.data.tasks.map(t => t.id), 
                     ...this.data.archived.map(t => t.id)
@@ -1492,7 +1807,6 @@
                     }
                 }
 
-                // 3. Show UI
                 if (this.data.recoveryList.length === 0) {
                     alert("Nenhum dado perdido foi encontrado nos backups locais.");
                 } else {
@@ -1533,20 +1847,14 @@
                 const idx = this.data.recoveryList.findIndex(t => t.id === id);
                 if (idx > -1) {
                     const item = this.data.recoveryList[idx];
-                    
-                    // Remove from recovery list
                     this.data.recoveryList.splice(idx, 1);
-                    
-                    // Add to active tasks with manual flag
                     item.manualRestore = true;
-                    item.carimboSemanaAtual = true; // Assume they want to work on it
+                    item.carimboSemanaAtual = true; 
                     this.data.tasks.unshift(item);
-                    
                     this.saveData();
-                    this.renderRecoveryList(); // Re-render the modal list
-                    this.render(); // Update background dashboard
+                    this.renderRecoveryList(); 
+                    this.render(); 
                     this.showToast('Item recuperado com sucesso!');
-                    
                     if (this.data.recoveryList.length === 0) {
                         this.closeModalUI('recovery-modal');
                     }
@@ -1557,11 +1865,7 @@
                 const idx = this.data.archived.findIndex(t => t.id === id);
                 if (idx > -1) {
                     const t = this.data.archived.splice(idx, 1)[0];
-                    
-                    t.manualRestore = true; // Impede arquivamento automático
-                    
-                    // Lógica: Se JÁ ESTAVA CONCLUÍDA, não ganha carimbo (apenas consulta).
-                    // Se NÃO ESTAVA CONCLUÍDA (Pendente), ganha carimbo (reprocessamento).
+                    t.manualRestore = true; 
                     if (t.statusAnalise === 'Concluída') {
                         t.carimboSemanaAtual = false;
                         this.showToast('Restaurado para Consulta');
@@ -1569,12 +1873,9 @@
                         t.carimboSemanaAtual = true;
                         this.showToast('Restaurado: Contabilizando na Meta');
                     }
-
-                    // Adiciona ao início da lista (prioridade)
                     this.data.tasks.unshift(t);
-                    
                     this.saveData();
-                    this.renderArchiveList(); // Atualiza a lista para remover o item visualmente
+                    this.renderArchiveList(); 
                 }
             },
             
@@ -1600,17 +1901,13 @@
                 this.showToast('Análise excluída (pode ser restaurada)');
             },
             
-            // --- CORREÇÃO: ARQUIVAMENTO MANUAL BLINDADO ---
             archiveTask(id) {
                 const idx = this.data.tasks.findIndex(t => t.id === id);
                 if (idx > -1) {
                     const t = this.data.tasks.splice(idx, 1)[0];
-                    if (!this.data.archived) this.data.archived = []; // SEGURANÇA
+                    if (!this.data.archived) this.data.archived = []; 
                     this.data.archived.push(t);
-                    
-                    // COFRE BLINDADO: Salva uma cópia independente que a nuvem não toca
                     localStorage.setItem('mon_shadow_archive_latest', JSON.stringify(this.data.archived));
-                    
                     this.saveData();
                 }
             },
@@ -1635,7 +1932,6 @@
                     return;
                 }
                 
-                // ORDENAR POR HORÁRIO INICIAL
                 const sortedOcs = [...task.ocorrencias].sort((a,b) => (a.inicio || '').localeCompare(b.inicio || ''));
 
                 list.innerHTML = sortedOcs.map((o, idx) => `
@@ -1671,16 +1967,12 @@
                 }
             },
 
-            // --- CORREÇÃO: DETECTA REABERTURA DE TAREFA ---
             updateStatus(id, field, val) {
                 const t = this.data.tasks.find(x => x.id === id);
                 if (t) { 
-                    // Se for uma tarefa restaurada MANUALMENTE e o usuário mudar status de Concluída -> Pendente/Em Análise
-                    // O sistema entende que foi REABERTA para trabalho e aplica o carimbo.
                     if (field === 'statusAnalise' && t.manualRestore && val !== 'Concluída') {
                         t.carimboSemanaAtual = true;
                     }
-                    
                     t[field] = val; 
                     this.saveData(); 
                 }
@@ -1711,13 +2003,9 @@
                            (fBackup === '' || t.statusBackup === fBackup);
                 });
                 
-                // KPIs - Lógica Inteligente para Estatísticas
-                document.getElementById('total-solicitacoes').textContent = this.data.tasks.length; // Total Visível (Ativas + Restauradas)
+                document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
                 document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
                 
-                // FILTRO PARA ESTATÍSTICAS DE PRODUTIVIDADE E OCORRÊNCIAS:
-                // Conta apenas se: (NÃO for restaurado manualmente) OU (Tiver o Carimbo da Semana)
-                // Isso exclui os itens restaurados para "Apenas Consulta".
                 const statTasks = this.data.tasks.filter(t => !t.manualRestore || t.carimboSemanaAtual);
 
                 const concluidasStat = statTasks.filter(t => t.statusAnalise === 'Concluída').length;
@@ -1754,7 +2042,6 @@
                                 </div>
                                 <p class="text-xs text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${this.formatDate(t.dataAnalise)} <span class="bg-slate-100 dark:bg-slate-700 px-1.5 rounded ml-2">${t.semana||'-'}</span></p>
                                 
-                                <!-- CARIMBO VISUAL SE FOR REPROCESSAMENTO -->
                                 ${t.carimboSemanaAtual ? `<div class="mt-2 inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-bold uppercase w-full"><i class="ph ph-stamp text-lg"></i> Contabilizar na Semana Atual</div>` : ''}
 
                             </div>
