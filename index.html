@@ -385,7 +385,7 @@
                             </div>
                             <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800 text-center">
                                 <p class="text-[10px] uppercase font-bold text-purple-500">Média (OC/Dia)</p>
-                                <p id="kpi-media" class="text-2xl font-extrabold text-purple-700 dark:text-purple-400">0.0</p>
+                                <p id="kpi-media" class="text-2xl font-extrabold text-purple-700 dark:text-purple-400">0.00</p>
                             </div>
                          </div>
 
@@ -992,7 +992,7 @@
                 const totalOC = data.reduce((acc, curr) => acc + (parseInt(curr.oc)||0), 0);
                 
                 // Calcula média
-                const media = totalDias > 0 ? (totalOC / totalDias).toFixed(3) : "0.000";
+                const media = totalDias > 0 ? (totalOC / totalDias).toFixed(2) : "0.00";
 
                 // Atualiza UI se os elementos existirem
                 const elDias = document.getElementById('kpi-total-dias');
