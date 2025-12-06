@@ -192,12 +192,16 @@
                 </div>
 
                 <!-- MENU DE ABAS (NOVO) -->
-                <div class="mt-6 flex gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg w-full md:w-auto inline-flex">
-                    <button onclick="App.switchMainView('monitoring')" id="btn-view-monitoring" class="flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all bg-white dark:bg-slate-600 text-brand-orange shadow-sm flex items-center gap-2 justify-center">
+                <div class="mt-6 flex gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg w-full md:w-auto inline-flex overflow-x-auto">
+                    <button onclick="App.switchMainView('monitoring')" id="btn-view-monitoring" class="flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all bg-white dark:bg-slate-600 text-brand-orange shadow-sm flex items-center gap-2 justify-center whitespace-nowrap">
                         <i class="ph ph-video-camera"></i> Monitoramento
                     </button>
-                    <button onclick="App.switchMainView('productivity')" id="btn-view-productivity" class="flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center">
+                    <button onclick="App.switchMainView('productivity')" id="btn-view-productivity" class="flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center whitespace-nowrap">
                         <i class="ph ph-chart-line-up"></i> Produtividade
+                    </button>
+                    <!-- NOVA ABA RELATÓRIOS -->
+                    <button onclick="App.switchMainView('reports')" id="btn-view-reports" class="flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center whitespace-nowrap">
+                        <i class="ph ph-file-text"></i> Relatórios
                     </button>
                 </div>
             </header>
@@ -289,23 +293,16 @@
                 </main>
                 
                 <!-- Gráficos -->
-                <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <section class="mb-8">
                     <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
                         <h2 class="text-lg font-bold mb-4 dark:text-white flex items-center gap-2"><i class="ph ph-map-pin"></i> Ocorrências por Local</h2>
                         <div class="chart-container"><canvas id="ocorrenciasChart"></canvas></div>
-                    </div>
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-center items-center">
-                        <h2 class="text-lg font-bold mb-2 dark:text-white flex items-center gap-2"><i class="ph ph-lightning"></i> Produtividade</h2>
-                        <div class="text-center py-8">
-                            <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Total de Análises Concluídas</p>
-                            <p id="produtividade-total" class="text-6xl font-extrabold text-emerald-500 mt-4">0</p>
-                        </div>
                     </div>
                 </section>
             </div>
 
             <!-- ======================================================= -->
-            <!-- VIEW: PRODUTIVIDADE (Nova Tela) -->
+            <!-- VIEW: PRODUTIVIDADE -->
             <!-- ======================================================= -->
             <div id="view-productivity" class="hidden flex-col gap-6 animate-fade-in">
                 
@@ -320,8 +317,8 @@
                             </h2>
                             <form onsubmit="App.addProductivityEntry(event)" class="space-y-4">
                                 <div>
-                                    <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Referência (Data/Nome)</label>
-                                    <input type="text" id="prod-input-ref" class="w-full border rounded p-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Ex: Semana 42 ou 02/12" required>
+                                    <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Semana</label>
+                                    <input type="text" id="prod-input-ref" class="w-full border rounded p-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Ex: 42" required>
                                 </div>
                                 <div class="grid grid-cols-3 gap-2">
                                     <div>
@@ -354,7 +351,7 @@
                             <table class="w-full text-sm text-left">
                                 <thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-300">
                                     <tr>
-                                        <th scope="col" class="px-4 py-3">Ref.</th>
+                                        <th scope="col" class="px-4 py-3">Semana</th>
                                         <th scope="col" class="px-2 py-3 text-center">Dias</th>
                                         <th scope="col" class="px-2 py-3 text-center">PDV</th>
                                         <th scope="col" class="px-2 py-3 text-center">OC</th>
@@ -396,9 +393,56 @@
                 </div>
             </div>
 
+            <!-- ======================================================= -->
+            <!-- VIEW: RELATÓRIOS (Nova Aba Inteligente) -->
+            <!-- ======================================================= -->
+            <div id="view-reports" class="hidden flex-col gap-6 animate-fade-in">
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 mb-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold dark:text-white flex items-center gap-2"><i class="ph ph-files text-brand-orange"></i> Relatórios Detalhados</h2>
+                        <p class="text-xs text-slate-500">Análise profunda por PDV/Condomínio</p>
+                    </div>
+                    <div class="w-full md:w-72">
+                        <select id="report-condo-select" onchange="App.generateReport(this.value)" class="w-full p-2 text-sm border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-brand-orange outline-none">
+                            <option value="">Selecione um Condomínio...</option>
+                            <!-- Preenchido via JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Conteúdo do Relatório (Inicialmente Oculto) -->
+                <div id="report-content" class="hidden flex-col gap-6">
+                    <!-- KPIs do Relatório - SIMPLIFICADO -->
+                    <div class="flex justify-center mb-4">
+                        <div class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 text-center w-full max-w-md transform hover:scale-105 transition-transform duration-300">
+                            <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="ph ph-warning-circle text-3xl text-red-500"></i>
+                            </div>
+                            <h3 class="text-sm font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">Total de Ocorrências</h3>
+                            <p id="rep-total-oc" class="text-5xl font-extrabold text-red-600 dark:text-red-500">0</p>
+                            <p class="text-xs text-slate-400 mt-2">Histórico acumulado neste local</p>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico Único -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                        <h3 class="text-lg font-bold mb-6 dark:text-white flex items-center gap-2"><i class="ph ph-calendar-check text-brand-orange"></i> Mapa de Calor: Ocorrências por Dia da Semana</h3>
+                        <div class="chart-container h-80">
+                            <canvas id="reportDayChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Estado Vazio -->
+                <div id="report-empty" class="flex flex-col items-center justify-center py-12 text-slate-400">
+                    <i class="ph ph-magnifying-glass text-6xl mb-4 opacity-20"></i>
+                    <p class="text-sm">Selecione um condomínio acima para gerar o relatório.</p>
+                </div>
+            </div>
+
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Local. Seus dados estão salvos apenas neste dispositivo.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v21.2 (Produtividade + Edição)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - Sistema Seguro - v25.1 (Relatórios Simplificados)</p>
             </footer>
         </div>
     </div>
@@ -436,6 +480,7 @@
         </div>
     </div>
     
+    <!-- Modais restantes (Admin, Cloud, Task, Ocorrencia, etc) mantidos -->
     <div id="admin-panel-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl border dark:border-slate-700 shadow-2xl flex flex-col max-h-[85vh]">
             <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-4">
@@ -653,7 +698,7 @@
                 editingId: null,
                 pendingDeleteId: null,
                 editingTaskId: null,
-                editingProductivityId: null // NOVO: Controle de Edição de Produtividade
+                editingProductivityId: null
             },
             charts: {},
             statusColors: {
@@ -683,70 +728,136 @@
 
             setupCharts() {
                  if (typeof Chart === 'undefined') return; 
-                 Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569';
                  
-                 // Gráfico 1: Ocorrências
-                 const c1 = document.getElementById('ocorrenciasChart');
-                 if(c1) this.charts.oc = new Chart(c1.getContext('2d'), { type: 'bar', data: {labels:[], datasets:[{label:'Ocs', data:[], backgroundColor:'#f26324', borderRadius:4}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
+                 const isDark = document.documentElement.classList.contains('dark');
+                 Chart.defaults.color = isDark ? '#94a3b8' : '#64748b';
+                 Chart.defaults.font.family = "'Inter', sans-serif";
+                 Chart.defaults.scale.grid.color = isDark ? '#334155' : '#e2e8f0'; 
+                 Chart.defaults.scale.grid.borderColor = 'transparent'; 
 
-                 // --- NOVO: Gráfico de Produtividade ---
+                 // --- GRÁFICO 1: Ocorrências por Local ---
+                 const c1 = document.getElementById('ocorrenciasChart');
+                 if(c1) {
+                     const ctx1 = c1.getContext('2d');
+                     const grad1 = ctx1.createLinearGradient(0, 0, 0, 300);
+                     grad1.addColorStop(0, '#f97316'); 
+                     grad1.addColorStop(1, '#ea580c'); 
+
+                     this.charts.oc = new Chart(ctx1, { 
+                        type: 'bar', 
+                        data: {
+                            labels:[], 
+                            datasets:[{
+                                label: 'Ocorrências', 
+                                data:[], 
+                                backgroundColor: grad1, 
+                                borderRadius: 6,
+                                barPercentage: 0.6, 
+                                categoryPercentage: 0.8
+                            }]
+                        }, 
+                        options: {
+                            responsive: true, 
+                            maintainAspectRatio: false, 
+                            plugins: { legend: { display: false } }, 
+                            scales: {
+                                y: { beginAtZero: true, ticks: { font: { size: 11 } }, grid: { borderDash: [4, 4] } },
+                                x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
+                            }
+                        }
+                     });
+                 }
+
+                 // --- GRÁFICO 2: Produtividade ---
                  const c2 = document.getElementById('productivityChart');
                  if(c2) {
-                     this.charts.prod = new Chart(c2.getContext('2d'), {
+                     const ctx2 = c2.getContext('2d');
+                     const gradLine = ctx2.createLinearGradient(0, 0, 0, 400);
+                     gradLine.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); 
+                     gradLine.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+                     this.charts.prod = new Chart(ctx2, {
                         type: 'bar',
                         data: {
                             labels: [],
                             datasets: [
                                 {
-                                    label: 'Dias (Vis.)',
+                                    label: 'Dias Visualizados',
                                     data: [],
-                                    borderColor: '#3b82f6', // Blue
-                                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
                                     type: 'line',
+                                    borderColor: '#3b82f6', 
+                                    backgroundColor: gradLine,
+                                    borderWidth: 3,
+                                    pointBackgroundColor: '#ffffff',
+                                    pointBorderColor: '#3b82f6',
+                                    pointRadius: 4,
+                                    fill: true, 
+                                    tension: 0.4, 
                                     yAxisID: 'y',
-                                    tension: 0.3,
-                                    borderWidth: 3
+                                    order: 1
                                 },
                                 {
-                                    label: 'OC',
+                                    label: 'Ocorrências (OC)',
                                     data: [],
-                                    backgroundColor: '#f26324', // Orange
+                                    backgroundColor: '#ef4444', 
                                     borderRadius: 4,
-                                    yAxisID: 'y1'
+                                    yAxisID: 'y1',
+                                    order: 2
                                 },
                                 {
                                     label: 'PDV',
                                     data: [],
-                                    backgroundColor: '#10b981', // Green
+                                    backgroundColor: '#10b981', 
                                     borderRadius: 4,
-                                    hidden: true // Oculto por padrão para não poluir, usuário pode clicar
+                                    hidden: true,
+                                    yAxisID: 'y1',
+                                    order: 3
                                 }
                             ]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            interaction: {
-                                mode: 'index',
-                                intersect: false,
-                            },
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: { legend: { position: 'top', align: 'end' } },
                             scales: {
-                                y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left',
-                                    title: { display: true, text: 'Dias Visualizados' },
-                                    grid: { display: false }
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    title: { display: true, text: 'Ocorrências' },
-                                    grid: { color: document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-                                }
+                                x: { grid: { display: false } },
+                                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Dias' }, grid: { borderDash: [4, 4] } },
+                                y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Qtd.' }, grid: { display: false } }
                             }
                         }
+                     });
+                 }
+
+                 // --- GRÁFICO 3: Relatório Dias da Semana ---
+                 const c3 = document.getElementById('reportDayChart');
+                 if(c3) {
+                     const ctx3 = c3.getContext('2d');
+                     const grad3 = ctx3.createLinearGradient(0, 0, 0, 250);
+                     grad3.addColorStop(0, '#8b5cf6'); 
+                     grad3.addColorStop(1, '#6366f1'); 
+
+                     this.charts.reportDay = new Chart(ctx3, {
+                         type: 'bar',
+                         data: {
+                             labels: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+                             datasets: [{
+                                 label: 'Ocorrências',
+                                 data: [0,0,0,0,0,0,0],
+                                 backgroundColor: grad3,
+                                 borderRadius: 4,
+                                 barThickness: 20
+                             }]
+                         },
+                         options: {
+                             responsive: true,
+                             maintainAspectRatio: false,
+                             plugins: { legend: { display: false } },
+                             scales: {
+                                 y: { beginAtZero: true, grid: { borderDash: [4, 4] } },
+                                 x: { grid: { display: false } }
+                             }
+                         }
                      });
                  }
             },
@@ -760,7 +871,7 @@
                     App.data.editingTaskId = null;
                     document.getElementById('task-modal-title').textContent = "Nova Análise";
                     document.getElementById('task-form').reset(); 
-                    document.getElementById('form-data-analise').valueAsDate=new Date(); 
+                    document.getElementById('form-data-analise').value = new Date().toISOString().split('T')[0];
                     App.openModalUI('task-modal'); 
                 });
                 addListener('cancel-btn', 'click', () => App.closeModalUI('task-modal'));
@@ -800,7 +911,6 @@
                                 const j = JSON.parse(ev.target.result); 
                                 App.data.tasks=j.tasks||[]; 
                                 App.data.archived=j.archived||[]; 
-                                // Restore productivity too
                                 if(j.productivity) App.data.productivity = j.productivity;
                                 App.saveData(); 
                                 App.showToast('Restaurado'); 
@@ -822,37 +932,108 @@
                 });
             },
 
-            // --- CONTROLE DE ABAS (NOVO) ---
+            // --- CONTROLE DE ABAS ---
             switchMainView(viewName) {
                 this.data.currentView = viewName;
                 const btnMon = document.getElementById('btn-view-monitoring');
                 const btnProd = document.getElementById('btn-view-productivity');
+                const btnRep = document.getElementById('btn-view-reports');
+                
                 const viewMon = document.getElementById('view-monitoring');
                 const viewProd = document.getElementById('view-productivity');
+                const viewRep = document.getElementById('view-reports');
+
+                const activeStyle = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all bg-white dark:bg-slate-600 text-brand-orange shadow-sm flex items-center gap-2 justify-center whitespace-nowrap";
+                const inactiveStyle = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center whitespace-nowrap";
+
+                btnMon.className = inactiveStyle;
+                btnProd.className = inactiveStyle;
+                if(btnRep) btnRep.className = inactiveStyle;
+
+                viewMon.classList.remove('flex'); viewMon.classList.add('hidden');
+                viewProd.classList.remove('flex'); viewProd.classList.add('hidden');
+                if(viewRep) { viewRep.classList.remove('flex'); viewRep.classList.add('hidden'); }
 
                 if (viewName === 'monitoring') {
-                    // Ativa Monitoramento
-                    btnMon.className = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all bg-white dark:bg-slate-600 text-brand-orange shadow-sm flex items-center gap-2 justify-center";
-                    btnProd.className = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center";
+                    btnMon.className = activeStyle;
                     viewMon.classList.remove('hidden');
                     viewMon.classList.add('flex');
-                    viewProd.classList.add('hidden');
-                    this.updateCharts(); // Redesenha charts visíveis
-                } else {
-                    // Ativa Produtividade
-                    btnProd.className = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all bg-white dark:bg-slate-600 text-brand-orange shadow-sm flex items-center gap-2 justify-center";
-                    btnMon.className = "flex-1 md:flex-none px-6 py-2 rounded-md text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center gap-2 justify-center";
+                    this.updateCharts(); 
+                } else if (viewName === 'productivity') {
+                    btnProd.className = activeStyle;
                     viewProd.classList.remove('hidden');
                     viewProd.classList.add('flex');
-                    viewMon.classList.add('hidden');
-                    viewMon.classList.remove('flex');
-                    this.renderProductivityChart(); // Redesenha chart de prod
+                    this.renderProductivityChart();
+                } else if (viewName === 'reports') {
+                    btnRep.className = activeStyle;
+                    viewRep.classList.remove('hidden');
+                    viewRep.classList.add('flex');
+                    this.populateReportDropdown();
                 }
             },
 
-            // --- LÓGICA DE PRODUTIVIDADE COM EDIÇÃO ---
+            // --- LÓGICA DE RELATÓRIOS ---
             
-            // 1. Adicionar ou Salvar Edição
+            populateReportDropdown() {
+                const select = document.getElementById('report-condo-select');
+                if (!select) return;
+
+                const allTasks = [...this.data.tasks, ...this.data.archived];
+                const uniqueNames = [...new Set(allTasks.map(t => t.condominio.trim().toUpperCase()))].sort();
+                
+                select.innerHTML = '<option value="">Selecione um Condomínio...</option>';
+                uniqueNames.forEach(name => {
+                    if(name) select.innerHTML += `<option value="${name}">${name}</option>`;
+                });
+            },
+
+            generateReport(condoName) {
+                const content = document.getElementById('report-content');
+                const emptyState = document.getElementById('report-empty');
+                
+                if (!condoName) {
+                    content.classList.add('hidden');
+                    content.classList.remove('flex');
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                content.classList.remove('hidden');
+                content.classList.add('flex');
+                emptyState.classList.add('hidden');
+
+                const allTasks = [...this.data.tasks, ...this.data.archived];
+                const condoTasks = allTasks.filter(t => t.condominio.trim().toUpperCase() === condoName.toUpperCase());
+                
+                let totalOc = 0;
+                const dayOfWeekCounts = [0,0,0,0,0,0,0]; // Dom - Sab
+
+                condoTasks.forEach(t => {
+                    if(t.dataAnalise) {
+                         const [y, m, d] = t.dataAnalise.split('-');
+                         const dateObj = new Date(y, m-1, d);
+                         const day = dateObj.getDay(); 
+                         dayOfWeekCounts[day] += (t.ocorrencias ? t.ocorrencias.length : 0);
+                    }
+
+                    if (t.ocorrencias && t.ocorrencias.length > 0) {
+                        totalOc += t.ocorrencias.length;
+                    }
+                });
+
+                document.getElementById('rep-total-oc').textContent = totalOc;
+
+                this.updateReportCharts(dayOfWeekCounts);
+            },
+
+            updateReportCharts(dayCounts) {
+                if (this.charts.reportDay) {
+                    this.charts.reportDay.data.datasets[0].data = dayCounts;
+                    this.charts.reportDay.update();
+                }
+            },
+
+            // --- LÓGICA DE PRODUTIVIDADE (Mantida) ---
             addProductivityEntry(e) {
                 e.preventDefault();
                 const ref = document.getElementById('prod-input-ref').value;
@@ -862,34 +1043,25 @@
 
                 if (!ref || isNaN(dias)) return;
 
-                // VERIFICA SE ESTÁ EM MODO DE EDIÇÃO
                 if (this.data.editingProductivityId) {
                     const index = this.data.productivity.findIndex(p => p.id === this.data.editingProductivityId);
                     if (index > -1) {
                         this.data.productivity[index] = {
                             ...this.data.productivity[index],
-                            ref: ref,
-                            dias: dias,
-                            pdv: pdv || 0,
-                            oc: oc || 0
+                            ref: ref, dias: dias, pdv: pdv || 0, oc: oc || 0
                         };
                         this.showToast('Registro atualizado!');
                     }
-                    this.cancelProductivityEdit(); // Sai do modo de edição
+                    this.cancelProductivityEdit();
                 } else {
-                    // MODO ADICIONAR (Cria novo)
                     const entry = {
                         id: crypto.randomUUID(),
-                        ref: ref,
-                        dias: dias,
-                        pdv: pdv || 0,
-                        oc: oc || 0,
+                        ref: ref, dias: dias, pdv: pdv || 0, oc: oc || 0,
                         createdAt: new Date().toISOString()
                     };
                     this.data.productivity.unshift(entry);
                     this.showToast('Registro adicionado!');
                     
-                    // Limpa formulário
                     document.getElementById('prod-input-ref').value = '';
                     document.getElementById('prod-input-dias').value = '';
                     document.getElementById('prod-input-pdv').value = '';
@@ -901,58 +1073,38 @@
                 this.renderProductivityChart();
             },
 
-            // 2. Preparar Edição (Carrega dados no form)
             editProductivityEntry(id) {
                 const item = this.data.productivity.find(p => p.id === id);
                 if (!item) return;
-
                 this.data.editingProductivityId = id;
-
-                // Preenche form
                 document.getElementById('prod-input-ref').value = item.ref;
                 document.getElementById('prod-input-dias').value = item.dias;
                 document.getElementById('prod-input-pdv').value = item.pdv;
                 document.getElementById('prod-input-oc').value = item.oc;
-
-                // Altera botão para "Salvar"
                 const btn = document.getElementById('btn-save-prod');
                 btn.textContent = "Salvar Alterações";
                 btn.classList.remove('bg-brand-orange', 'hover:bg-orange-700');
                 btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-
-                // Mostra botão cancelar
                 document.getElementById('btn-cancel-prod').classList.remove('hidden');
-                
-                // Scroll suave para o form (útil em mobile)
                 document.getElementById('view-productivity').scrollIntoView({ behavior: 'smooth' });
             },
 
-            // 3. Cancelar Edição
             cancelProductivityEdit() {
                 this.data.editingProductivityId = null;
-                
-                // Limpa form
                 document.getElementById('prod-input-ref').value = '';
                 document.getElementById('prod-input-dias').value = '';
                 document.getElementById('prod-input-pdv').value = '';
                 document.getElementById('prod-input-oc').value = '';
-
-                // Reseta botão
                 const btn = document.getElementById('btn-save-prod');
                 btn.textContent = "Adicionar Registro";
                 btn.classList.add('bg-brand-orange', 'hover:bg-orange-700');
                 btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-
-                // Esconde cancelar
                 document.getElementById('btn-cancel-prod').classList.add('hidden');
             },
 
             removeProductivityEntry(id) {
                 if(confirm('Remover este registro?')) {
-                    // Se estiver editando este mesmo item, cancela a edição antes de remover
-                    if (this.data.editingProductivityId === id) {
-                        this.cancelProductivityEdit();
-                    }
+                    if (this.data.editingProductivityId === id) this.cancelProductivityEdit();
                     this.data.productivity = this.data.productivity.filter(p => p.id !== id);
                     this.saveData();
                     this.renderProductivityTable();
@@ -960,45 +1112,41 @@
                 }
             },
 
+            getSortedProductivity() {
+                return [...this.data.productivity].sort((a, b) => {
+                    const getVal = (str) => { const num = parseInt(str.replace(/\D/g, '')); return isNaN(num) ? 0 : num; };
+                    const valA = getVal(a.ref); const valB = getVal(b.ref);
+                    if (valA === 0 && valB === 0) return a.ref.localeCompare(b.ref);
+                    return valA - valB;
+                });
+            },
+
             renderProductivityTable() {
                 const tbody = document.getElementById('productivity-table-body');
                 if(!tbody) return;
-
-                if (this.data.productivity.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-3 text-center text-xs text-slate-400">Nenhum registro ainda.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.data.productivity.map(p => `
+                if (this.data.productivity.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-3 text-center text-xs text-slate-400">Nenhum registro ainda.</td></tr>'; return; }
+                const sortedData = this.getSortedProductivity();
+                tbody.innerHTML = sortedData.map(p => `
                     <tr class="bg-white border-b dark:bg-slate-800 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition ${this.data.editingProductivityId === p.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}">
                         <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">${p.ref}</td>
                         <td class="px-2 py-3 text-center text-blue-600 font-bold">${p.dias}</td>
                         <td class="px-2 py-3 text-center text-slate-500">${p.pdv}</td>
                         <td class="px-2 py-3 text-center text-red-500 font-bold">${p.oc}</td>
                         <td class="px-2 py-3 text-right flex justify-end gap-1">
-                            <button onclick="App.editProductivityEntry('${p.id}')" class="text-blue-400 hover:text-blue-600 p-1" title="Editar"><i class="ph ph-pencil-simple text-lg"></i></button>
-                            <button onclick="App.removeProductivityEntry('${p.id}')" class="text-slate-400 hover:text-red-500 p-1" title="Excluir"><i class="ph ph-trash text-lg"></i></button>
+                            <button onclick="App.editProductivityEntry('${p.id}')" class="text-blue-400 hover:text-blue-600 p-1"><i class="ph ph-pencil-simple text-lg"></i></button>
+                            <button onclick="App.removeProductivityEntry('${p.id}')" class="text-slate-400 hover:text-red-500 p-1"><i class="ph ph-trash text-lg"></i></button>
                         </td>
-                    </tr>
-                `).join('');
+                    </tr>`).join('');
             },
 
-            // --- NOVO: CÁLCULO E EXIBIÇÃO DE ESTATÍSTICAS ---
             updateProductivityStats() {
                 const data = this.data.productivity;
-                
-                // Soma totais
                 const totalDias = data.reduce((acc, curr) => acc + (parseInt(curr.dias)||0), 0);
                 const totalOC = data.reduce((acc, curr) => acc + (parseInt(curr.oc)||0), 0);
-                
-                // Calcula média
                 const media = totalDias > 0 ? (totalOC / totalDias).toFixed(2) : "0.00";
-
-                // Atualiza UI se os elementos existirem
                 const elDias = document.getElementById('kpi-total-dias');
                 const elOC = document.getElementById('kpi-total-oc');
                 const elMedia = document.getElementById('kpi-media');
-
                 if(elDias) elDias.textContent = totalDias;
                 if(elOC) elOC.textContent = totalOC;
                 if(elMedia) elMedia.textContent = media;
@@ -1006,18 +1154,12 @@
 
             renderProductivityChart() {
                 if (!this.charts.prod) return;
-                
-                // Atualiza também os números do painel
                 this.updateProductivityStats();
-
-                // Inverter ordem para o gráfico (Mais antigo -> Mais novo)
-                const dataReversed = [...this.data.productivity].reverse();
-                
-                this.charts.prod.data.labels = dataReversed.map(p => p.ref);
-                this.charts.prod.data.datasets[0].data = dataReversed.map(p => p.dias); // Line (Dias)
-                this.charts.prod.data.datasets[1].data = dataReversed.map(p => p.oc);   // Bar (OC)
-                this.charts.prod.data.datasets[2].data = dataReversed.map(p => p.pdv);  // Bar (PDV)
-                
+                const sortedData = this.getSortedProductivity();
+                this.charts.prod.data.labels = sortedData.map(p => p.ref);
+                this.charts.prod.data.datasets[0].data = sortedData.map(p => p.dias);
+                this.charts.prod.data.datasets[1].data = sortedData.map(p => p.oc);
+                this.charts.prod.data.datasets[2].data = sortedData.map(p => p.pdv);
                 this.charts.prod.update();
             },
 
@@ -1031,7 +1173,6 @@
                 this.setupEvents(); 
                 
                 const savedUser = localStorage.getItem('mon_user');
-                
                 this.loadDataLocal(); 
 
                 if (savedUser) {
@@ -1056,7 +1197,6 @@
             },
             
             updateCharts() {
-                 // Update Monitoramento Chart
                  if(this.charts.oc) {
                      const counts = {}; 
                      this.data.tasks.forEach(t => { 
@@ -1067,7 +1207,6 @@
                      this.charts.oc.data.datasets[0].data = sorted.map(x=>x[1]); 
                      this.charts.oc.update();
                  }
-                 // Update Produtividade Chart
                  this.renderProductivityChart();
             },
 
@@ -1119,7 +1258,7 @@
                 document.getElementById('dashboard-view').classList.add('flex'); 
                 setTimeout(() => {
                     this.updateCharts();
-                    this.renderProductivityTable(); // Ensure table is rendered on load
+                    this.renderProductivityTable(); 
                 }, 100); 
             },
             
@@ -1129,34 +1268,22 @@
                     appFirebase = initializeApp(config);
                     auth = getAuth(appFirebase);
                     db = getFirestore(appFirebase);
-                    
-                    try {
-                        await enableIndexedDbPersistence(db);
-                    } catch (err) {}
-                    
-                    if (!auth.currentUser) {
-                        await signInAnonymously(auth).catch(e => console.warn("Anon fail", e));
-                    }
-
+                    try { await enableIndexedDbPersistence(db); } catch (err) {}
+                    if (!auth.currentUser) { await signInAnonymously(auth).catch(e => console.warn("Anon fail", e)); }
                     onAuthStateChanged(auth, (user) => {
                         this.data.firebaseUser = user;
                         if (user) {
                             document.getElementById('system-status').textContent = "Conectado";
-                            if (this.data.user && this.data.user.uid) {
-                                this.subscribeToUserData(this.data.user.uid);
-                            }
+                            if (this.data.user && this.data.user.uid) { this.subscribeToUserData(this.data.user.uid); }
                         }
                     });
-
                 } catch(e) { console.error("Falha Firebase Total", e); }
             },
             
             subscribeToUserData(uid) {
                 const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_records', 'app_user_data_' + uid);
-                
                 onSnapshot(userDocRef, { includeMetadataChanges: true }, (docSnap) => {
                     const syncStatusEl = document.getElementById('app-mode-badge');
-                    
                     if (docSnap.metadata.fromCache) {
                         syncStatusEl.className = "text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1";
                         syncStatusEl.innerHTML = `<div class="w-1.5 h-1.5 rounded-full bg-yellow-500"></div> Modo Offline (Cache)`;
@@ -1167,8 +1294,6 @@
 
                     if (docSnap.exists()) {
                         const d = docSnap.data();
-                        
-                        // BLINDAGEM: Se o cloud vier vazio mas tivermos shadow local, preferir local
                         const localShadow = localStorage.getItem('mon_shadow_archive_latest');
                         let cloudArchived = d.archived || [];
                         if (localShadow) {
@@ -1181,8 +1306,7 @@
                         if (d.tasks) this.data.tasks = d.tasks;
                         this.data.archived = cloudArchived;
                         if (d.deletedHistory) this.data.deletedHistory = d.deletedHistory;
-                        if (d.productivity) this.data.productivity = d.productivity; // --- SYNC PROD ---
-                        
+                        if (d.productivity) this.data.productivity = d.productivity; 
                         this.saveToLocalStorageCache();
                         document.getElementById('sync-status').classList.remove('hidden');
                         document.getElementById('sync-text').textContent = "Sincronizado";
@@ -1190,6 +1314,8 @@
                         this.render();
                         this.renderProductivityTable(); 
                         this.updateCharts();
+                        // Atualiza o dropdown se estiver na aba de relatórios
+                        if (this.data.currentView === 'reports') this.populateReportDropdown();
                     }
                 }, (error) => { console.error("Firestore Error:", error); document.getElementById('db-error-banner').classList.remove('hidden'); });
             },
@@ -1199,43 +1325,28 @@
                 const now = new Date();
                 const offset = now.getTimezoneOffset();
                 const localNow = new Date(now.getTime() - (offset * 60 * 1000));
-                
                 const day = localNow.getUTCDay(); 
                 const diffToMon = (day + 6) % 7; 
-                
                 const mondayCurrentWeek = new Date(localNow);
                 mondayCurrentWeek.setUTCDate(localNow.getUTCDate() - diffToMon);
                 mondayCurrentWeek.setUTCHours(0,0,0,0);
-                
                 const limitCurrentWeekStr = mondayCurrentWeek.toISOString().split('T')[0];
-                
                 const mondayRetrasada = new Date(mondayCurrentWeek);
-                mondayRetrasada.setUTCDate(mondayRetrasada.getUTCDate() - 14); 
+                mondayRetrasada.setUTCDate(mondayRetrasada.getUTCDate() - 7); 
                 const limitOldStr = mondayRetrasada.toISOString().split('T')[0];
-
                 let changed = false;
                 const active = [];
-                
                 this.data.tasks.forEach(t => {
+                    if (!t.dataAnalise) { active.push(t); return; }
                     if (t.manualRestore) { active.push(t); return; }
-
                     if (t.dataAnalise < limitOldStr) {
                         this.data.archived.push(t);
                         this.backupToShadow(t); 
                         changed = true;
                         return;
                     }
-
-                    if (t.dataAnalise < limitCurrentWeekStr && t.statusAnalise === 'Concluída') {
-                        this.data.archived.push(t);
-                        this.backupToShadow(t); 
-                        changed = true;
-                        return;
-                    }
-
                     active.push(t);
                 });
-                
                 if (changed) {
                     this.data.tasks = active;
                     this.saveData();
@@ -1266,10 +1377,8 @@
                 if(!name || !pass) { errorMsg.innerHTML = "Preencha nome e senha."; errorMsg.classList.remove('hidden'); return; }
                 const email = this.generateEmail(name);
                 const safeId = email.replace(/[^a-zA-Z0-9]/g, '_');
-                
                 document.getElementById('login-loading').classList.remove('hidden');
                 document.getElementById('login-form-container').classList.add('hidden');
-                
                 try {
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', 'app_users_' + safeId);
                     const docSnap = await getDoc(docRef);
@@ -1278,7 +1387,6 @@
                         if (userData.password === pass) {
                             let isAdmin = userData.isAdmin || false;
                             if (userData.name === 'ALISSON CAMBUI' || userData.email === this.data.adminEmail) isAdmin = true;
-                            
                             this.data.user = { ...userData, uid: safeId, displayName: userData.name, isAdmin: isAdmin };
                             localStorage.setItem('mon_user', JSON.stringify(this.data.user));
                             this.updateUserInfo(this.data.user);
@@ -1297,67 +1405,40 @@
             async registerWithUser() {
                 const name = document.getElementById('login-username').value.trim().toUpperCase();
                 const pass = document.getElementById('login-password').value;
-                
                 if (!name || !pass) return alert('Preencha nome e senha para o primeiro acesso.');
                 if (pass.length < 6) return alert('A senha deve ter 6 dígitos ou mais.');
-
                 const email = this.generateEmail(name);
                 const safeId = email.replace(/[^a-zA-Z0-9]/g, '_');
-                
                 try {
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', 'app_users_' + safeId);
                     const docSnap = await getDoc(docRef);
-                    
                     if (docSnap.exists()) {
                          const data = docSnap.data();
-                         if (data.password && data.password.length > 0) {
-                             return alert('Utilizador já cadastrado. Faça login.');
-                         }
+                         if (data.password && data.password.length > 0) return alert('Utilizador já cadastrado. Faça login.');
                          await updateDoc(docRef, { password: pass, registeredAt: new Date().toISOString() });
                          alert('Senha cadastrada com sucesso! Faça login.');
                          this.toggleAuthMode('login');
                     } else {
-                        await setDoc(docRef, {
-                            name: name,
-                            email: email,
-                            password: pass,
-                            isAdmin: false,
-                            createdAt: new Date().toISOString()
-                        });
+                        await setDoc(docRef, { name: name, email: email, password: pass, isAdmin: false, createdAt: new Date().toISOString() });
                         alert('Cadastro realizado! Faça login.');
                         this.toggleAuthMode('login');
                     }
-                } catch (e) {
-                    console.error(e);
-                    alert('Erro ao registrar: ' + e.message);
-                }
+                } catch (e) { console.error(e); alert('Erro ao registrar: ' + e.message); }
             },
 
             async authorizeNewUser() {
                 const nameInput = document.getElementById('new-user-name');
                 const name = nameInput.value.trim().toUpperCase();
                 if (!name) return alert('Digite o nome.');
-                
                 const email = this.generateEmail(name);
                 const safeId = email.replace(/[^a-zA-Z0-9]/g, '_');
-                
                 try {
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', 'app_users_' + safeId);
-                    await setDoc(docRef, {
-                        name: name,
-                        email: email,
-                        password: '', 
-                        authorized: true,
-                        isAdmin: false,
-                        createdAt: new Date().toISOString()
-                    }, { merge: true });
-                    
+                    await setDoc(docRef, { name: name, email: email, password: '', authorized: true, isAdmin: false, createdAt: new Date().toISOString() }, { merge: true });
                     nameInput.value = '';
                     this.loadAuthorizedUsers();
                     alert('Autorizado com sucesso.');
-                } catch (e) {
-                    alert('Erro: ' + e.message);
-                }
+                } catch (e) { alert('Erro: ' + e.message); }
             },
             
             async loadAuthorizedUsers() {
@@ -1375,12 +1456,9 @@
                                     <p class="text-[10px] text-slate-400">${u.email}</p>
                                 </div>
                                 <span class="text-xs ${u.password ? 'text-green-500' : 'text-amber-500'} font-bold">${u.password ? 'Ativo' : 'Pendente'}</span>
-                            </li>
-                         `;
+                            </li>`;
                      });
-                } catch(e) {
-                    console.error("Erro ao listar users", e);
-                }
+                } catch(e) { console.error("Erro ao listar users", e); }
             },
 
             openChangePasswordModal() { document.getElementById('change-password-modal').classList.remove('hidden'); },
@@ -1388,16 +1466,13 @@
             async changeUserPassword() {
                 const newPass = document.getElementById('new-password-input').value;
                 if (!newPass || newPass.length < 6) return alert("Mínimo 6 caracteres.");
-                
                 try {
                     const safeId = this.data.user.uid;
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', 'app_users_' + safeId);
                     await updateDoc(docRef, { password: newPass });
                     alert("Senha alterada com sucesso.");
                     this.closeModalUI('change-password-modal');
-                } catch(e) {
-                    alert("Erro ao alterar senha.");
-                }
+                } catch(e) { alert("Erro ao alterar senha."); }
             },
             
             async logout() { this.data.user = null; localStorage.removeItem('mon_user'); this.switchToLoginView(); },
@@ -1416,26 +1491,17 @@
                  const cleanTasks = JSON.parse(JSON.stringify(this.data.tasks));
                  const cleanArchived = JSON.parse(JSON.stringify(this.data.archived));
                  const cleanProd = JSON.parse(JSON.stringify(this.data.productivity));
-
                  this.saveToLocalStorageCache();
-                 
-                 // BLINDAGEM DE DADOS VAZIOS
                  if (cleanTasks.length > 0 || cleanArchived.length > 0) {
                      localStorage.setItem('mon_safe_backup', JSON.stringify({t: cleanTasks, a: cleanArchived}));
                  }
-
                  if (this.data.mode === 'cloud' && this.data.user) {
                     try {
                         const safeId = this.data.user.uid;
                         const dataRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_records', 'app_user_data_' + safeId);
-                        
                         await setDoc(dataRef, { 
-                            tasks: cleanTasks, 
-                            archived: cleanArchived, 
-                            deletedHistory: this.data.deletedHistory,
-                            productivity: cleanProd, // Salvando Produtividade
-                            lastUpdate: new Date().toISOString(), 
-                            ownerEmail: this.data.user.email 
+                            tasks: cleanTasks, archived: cleanArchived, deletedHistory: this.data.deletedHistory,
+                            productivity: cleanProd, lastUpdate: new Date().toISOString(), ownerEmail: this.data.user.email 
                         }, { merge: true });
                     } catch(e) { console.error("Erro save cloud", e); }
                  }
@@ -1446,29 +1512,26 @@
             saveToLocalStorageCache() { 
                 localStorage.setItem('mon_tasks', JSON.stringify(this.data.tasks)); 
                 localStorage.setItem('mon_archived', JSON.stringify(this.data.archived)); 
-                localStorage.setItem('mon_prod', JSON.stringify(this.data.productivity)); // Cache local
+                localStorage.setItem('mon_prod', JSON.stringify(this.data.productivity)); 
             },
             
             loadDataLocal() { 
                 try { 
-                    const t = localStorage.getItem('mon_tasks'); 
-                    if(t) this.data.tasks = JSON.parse(t); 
-                    
-                    const a = localStorage.getItem('mon_archived');
-                    if(a) this.data.archived = JSON.parse(a);
-
-                    const p = localStorage.getItem('mon_prod');
-                    if(p) this.data.productivity = JSON.parse(p);
-                    
+                    const t = localStorage.getItem('mon_tasks'); if(t) this.data.tasks = JSON.parse(t); 
+                    const a = localStorage.getItem('mon_archived'); if(a) this.data.archived = JSON.parse(a);
+                    const p = localStorage.getItem('mon_prod'); if(p) this.data.productivity = JSON.parse(p);
                     if (!this.data.archived) this.data.archived = []; 
                     if (!this.data.productivity) this.data.productivity = [];
-                    
                     this.render(); 
                 } catch(e){} 
             },
             
             addTask(task) {
-                const t = { id: crypto.randomUUID(), ...task, statusBackup: 'Pendente', statusAnalise: 'Pendente', ocorrencias: [], createdAt: new Date().toISOString() };
+                const t = { 
+                    id: crypto.randomUUID(), ...task, 
+                    dataAnalise: task.dataAnalise || new Date().toISOString().split('T')[0],
+                    statusBackup: 'Pendente', statusAnalise: 'Pendente', ocorrencias: [], createdAt: new Date().toISOString() 
+                };
                 this.data.tasks.unshift(t);
                 this.saveData();
                 this.showToast('Análise criada!');
@@ -1477,7 +1540,6 @@
             editTask(id) {
                 const task = this.data.tasks.find(t => t.id === id);
                 if (!task) return;
-
                 this.data.editingTaskId = id;
                 document.getElementById('task-modal-title').textContent = "Editar Análise";
                 document.getElementById('form-condominio').value = task.condominio;
@@ -1495,17 +1557,10 @@
                     semana: document.getElementById('form-semana').value,
                     observacoes: document.getElementById('form-observacoes').value
                 };
-
                 if (id) {
                     const task = this.data.tasks.find(t => t.id === id);
-                    if (task) {
-                        Object.assign(task, newData);
-                        this.showToast('Análise atualizada!');
-                    }
-                } else {
-                    this.addTask(newData);
-                }
-                
+                    if (task) { Object.assign(task, newData); this.showToast('Análise atualizada!'); }
+                } else { this.addTask(newData); }
                 this.saveData();
                 this.closeModalUI('task-modal');
             },
@@ -1515,40 +1570,21 @@
                 const desc = document.getElementById('add-ocorrencia-desc').value;
                 const ini = document.getElementById('add-horario-inicial').value;
                 const fim = document.getElementById('add-horario-final').value;
-                
                 if (!desc) return alert("Descreva a ocorrência.");
-                
                 const taskId = document.getElementById('ocorrencia-current-task-id').value;
                 const task = this.data.tasks.find(t => t.id === taskId);
-                
                 if (task) {
                     if (!task.ocorrencias) task.ocorrencias = [];
-
                     if (this.data.editingId) {
                         const oc = task.ocorrencias.find(o => o.id === this.data.editingId);
-                        if (oc) {
-                            oc.categoria = cat;
-                            oc.descricao = desc;
-                            oc.inicio = ini;
-                            oc.fim = fim;
-                            this.showToast('Item atualizado!');
-                        }
-                        this.data.editingId = null; 
-                        this.resetOcorrenciaFormUI();
+                        if (oc) { oc.categoria = cat; oc.descricao = desc; oc.inicio = ini; oc.fim = fim; this.showToast('Item atualizado!'); }
+                        this.data.editingId = null; this.resetOcorrenciaFormUI();
                     } else {
-                        task.ocorrencias.push({ 
-                            id: crypto.randomUUID(), 
-                            categoria: cat, 
-                            descricao: desc, 
-                            inicio: ini,
-                            fim: fim
-                        });
+                        task.ocorrencias.push({ id: crypto.randomUUID(), categoria: cat, descricao: desc, inicio: ini, fim: fim });
                         this.showToast('Item adicionado!');
                     }
-                    
                     this.saveData(); 
                     this.renderOcorrenciasList(task);
-                    
                     document.getElementById('add-ocorrencia-desc').value = '';
                     document.getElementById('add-horario-inicial').value = '';
                     document.getElementById('add-horario-final').value = '';
@@ -1560,14 +1596,11 @@
                 if (!task) return;
                 const oc = task.ocorrencias.find(o => o.id === ocId);
                 if (!oc) return;
-
                 document.getElementById('add-ocorrencia-categoria').value = oc.categoria;
                 document.getElementById('add-ocorrencia-desc').value = oc.descricao;
                 document.getElementById('add-horario-inicial').value = oc.inicio || '';
                 document.getElementById('add-horario-final').value = oc.fim || '';
-
                 this.data.editingId = ocId;
-
                 const btn = document.getElementById('add-ocorrencia-btn');
                 btn.innerHTML = `<i class="ph ph-floppy-disk text-lg"></i> Salvar Edição`;
                 btn.className = "flex-1 bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition-colors shadow-lg";
@@ -1590,112 +1623,57 @@
             processExcel() {
                 const text = document.getElementById('excel-paste-area').value;
                 if (!text) return alert("Cole os dados do Excel.");
-
                 const regex = /Semana\s*(\d{1,2})\s*?(\d{2}\/\d{2}\/\d{4})(.*?)(?=Semana\s*\d+|$)/gs;
-                
-                let match;
-                let count = 0;
-                
+                let match; let count = 0;
                 while ((match = regex.exec(text)) !== null) {
                     const semanaNum = match[1].trim();
                     const dataRaw = match[2].trim();
                     const resto = match[3].trim(); 
-                    
                     let finalDate = dataRaw;
-                    try { 
-                        const [d, m, y] = dataRaw.split('/'); 
-                        finalDate = `${y}-${m}-${d}`; 
-                    } catch (e) {}
-
-                    let condominio = "Desconhecido";
-                    let statusAnalise = "Pendente";
-                    let numOcorrencias = 0;
-                    let statusRaw = "";
-
+                    try { const [d, m, y] = dataRaw.split('/'); finalDate = `${y}-${m}-${d}`; } catch (e) {}
+                    let condominio = "Desconhecido"; let statusAnalise = "Pendente"; let numOcorrencias = 0; let statusRaw = "";
                     const pivotMatch = resto.match(/(\d*)\s*([A-Z][a-z\u00C0-\u00FF]+)/);
-
                     if (pivotMatch) {
                         const endOfCondoIndex = pivotMatch.index;
                         condominio = resto.substring(0, endOfCondoIndex).trim();
-                        
                         const ocStr = pivotMatch[1]; 
                         const endOfNameIndex = endOfCondoIndex + pivotMatch[0].length;
                         statusRaw = resto.substring(endOfNameIndex).trim();
-
-                        if (ocStr) {
-                            numOcorrencias = parseInt(ocStr, 10);
-                        }
-
-                        if (numOcorrencias > 0 || statusRaw.toLowerCase().includes('finalizado') || statusRaw.toLowerCase().includes('conclu')) {
-                            statusAnalise = 'Concluída';
-                        } else {
-                            statusAnalise = 'Pendente';
-                        }
-                    } else {
-                        condominio = resto;
-                    }
-
-                    // ---- LÓGICA DE RESTAURAÇÃO E PROTEÇÃO ----
+                        if (ocStr) numOcorrencias = parseInt(ocStr, 10);
+                        if (numOcorrencias > 0 || statusRaw.toLowerCase().includes('finalizado') || statusRaw.toLowerCase().includes('conclu')) { statusAnalise = 'Concluída'; } else { statusAnalise = 'Pendente'; }
+                    } else { condominio = resto; }
                     const historyIndex = this.data.deletedHistory.findIndex(t => t.condominio.toLowerCase() === condominio.toLowerCase() && t.dataAnalise === finalDate);
-                    
                     if (historyIndex > -1) {
                          const restoredTask = this.data.deletedHistory[historyIndex];
                          this.data.deletedHistory.splice(historyIndex, 1);
                          this.data.tasks.push(restoredTask);
-                         count++;
-                         continue; 
+                         count++; continue; 
                     }
-
                     const existingIndex = this.data.tasks.findIndex(t => t.condominio.toLowerCase() === condominio.toLowerCase() && t.dataAnalise === finalDate);
-                    
                     const novasOcorrencias = [];
                     if (numOcorrencias > 0) {
                         for(let i=0; i<numOcorrencias; i++) {
-                            novasOcorrencias.push({
-                                id: crypto.randomUUID(),
-                                categoria: 'Outros', 
-                                descricao: 'Ocorrência Importada (Verificar detalhes)',
-                                inicio: '',
-                                fim: ''
-                            });
+                            novasOcorrencias.push({ id: crypto.randomUUID(), categoria: 'Outros', descricao: 'Ocorrência Importada (Verificar detalhes)', inicio: '', fim: '' });
                         }
                     }
-
                     if (existingIndex > -1) {
                         const task = this.data.tasks[existingIndex];
-                        if (numOcorrencias > 0 && (!task.ocorrencias || task.ocorrencias.length === 0)) {
-                             task.ocorrencias = novasOcorrencias;
-                             task.statusAnalise = 'Concluída';
-                        }
-                        if (statusAnalise === 'Concluída' && task.statusAnalise !== 'Concluída') {
-                            task.statusAnalise = 'Concluída';
-                        }
+                        if (numOcorrencias > 0 && (!task.ocorrencias || task.ocorrencias.length === 0)) { task.ocorrencias = novasOcorrencias; task.statusAnalise = 'Concluída'; }
+                        if (statusAnalise === 'Concluída' && task.statusAnalise !== 'Concluída') { task.statusAnalise = 'Concluída'; }
                         task.semana = `Semana ${semanaNum}`;
                         count++;
                     } else {
                         this.data.tasks.push({ 
-                            id: crypto.randomUUID(), 
-                            condominio: condominio, 
-                            dataAnalise: finalDate, 
-                            semana: `Semana ${semanaNum}`, 
-                            observacoes: statusRaw ? `Status original: ${statusRaw}` : '', 
-                            statusBackup: 'Pendente', 
-                            statusAnalise: statusAnalise, 
-                            ocorrencias: novasOcorrencias, 
-                            createdAt: new Date().toISOString() 
+                            id: crypto.randomUUID(), condominio: condominio, dataAnalise: finalDate, semana: `Semana ${semanaNum}`, 
+                            observacoes: statusRaw ? `Status original: ${statusRaw}` : '', statusBackup: 'Pendente', 
+                            statusAnalise: statusAnalise, ocorrencias: novasOcorrencias, createdAt: new Date().toISOString() 
                         });
                         count++;
                     }
                 }
-                
                 this.saveData(); 
                 this.closeModalUI('excel-import-modal'); 
-                
-                if (count === 0) {
-                    alert("Nenhum dado novo encontrado.");
-                } else {
-                    this.showToast(`${count} análises processadas.`);
-                }
+                if (count === 0) { alert("Nenhum dado novo encontrado."); } else { this.showToast(`${count} análises processadas.`); }
             },
 
             showToast(msg) {
@@ -1706,11 +1684,7 @@
             },
             
             exportData() {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-                    tasks: this.data.tasks, 
-                    archived: this.data.archived,
-                    productivity: this.data.productivity 
-                }));
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ tasks: this.data.tasks, archived: this.data.archived, productivity: this.data.productivity }));
                 const downloadAnchorNode = document.createElement('a');
                 downloadAnchorNode.setAttribute("href",     dataStr);
                 downloadAnchorNode.setAttribute("download", "backup_painel_" + new Date().toISOString().split('T')[0] + ".json");
@@ -1722,48 +1696,31 @@
             // --- LISTAGEM DE ARQUIVOS BLINDADA COM RECUPERAÇÃO ---
             renderArchiveList() {
                  if (!Array.isArray(this.data.archived)) this.data.archived = []; 
-
                  const list = document.getElementById('archive-list');
                  const searchInput = document.getElementById('archive-search');
                  const search = searchInput ? searchInput.value.toLowerCase() : '';
-                 
                  const countBadge = document.getElementById('archive-count-badge');
                  if(countBadge) countBadge.textContent = this.data.archived.length;
-
                  const filtered = this.data.archived.filter(t => (t.condominio || '').toLowerCase().includes(search));
-
                  if (filtered.length === 0) {
                      list.innerHTML = `
                         <div class="flex flex-col items-center justify-center py-8 text-slate-400">
                             <i class="ph ph-tray text-3xl mb-2 opacity-50"></i>
                             <p class="text-xs mb-4">Nenhum item encontrado.</p>
-                            
                             <button onclick="App.recoverLostData()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded text-xs font-bold hover:bg-blue-200 transition flex items-center gap-2">
                                 <i class="ph ph-life-buoy"></i> Tentar Recuperar Dados Perdidos
                             </button>
                         </div>`;
                      return;
                  }
-
                  list.innerHTML = filtered.map(t => {
                     let dateDisplay = '-';
-                    try {
-                        if (t.dataAnalise && t.dataAnalise.includes('-')) {
-                            dateDisplay = this.formatDate(t.dataAnalise);
-                        } else {
-                            dateDisplay = t.dataAnalise || 'Data n/d';
-                        }
-                    } catch(e) { dateDisplay = 'Erro Data'; }
-
+                    try { if (t.dataAnalise && t.dataAnalise.includes('-')) { dateDisplay = this.formatDate(t.dataAnalise); } else { dateDisplay = t.dataAnalise || 'Data n/d'; } } catch(e) { dateDisplay = 'Erro Data'; }
                     return `
                     <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         <div>
                             <p class="font-bold text-sm dark:text-white uppercase">${t.condominio || 'Sem Nome'}</p>
-                            <p class="text-[10px] text-slate-500 flex items-center gap-1">
-                                <i class="ph ph-calendar"></i> ${dateDisplay} 
-                                <span class="mx-1">•</span> 
-                                ${t.semana || '-'}
-                            </p>
+                            <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${dateDisplay} <span class="mx-1">•</span> ${t.semana || '-'}</p>
                         </div>
                         <button onclick="App.restoreTask('${t.id}')" class="flex items-center gap-1 text-green-600 hover:text-white hover:bg-green-600 text-[10px] font-bold border border-green-200 dark:border-green-900 px-3 py-1.5 rounded transition-all shadow-sm">
                             <i class="ph ph-arrow-u-up-left"></i> Restaurar
@@ -1774,73 +1731,35 @@
             
             recoverLostData() {
                 const candidates = new Map();
-
                 const process = (key) => {
                     try {
-                        const raw = localStorage.getItem(key);
-                        if (!raw) return;
-                        const parsed = JSON.parse(raw);
-                        let arr = [];
-                        if (Array.isArray(parsed)) arr = parsed;
-                        else if (parsed.a) arr = parsed.a.concat(parsed.t || []); 
-                        
-                        arr.forEach(t => {
-                            if (t && t.id) candidates.set(t.id, t);
-                        });
+                        const raw = localStorage.getItem(key); if (!raw) return; const parsed = JSON.parse(raw);
+                        let arr = []; if (Array.isArray(parsed)) arr = parsed; else if (parsed.a) arr = parsed.a.concat(parsed.t || []); 
+                        arr.forEach(t => { if (t && t.id) candidates.set(t.id, t); });
                     } catch(e) { console.error("Error reading " + key, e); }
                 };
-
-                process('mon_archived');
-                process('mon_tasks'); 
-                process('mon_safe_backup');
-                process('mon_shadow_archive_latest');
-
-                const currentIds = new Set([
-                    ...this.data.tasks.map(t => t.id), 
-                    ...this.data.archived.map(t => t.id)
-                ]);
-
+                process('mon_archived'); process('mon_tasks'); process('mon_safe_backup'); process('mon_shadow_archive_latest');
+                const currentIds = new Set([...this.data.tasks.map(t => t.id), ...this.data.archived.map(t => t.id)]);
                 this.data.recoveryList = [];
-                for (const [id, task] of candidates) {
-                    if (!currentIds.has(id)) {
-                        this.data.recoveryList.push(task);
-                    }
-                }
-
-                if (this.data.recoveryList.length === 0) {
-                    alert("Nenhum dado perdido foi encontrado nos backups locais.");
-                } else {
-                    this.openModalUI('recovery-modal');
-                    this.renderRecoveryList();
-                }
+                for (const [id, task] of candidates) { if (!currentIds.has(id)) this.data.recoveryList.push(task); }
+                if (this.data.recoveryList.length === 0) { alert("Nenhum dado perdido foi encontrado nos backups locais."); } else { this.openModalUI('recovery-modal'); this.renderRecoveryList(); }
             },
 
             renderRecoveryList() {
                 const list = document.getElementById('recovery-list');
                 const search = document.getElementById('recovery-search').value.toLowerCase();
-                
                 const filtered = this.data.recoveryList.filter(t => (t.condominio || '').toLowerCase().includes(search));
-
-                if (filtered.length === 0) {
-                    list.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Nenhum item correspondente encontrado.</p>';
-                    return;
-                }
-
+                if (filtered.length === 0) { list.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Nenhum item correspondente encontrado.</p>'; return; }
                 list.innerHTML = filtered.map(t => `
                     <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border border-blue-100 dark:border-blue-900 hover:shadow-md transition-all">
                         <div>
                             <p class="font-bold text-sm dark:text-white uppercase text-blue-900 dark:text-blue-100">${t.condominio || 'Sem Nome'}</p>
-                            <p class="text-[10px] text-slate-500 flex items-center gap-1">
-                                <i class="ph ph-calendar"></i> ${this.formatDate(t.dataAnalise)} 
-                                <span class="mx-1">•</span> 
-                                ${t.semana || '-'}
-                            </p>
+                            <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${this.formatDate(t.dataAnalise)} <span class="mx-1">•</span> ${t.semana || '-'}</p>
                         </div>
                         <button onclick="App.restoreSingleFromRecovery('${t.id}')" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded shadow-lg transition-colors">
                             <i class="ph ph-download-simple"></i> Recuperar Este
                         </button>
-                    </div>
-                `).join('');
+                    </div>`).join('');
             },
 
             restoreSingleFromRecovery(id) {
@@ -1848,16 +1767,11 @@
                 if (idx > -1) {
                     const item = this.data.recoveryList[idx];
                     this.data.recoveryList.splice(idx, 1);
-                    item.manualRestore = true;
-                    item.carimboSemanaAtual = true; 
+                    item.manualRestore = true; item.carimboSemanaAtual = true; 
                     this.data.tasks.unshift(item);
-                    this.saveData();
-                    this.renderRecoveryList(); 
-                    this.render(); 
+                    this.saveData(); this.renderRecoveryList(); this.render(); 
                     this.showToast('Item recuperado com sucesso!');
-                    if (this.data.recoveryList.length === 0) {
-                        this.closeModalUI('recovery-modal');
-                    }
+                    if (this.data.recoveryList.length === 0) this.closeModalUI('recovery-modal');
                 }
             },
             
@@ -1866,16 +1780,9 @@
                 if (idx > -1) {
                     const t = this.data.archived.splice(idx, 1)[0];
                     t.manualRestore = true; 
-                    if (t.statusAnalise === 'Concluída') {
-                        t.carimboSemanaAtual = false;
-                        this.showToast('Restaurado para Consulta');
-                    } else {
-                        t.carimboSemanaAtual = true;
-                        this.showToast('Restaurado: Contabilizando na Meta');
-                    }
+                    if (t.statusAnalise === 'Concluída') { t.carimboSemanaAtual = false; this.showToast('Restaurado para Consulta'); } else { t.carimboSemanaAtual = true; this.showToast('Restaurado: Contabilizando na Meta'); }
                     this.data.tasks.unshift(t);
-                    this.saveData();
-                    this.renderArchiveList(); 
+                    this.saveData(); this.renderArchiveList(); 
                 }
             },
             
@@ -1887,14 +1794,9 @@
             confirmDeleteTask() {
                 const id = this.data.pendingDeleteId;
                 if(!id) return;
-                
                 const task = this.data.tasks.find(t => t.id === id);
-                if (task) {
-                    if(!this.data.deletedHistory) this.data.deletedHistory = [];
-                    this.data.deletedHistory.push(task);
-                }
+                if (task) { if(!this.data.deletedHistory) this.data.deletedHistory = []; this.data.deletedHistory.push(task); }
                 this.data.tasks = this.data.tasks.filter(t => t.id !== id);
-                
                 this.saveData();
                 this.closeModalUI('delete-confirmation-modal');
                 this.data.pendingDeleteId = null;
@@ -1917,23 +1819,16 @@
                 const t = this.data.tasks.find(x => x.id === id);
                 if(!t) return;
                 document.getElementById('modal-condo-name').textContent = t.condominio;
-                
                 const sel = document.getElementById('add-ocorrencia-categoria');
                 sel.innerHTML = this.data.categories.map(c => `<option>${c}</option>`).join('');
-                
                 this.renderOcorrenciasList(t);
                 this.openModalUI('ocorrencia-modal');
             },
             
             renderOcorrenciasList(task) {
                 const list = document.getElementById('ocorrencia-list');
-                if (!task.ocorrencias || task.ocorrencias.length === 0) {
-                    list.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Nenhuma ocorrência registrada.</p>';
-                    return;
-                }
-                
+                if (!task.ocorrencias || task.ocorrencias.length === 0) { list.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Nenhuma ocorrência registrada.</p>'; return; }
                 const sortedOcs = [...task.ocorrencias].sort((a,b) => (a.inicio || '').localeCompare(b.inicio || ''));
-
                 list.innerHTML = sortedOcs.map((o, idx) => `
                     <div class="p-3 bg-white dark:bg-slate-800 rounded border dark:border-slate-700 mb-2 shadow-sm flex justify-between items-center group hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
                         <div class="flex items-center gap-3 overflow-hidden">
@@ -1941,7 +1836,6 @@
                                  <span class="text-xs font-bold text-slate-700 dark:text-white font-mono bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded border dark:border-slate-600">${o.inicio || '--:--'}</span>
                                  <span class="text-[9px] font-bold text-slate-400 mt-0.5">até ${o.fim || '--:--'}</span>
                              </div>
-                             
                              <div class="border-l pl-3 dark:border-slate-700">
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="text-[10px] font-bold uppercase text-brand-orange bg-orange-50 dark:bg-orange-900/30 px-1.5 py-0.5 rounded border border-orange-100 dark:border-orange-900">${o.categoria}</span>
@@ -1949,13 +1843,11 @@
                                 <p class="text-sm dark:text-white truncate max-w-[200px] md:max-w-xs text-slate-600" title="${o.descricao}">${o.descricao}</p>
                              </div>
                         </div>
-
                         <div class="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <button onclick="App.prepareEditOcorrencia('${task.id}', '${o.id}')" class="p-2 text-blue-400 hover:bg-blue-50 rounded hover:text-blue-600"><i class="ph ph-pencil-simple text-lg"></i></button>
                             <button onclick="App.removeOcorrencia('${task.id}', '${o.id}')" class="p-2 text-red-400 hover:bg-red-50 rounded hover:text-red-600"><i class="ph ph-trash text-lg"></i></button>
                         </div>
-                    </div>
-                `).join('');
+                    </div>`).join('');
             },
             
             removeOcorrencia(taskId, ocId) {
@@ -1970,9 +1862,7 @@
             updateStatus(id, field, val) {
                 const t = this.data.tasks.find(x => x.id === id);
                 if (t) { 
-                    if (field === 'statusAnalise' && t.manualRestore && val !== 'Concluída') {
-                        t.carimboSemanaAtual = true;
-                    }
+                    if (field === 'statusAnalise' && t.manualRestore && val !== 'Concluída') { t.carimboSemanaAtual = true; }
                     t[field] = val; 
                     this.saveData(); 
                 }
@@ -1986,9 +1876,7 @@
                     const week = date.toLocaleDateString('pt-BR', { weekday: 'long' });
                     const weekCap = week.charAt(0).toUpperCase() + week.slice(1);
                     return `${d}/${m}/${y} • ${weekCap}`;
-                } catch(e) {
-                    return dateStr;
-                }
+                } catch(e) { return dateStr; }
             },
 
             render() { 
@@ -2007,7 +1895,6 @@
                 document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
                 
                 const statTasks = this.data.tasks.filter(t => !t.manualRestore || t.carimboSemanaAtual);
-
                 const concluidasStat = statTasks.filter(t => t.statusAnalise === 'Concluída').length;
                 document.getElementById('analises-concluidas').textContent = concluidasStat;
                 
@@ -2017,22 +1904,15 @@
                 const concStat = statTasks.filter(t => t.statusAnalise === 'Concluída').length;
                 document.getElementById('media-ocorrencias').textContent = concStat > 0 ? (totalOcStat / concStat).toFixed(1) : "0.0";
                 
-                document.getElementById('produtividade-total').textContent = concStat + this.data.archived.length;
+                const prodTotalEl = document.getElementById('produtividade-total');
+                if(prodTotalEl) prodTotalEl.textContent = concStat + this.data.archived.length;
 
                 list.innerHTML = filtered.map(t => {
                     const ocCount = t.ocorrencias ? t.ocorrencias.length : 0;
-                    
-                    const optionsAnalise = ['Pendente', 'Em Análise', 'Concluída'].map(opt => 
-                        `<option value="${opt}" ${t.statusAnalise === opt ? 'selected' : ''}>${opt}</option>`
-                    ).join('');
-
-                    const optionsBackup = ['Pendente', 'Em Andamento', 'Concluído'].map(opt => 
-                        `<option value="${opt}" ${t.statusBackup === opt ? 'selected' : ''}>${opt}</option>`
-                    ).join('');
-
+                    const optionsAnalise = ['Pendente', 'Em Análise', 'Concluída'].map(opt => `<option value="${opt}" ${t.statusAnalise === opt ? 'selected' : ''}>${opt}</option>`).join('');
+                    const optionsBackup = ['Pendente', 'Em Andamento', 'Concluído'].map(opt => `<option value="${opt}" ${t.statusBackup === opt ? 'selected' : ''}>${opt}</option>`).join('');
                     return `
                     <div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 card-transition relative group">
-                        
                         <div class="flex justify-between items-start mb-3">
                             <div>
                                 <div class="flex items-center gap-2">
@@ -2041,9 +1921,7 @@
                                     <button onclick="App.editTask('${t.id}')" class="text-blue-400 hover:text-blue-600" title="Editar Dados"><i class="ph ph-pencil-simple"></i></button>
                                 </div>
                                 <p class="text-xs text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${this.formatDate(t.dataAnalise)} <span class="bg-slate-100 dark:bg-slate-700 px-1.5 rounded ml-2">${t.semana||'-'}</span></p>
-                                
                                 ${t.carimboSemanaAtual ? `<div class="mt-2 inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-bold uppercase w-full"><i class="ph ph-stamp text-lg"></i> Contabilizar na Semana Atual</div>` : ''}
-
                             </div>
                             <div class="flex gap-1">
                                 <button onclick="App.openOcorrenciaModal('${t.id}')" class="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-brand-orange hover:bg-orange-100 dark:hover:bg-orange-900/40 transition relative">
@@ -2052,7 +1930,6 @@
                                 </button>
                             </div>
                         </div>
-                        
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
                                 <label class="text-[10px] font-bold text-slate-400 uppercase">Análise</label>
@@ -2067,15 +1944,12 @@
                                 </select>
                             </div>
                         </div>
-                        
                         ${t.observacoes ? `<p class="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 p-2 rounded mb-3 italic border-l-2 border-slate-300 dark:border-slate-600 line-clamp-2">"${t.observacoes}"</p>` : ''}
-                        
                         <div class="flex justify-end gap-2 mt-2 pt-3 border-t dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
                              <button onclick="App.archiveTask('${t.id}')" class="text-xs text-purple-500 hover:text-purple-700 font-bold flex items-center gap-1"><i class="ph ph-archive"></i> Arquivar</button>
                              <button onclick="App.requestDeleteTask('${t.id}')" class="text-xs text-red-400 hover:text-red-600 font-bold ml-2 flex items-center gap-1"><i class="ph ph-trash"></i> Excluir</button>
                         </div>
-                    </div>
-                `}).join('');
+                    </div>`}).join('');
             }
         };
         
