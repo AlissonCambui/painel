@@ -226,7 +226,7 @@
             <div id="view-monitoring" class="flex-col gap-6">
                 
                 <!-- KPIs -->
-                <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-4">
                     <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
                         <h3 class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Ativas</h3>
                         <p id="total-solicitacoes" class="text-3xl font-bold text-slate-800 dark:text-white">0</p>
@@ -239,6 +239,12 @@
                         <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Análises Concluídas</h3>
                         <p id="analises-concluidas" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</p>
                         <p class="text-xs text-slate-400 text-right">Estatística Semanal</p>
+                    </div>
+                    <!-- NOVO CARD: PDVs ÚNICOS -->
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
+                        <h3 class="text-xs font-bold uppercase text-blue-600 dark:text-blue-400">PDVs Analisados</h3>
+                        <p id="total-pdvs" class="text-3xl font-bold text-blue-500">0</p>
+                        <p class="text-xs text-slate-400 text-right">Únicos na Semana</p>
                     </div>
                     <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 card-transition">
                         <h3 class="text-xs font-bold uppercase text-red-600 dark:text-red-400">Ocorrências</h3>
@@ -1335,13 +1341,21 @@
                 document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
                 document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
                 
-                const concluidas = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length;
-                document.getElementById('analises-concluidas').textContent = concluidas;
+                // Filtra tarefas válidas para estatística (ignora restauradas antigas, a não ser que marcadas para semana atual)
+                const statTasks = this.data.tasks.filter(t => !t.manualRestore || t.carimboSemanaAtual);
+
+                const concluidas = statTasks.filter(t => t.statusAnalise === 'Concluída');
+                const concluidasCount = concluidas.length;
+                document.getElementById('analises-concluidas').textContent = concluidasCount;
                 
-                const totalOc = this.data.tasks.reduce((acc, t) => acc + (t.ocorrencias?.length||0), 0);
+                // Lógica de PDVs Únicos (Condomínios Diferentes)
+                const uniquePdvs = new Set(concluidas.map(t => t.condominio.trim().toUpperCase()));
+                document.getElementById('total-pdvs').textContent = uniquePdvs.size;
+
+                const totalOc = statTasks.reduce((acc, t) => acc + (t.ocorrencias?.length||0), 0);
                 document.getElementById('total-ocorrencias-semana').textContent = totalOc;
 
-                const media = concluidas > 0 ? (totalOc / concluidas).toFixed(1) : "0.0";
+                const media = concluidasCount > 0 ? (totalOc / concluidasCount).toFixed(1) : "0.0";
                 const elMedia = document.getElementById('media-ocorrencias');
                 if(elMedia) elMedia.textContent = media;
 
