@@ -366,7 +366,7 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Seguro.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.1 (Promoção Admin)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.3 (Auto Arquivamento)</p>
             </footer>
         </div>
     </div>
@@ -865,10 +865,63 @@
                         this.data.tasks = d.tasks || [];
                         this.data.archived = d.archived || [];
                         this.data.productivity = d.productivity || [];
+                        this.autoArchive(); // <<< AUTO ARQUIVAMENTO REATIVADO AQUI
                         this.render();
                         this.updateCharts();
                     }
                 });
+            },
+
+            // --- AUTO ARQUIVAMENTO (RESTAURADO) ---
+            autoArchive() {
+                const now = new Date();
+                const offset = now.getTimezoneOffset();
+                const localNow = new Date(now.getTime() - (offset * 60 * 1000));
+                const day = localNow.getUTCDay(); 
+                const diffToMon = (day + 6) % 7; 
+                const mondayCurrentWeek = new Date(localNow);
+                mondayCurrentWeek.setUTCDate(localNow.getUTCDate() - diffToMon);
+                mondayCurrentWeek.setUTCHours(0,0,0,0);
+                const limitCurrentWeekStr = mondayCurrentWeek.toISOString().split('T')[0];
+                const mondayRetrasada = new Date(mondayCurrentWeek);
+                mondayRetrasada.setUTCDate(mondayCurrentWeek.getUTCDate() - 7); 
+                const limitOldStr = mondayRetrasada.toISOString().split('T')[0];
+                let changed = false;
+                const active = [];
+                
+                if(!this.data.tasks) return;
+
+                this.data.tasks.forEach(t => {
+                    if (!t.dataAnalise) { active.push(t); return; }
+                    if (t.manualRestore) { active.push(t); return; }
+                    
+                    // Se a data da tarefa for anterior ao limite (semana retrasada), arquiva
+                    if (t.dataAnalise < limitOldStr) {
+                        this.data.archived.push(t);
+                        this.backupToShadow(t); 
+                        changed = true;
+                        return;
+                    }
+                    active.push(t);
+                });
+                
+                if (changed) {
+                    this.data.tasks = active;
+                    this.saveData();
+                    this.showToast('Limpeza Semanal Automática');
+                }
+            },
+            
+            backupToShadow(item) {
+                 try {
+                     const raw = localStorage.getItem('mon_shadow_archive_latest');
+                     let arr = raw ? JSON.parse(raw) : [];
+                     if(!Array.isArray(arr)) arr = [];
+                     if(!arr.find(x => x.id === item.id)) {
+                         arr.push(item);
+                         localStorage.setItem('mon_shadow_archive_latest', JSON.stringify(arr));
+                     }
+                 } catch(e) {}
             },
 
             // --- AUTH ---
@@ -1129,8 +1182,16 @@
                 
                 document.getElementById('total-solicitacoes').textContent = this.data.tasks.length;
                 document.getElementById('backups-pendentes').textContent = this.data.tasks.filter(t => t.statusBackup === 'Pendente').length;
-                document.getElementById('analises-concluidas').textContent = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length;
-                document.getElementById('total-ocorrencias-semana').textContent = this.data.tasks.reduce((acc, t) => acc + (t.ocorrencias?.length||0), 0);
+                
+                const concluidas = this.data.tasks.filter(t => t.statusAnalise === 'Concluída').length;
+                document.getElementById('analises-concluidas').textContent = concluidas;
+                
+                const totalOc = this.data.tasks.reduce((acc, t) => acc + (t.ocorrencias?.length||0), 0);
+                document.getElementById('total-ocorrencias-semana').textContent = totalOc;
+
+                const media = concluidas > 0 ? (totalOc / concluidas).toFixed(1) : "0.0";
+                const elMedia = document.getElementById('media-ocorrencias');
+                if(elMedia) elMedia.textContent = media;
 
                 list.innerHTML = filtered.map(t => {
                     const ocCount = t.ocorrencias ? t.ocorrencias.length : 0;
