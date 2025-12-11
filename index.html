@@ -366,12 +366,41 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Seguro.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.3 (Auto Arquivamento)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.4 - Restaurado</p>
             </footer>
         </div>
     </div>
 
-    <!-- MODAIS (Mantidos e Essenciais) -->
+    <!-- MODAIS (RESTAURADOS) -->
+    <div id="excel-import-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl border dark:border-slate-700 shadow-2xl">
+            <h2 class="text-xl font-bold mb-2 dark:text-white">Importar Dados (Excel)</h2>
+            <p class="text-xs text-slate-500 mb-4">Cole as linhas do Excel aqui para importar em massa.</p>
+            <textarea id="excel-paste-area" rows="10" class="w-full p-3 text-sm font-mono bg-slate-100 dark:bg-slate-900 border rounded dark:text-white dark:border-slate-600 focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Cole os dados aqui..."></textarea>
+            <div class="flex justify-end gap-2 mt-4">
+                <button onclick="App.closeModalUI('excel-import-modal')" class="px-4 py-2 rounded bg-slate-200 dark:bg-slate-700 dark:text-white transition-colors">Cancelar</button>
+                <button id="process-import-btn" class="px-4 py-2 rounded bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors">Processar Dados</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="archive-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[75]">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-3xl h-[80vh] flex flex-col shadow-2xl border dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-2">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold dark:text-white flex items-center gap-2">
+                        <i class="ph ph-archive-box"></i> Arquivo Morto
+                        <span id="archive-count-badge" class="text-sm bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-white px-2 py-0.5 rounded-full ml-2">0</span>
+                    </h2>
+                </div>
+                <button onclick="App.closeModalUI('archive-modal')" class="text-2xl text-slate-400 hover:text-slate-600 ml-2">&times;</button>
+            </div>
+            
+            <input type="text" id="archive-search" placeholder="Pesquisar no arquivo..." class="mb-3 w-full p-2 text-sm border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-brand-orange">
+            <div id="archive-list" class="flex-grow overflow-y-auto space-y-2 pr-2"></div>
+        </div>
+    </div>
+
     <div id="my-account-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[60]">
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-sm border dark:border-slate-700 shadow-2xl">
              <div class="flex justify-between items-start mb-4">
@@ -766,6 +795,38 @@
                 addListener('actions-menu-btn', 'click', (e) => { e.stopPropagation(); document.getElementById('actions-menu').classList.toggle('hidden'); });
                 document.body.addEventListener('click', () => { const m = document.getElementById('actions-menu'); if(m) m.classList.add('hidden'); });
                 
+                addListener('excel-import-btn', 'click', () => { App.openModalUI('excel-import-modal'); });
+                addListener('process-import-btn', 'click', () => App.processExcel());
+                
+                addListener('archive-btn', 'click', (e) => { 
+                    if(e) e.stopPropagation(); 
+                    document.getElementById('actions-menu').classList.add('hidden'); 
+                    document.getElementById('archive-search').value = ''; 
+                    App.renderArchiveList(); 
+                    App.openModalUI('archive-modal'); 
+                });
+                addListener('archive-search', 'input', () => App.renderArchiveList());
+                
+                addListener('export-data-btn', 'click', () => App.exportData());
+                addListener('import-data-btn', 'click', () => document.getElementById('file-input').click());
+                addListener('file-input', 'change', (e) => { 
+                    if(e.target.files[0]) { 
+                        const r = new FileReader(); 
+                        r.onload = ev => { 
+                            try {
+                                const j = JSON.parse(ev.target.result); 
+                                App.data.tasks=j.tasks||[]; 
+                                App.data.archived=j.archived||[]; 
+                                if(j.productivity) App.data.productivity = j.productivity;
+                                App.saveData(); 
+                                App.showToast('Restaurado'); 
+                                setTimeout(()=>window.location.reload(), 500); 
+                            } catch(e) { alert("Erro ao ler arquivo."); }
+                        }; 
+                        r.readAsText(e.target.files[0]); 
+                    } 
+                });
+
                 addListener('add-ocorrencia-btn', 'click', () => App.addOccurrence());
                 addListener('save-ocorrencias-btn', 'click', () => { App.saveData(); App.closeModalUI('ocorrencia-modal'); App.showToast('Salvo'); });
                 addListener('ocorrencia-cancel-btn', 'click', () => { App.closeModalUI('ocorrencia-modal'); App.resetOcorrenciaForm(); });
@@ -1119,6 +1180,97 @@
             requestDeleteTask(id) { this.data.pendingDeleteId = id; document.getElementById('delete-confirmation-modal').classList.remove('hidden'); },
             confirmDeleteTask() { this.data.tasks = this.data.tasks.filter(t => t.id !== this.data.pendingDeleteId); this.saveData(); this.closeModalUI('delete-confirmation-modal'); },
             archiveTask(id) { const idx = this.data.tasks.findIndex(t => t.id === id); if(idx>-1) { this.data.archived.push(this.data.tasks.splice(idx,1)[0]); this.saveData(); } },
+
+            // --- IMPORT/EXPORT/RESTORE (RESTAURADOS) ---
+            processExcel() {
+                const text = document.getElementById('excel-paste-area').value;
+                if (!text) return alert("Cole os dados do Excel.");
+                const regex = /Semana\s*(\d{1,2})\s*?(\d{2}\/\d{2}\/\d{4})(.*?)(?=Semana\s*\d+|$)/gs;
+                let match; let count = 0;
+                while ((match = regex.exec(text)) !== null) {
+                    const semanaNum = match[1].trim();
+                    const dataRaw = match[2].trim();
+                    const resto = match[3].trim(); 
+                    let finalDate = dataRaw;
+                    try { const [d, m, y] = dataRaw.split('/'); finalDate = `${y}-${m}-${d}`; } catch (e) {}
+                    let condominio = "Desconhecido"; let statusAnalise = "Pendente"; let numOcorrencias = 0; let statusRaw = "";
+                    const pivotMatch = resto.match(/(\d*)\s*([A-Z][a-z\u00C0-\u00FF]+)/);
+                    if (pivotMatch) {
+                        const endOfCondoIndex = pivotMatch.index;
+                        condominio = resto.substring(0, endOfCondoIndex).trim();
+                        const ocStr = pivotMatch[1]; 
+                        const endOfNameIndex = endOfCondoIndex + pivotMatch[0].length;
+                        statusRaw = resto.substring(endOfNameIndex).trim();
+                        if (ocStr) numOcorrencias = parseInt(ocStr, 10);
+                        if (numOcorrencias > 0 || statusRaw.toLowerCase().includes('finalizado') || statusRaw.toLowerCase().includes('conclu')) { statusAnalise = 'Concluída'; } else { statusAnalise = 'Pendente'; }
+                    } else { condominio = resto; }
+                    
+                    const novasOcorrencias = [];
+                    if (numOcorrencias > 0) {
+                        for(let i=0; i<numOcorrencias; i++) {
+                            novasOcorrencias.push({ id: crypto.randomUUID(), categoria: 'Outros', descricao: 'Ocorrência Importada (Verificar detalhes)', inicio: '', fim: '' });
+                        }
+                    }
+                    
+                    this.data.tasks.push({ 
+                        id: crypto.randomUUID(), condominio: condominio, dataAnalise: finalDate, semana: `Semana ${semanaNum}`, 
+                        observacoes: statusRaw ? `Status original: ${statusRaw}` : '', statusBackup: 'Pendente', 
+                        statusAnalise: statusAnalise, ocorrencias: novasOcorrencias, createdAt: new Date().toISOString(), _ownerUid: this.data.user.uid 
+                    });
+                    count++;
+                }
+                this.saveData(); 
+                this.closeModalUI('excel-import-modal'); 
+                if (count === 0) { alert("Nenhum dado novo encontrado."); } else { this.showToast(`${count} análises processadas.`); }
+            },
+
+            renderArchiveList() {
+                 if (!Array.isArray(this.data.archived)) this.data.archived = []; 
+                 const list = document.getElementById('archive-list');
+                 const searchInput = document.getElementById('archive-search');
+                 const search = searchInput ? searchInput.value.toLowerCase() : '';
+                 const countBadge = document.getElementById('archive-count-badge');
+                 if(countBadge) countBadge.textContent = this.data.archived.length;
+                 const filtered = this.data.archived.filter(t => (t.condominio || '').toLowerCase().includes(search));
+                 if (filtered.length === 0) {
+                     list.innerHTML = `<p class="text-center text-xs text-slate-400 py-4">Nenhum item arquivado.</p>`;
+                     return;
+                 }
+                 list.innerHTML = filtered.map(t => {
+                    let dateDisplay = this.formatDate(t.dataAnalise);
+                    return `
+                    <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <div>
+                            <p class="font-bold text-sm dark:text-white uppercase">${t.condominio || 'Sem Nome'}</p>
+                            <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${dateDisplay} <span class="mx-1">•</span> ${t.semana || '-'}</p>
+                        </div>
+                        <button onclick="App.restoreTask('${t.id}')" class="flex items-center gap-1 text-green-600 hover:text-white hover:bg-green-600 text-[10px] font-bold border border-green-200 dark:border-green-900 px-3 py-1.5 rounded transition-all shadow-sm">
+                            <i class="ph ph-arrow-u-up-left"></i> Restaurar
+                        </button>
+                    </div>`
+                 }).join('');
+            },
+
+            restoreTask(id) {
+                const idx = this.data.archived.findIndex(t => t.id === id);
+                if (idx > -1) {
+                    const t = this.data.archived.splice(idx, 1)[0];
+                    t.manualRestore = true; 
+                    this.data.tasks.unshift(t);
+                    this.saveData(); this.renderArchiveList(); 
+                    this.showToast('Tarefa restaurada!');
+                }
+            },
+
+            exportData() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ tasks: this.data.tasks, archived: this.data.archived, productivity: this.data.productivity }));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href",     dataStr);
+                downloadAnchorNode.setAttribute("download", "backup_painel_" + new Date().toISOString().split('T')[0] + ".json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            },
 
             // --- OCORRÊNCIAS ---
             openOcorrenciaModal(id) {
