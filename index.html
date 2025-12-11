@@ -366,7 +366,7 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Seguro.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 2.2</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.1 (Promoção Admin)</p>
             </footer>
         </div>
     </div>
@@ -828,8 +828,24 @@
                     });
                 } catch(e) { 
                     console.error("Falha Firebase", e);
-                    // ALERTA VISUAL PARA O USUÁRIO (GitHub Pages Debug)
-                    alert("Erro de Conexão Firebase: " + e.message + "\n\nSe estiver no GitHub Pages, verifique se a 'Autenticação Anônima' está ativada no console do Firebase.");
+                    
+                    // Tratamento de erro visual (sem alerts chatos)
+                    const errorDiv = document.getElementById('auth-error-msg');
+                    const errorText = document.getElementById('error-text-content');
+                    const loginLoading = document.getElementById('login-loading');
+                    const loginForm = document.getElementById('login-form-container');
+
+                    if (loginLoading) loginLoading.classList.add('hidden');
+                    if (loginForm) loginForm.classList.remove('hidden');
+
+                    if (errorDiv && errorText) {
+                        errorDiv.classList.remove('hidden');
+                        if (e.code === 'auth/admin-restricted-operation' || (e.message && e.message.includes('admin-restricted-operation'))) {
+                            errorText.textContent = "Falta Configuração: Vá no Firebase > Authentication e ative o fornecedor 'Anônimo'.";
+                        } else {
+                            errorText.textContent = "Erro de conexão: " + e.message;
+                        }
+                    }
                 }
             },
             
@@ -917,10 +933,45 @@
                  const q = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'auth_users'));
                  const list = document.getElementById('admin-users-list');
                  list.innerHTML = '';
-                 q.forEach((doc) => {
-                     const u = doc.data();
-                     list.innerHTML += `<li class="flex justify-between py-2 border-b dark:border-slate-700 dark:text-slate-300"><span>${u.name}</span> <span class="text-xs ${u.password?'text-green-500':'text-amber-500'}">${u.password?'Ativo':'Pendente'}</span></li>`;
+                 q.forEach((docSnap) => {
+                     const u = docSnap.data();
+                     const isGestor = u.isAdmin === true;
+                     const docId = docSnap.id;
+                     const isMe = docId === 'app_users_' + this.data.user.uid;
+                     
+                     list.innerHTML += `
+                        <li class="flex justify-between items-center py-3 border-b dark:border-slate-700 dark:text-slate-300">
+                            <div>
+                                <div class="font-bold text-sm flex items-center gap-2">
+                                    ${u.name}
+                                    ${isGestor ? '<span class="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 text-[10px] px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800 uppercase font-bold">Gestor</span>' : ''}
+                                </div>
+                                <div class="text-[10px] text-slate-400">${u.email}</div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[10px] ${u.password?'text-green-500':'text-amber-500'} font-bold">${u.password?'Ativo':'Pendente'}</span>
+                                ${!isMe ? `
+                                <button onclick="App.toggleAdminStatus('${docId}', ${!isGestor})" 
+                                    class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-slate-500" 
+                                    title="${isGestor ? 'Remover permissão de Gestor' : 'Promover a Gestor'}">
+                                    <i class="ph ${isGestor ? 'ph-shield-slash text-red-500' : 'ph-shield-check text-blue-500'} text-lg"></i>
+                                </button>` : ''}
+                            </div>
+                        </li>`;
                  });
+            },
+
+            async toggleAdminStatus(docId, makeAdmin) {
+                if(!confirm(makeAdmin ? "Promover este usuário a Gestor? Ele terá acesso total." : "Remover acesso de Gestor deste usuário?")) return;
+                
+                try {
+                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'auth_users', docId);
+                    await updateDoc(ref, { isAdmin: makeAdmin });
+                    this.showToast(makeAdmin ? "Usuário promovido a Gestor!" : "Permissão de Gestor removida.");
+                    this.loadAuthorizedUsers(); 
+                } catch(e) {
+                    alert("Erro ao alterar permissões: " + e.message);
+                }
             },
 
             // --- UI HELPERS ---
