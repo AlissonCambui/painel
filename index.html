@@ -290,10 +290,10 @@
                                 </button>
                                 <div id="actions-menu" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
                                     <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
-                                    <button id="excel-import-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors">
+                                    <button id="excel-import-btn" onclick="App.openImport(event)" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors">
                                         <i class="ph ph-file-csv text-lg text-green-600"></i> Importar (Excel)
                                     </button>
-                                    <button id="archive-btn" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <button id="archive-btn" onclick="App.openArchive(event)" class="flex items-center gap-2 w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                                         <i class="ph ph-archive-box text-lg text-purple-500"></i> Arquivo Morto
                                     </button>
                                     <div class="border-t border-slate-100 dark:border-slate-700 my-0"></div>
@@ -372,7 +372,7 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Seguro.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.6 (Cofre + Edição Corrigida)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.7 (Correção Menu)</p>
             </footer>
         </div>
     </div>
@@ -831,13 +831,8 @@
                 addListener('excel-import-btn', 'click', () => { App.openModalUI('excel-import-modal'); });
                 addListener('process-import-btn', 'click', () => App.processExcel());
                 
-                addListener('archive-btn', 'click', (e) => { 
-                    if(e) e.stopPropagation(); 
-                    document.getElementById('actions-menu').classList.add('hidden'); 
-                    document.getElementById('archive-search').value = ''; 
-                    App.renderArchiveList(); 
-                    App.openModalUI('archive-modal'); 
-                });
+                // --- INLINE CLICK HANDLERS RESTAURADOS PARA GARANTIR FUNCIONAMENTO ---
+                // addListener('archive-btn', 'click', ... ); // Removido para usar onclick no HTML
                 addListener('archive-search', 'input', () => App.renderArchiveList());
                 
                 addListener('recovery-search', 'input', () => App.renderRecoveryList()); // Listener para o Cofre
@@ -1221,6 +1216,21 @@
             closeModalUI(id) { document.getElementById(id).classList.add('hidden'); },
             openMyAccountModal() { document.getElementById('my-account-modal').classList.remove('hidden'); },
             openAdminPanel() { if(this.data.user?.isAdmin) { this.openModalUI('admin-panel-modal'); this.loadAuthorizedUsers(); } },
+
+            // --- FUNÇÕES DE MENU "AÇÕES" (NOVAS/CORRIGIDAS) ---
+            openArchive(e) {
+                if(e) e.stopPropagation();
+                document.getElementById('actions-menu').classList.add('hidden');
+                document.getElementById('archive-search').value = '';
+                this.renderArchiveList();
+                this.openModalUI('archive-modal');
+            },
+
+            openImport(e) {
+                if(e) e.stopPropagation();
+                document.getElementById('actions-menu').classList.add('hidden');
+                this.openModalUI('excel-import-modal');
+            },
             
             switchToDashboardView() { 
                 document.getElementById('login-view').classList.add('hidden'); 
