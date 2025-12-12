@@ -372,7 +372,7 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Seguro.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.7 (Correção Menu)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.8 (Autosave Ocorrências)</p>
             </footer>
         </div>
     </div>
@@ -858,7 +858,10 @@
                 });
 
                 addListener('add-ocorrencia-btn', 'click', () => App.addOccurrence());
-                addListener('save-ocorrencias-btn', 'click', () => { App.saveData(); App.closeModalUI('ocorrencia-modal'); App.showToast('Salvo'); });
+                
+                // NOVO: Salvar e Fechar Inteligente
+                addListener('save-ocorrencias-btn', 'click', () => App.saveAndCloseOcorrencias());
+
                 addListener('ocorrencia-cancel-btn', 'click', () => { App.closeModalUI('ocorrencia-modal'); App.resetOcorrenciaForm(); });
 
                 addListener('theme-toggle', 'click', () => { 
@@ -1309,7 +1312,11 @@
             addOccurrence() {
                 const taskId = document.getElementById('ocorrencia-current-task-id').value;
                 const t = this.data.tasks.find(x => x.id === taskId);
+                
                 if(t) {
+                    // Check de segurança para garantir array
+                    if (!t.ocorrencias) t.ocorrencias = [];
+
                     const cat = document.getElementById('add-ocorrencia-categoria').value;
                     const desc = document.getElementById('add-ocorrencia-desc').value;
                     const ini = document.getElementById('add-horario-inicial').value;
@@ -1351,6 +1358,18 @@
                 }
             },
 
+            saveAndCloseOcorrencias() {
+                 const desc = document.getElementById('add-ocorrencia-desc').value;
+                 if (desc && desc.trim() !== "") {
+                     // Se tiver texto pendente, tenta adicionar antes de fechar
+                     this.addOccurrence(); 
+                 }
+                 this.saveData();
+                 this.closeModalUI('ocorrencia-modal');
+                 this.resetOcorrenciaForm(); 
+                 this.showToast('Alterações salvas');
+            },
+
             prepareEditOcorrencia(taskId, ocId) {
                 const t = this.data.tasks.find(x => x.id === taskId);
                 if(!t) return;
@@ -1365,7 +1384,7 @@
                 this.data.editingId = ocId;
                 
                 const btn = document.getElementById('add-ocorrencia-btn');
-                btn.innerHTML = `<i class="ph ph-floppy-disk"></i> Salvar Edição`;
+                btn.innerHTML = `<i class="ph ph-floppy-disk text-lg"></i> Salvar Edição`;
                 btn.className = "flex-1 bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition-colors shadow-lg";
             },
 
@@ -1410,7 +1429,7 @@
                             <span class="text-xs font-bold text-slate-700 dark:text-white ml-2 uppercase">${o.categoria}</span>
                             <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${o.descricao}</p>
                         </div>
-                        <div class="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <div class="flex gap-1">
                             <button onclick="App.prepareEditOcorrencia('${task.id}', '${o.id}')" class="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition" title="Editar">
                                 <i class="ph ph-pencil-simple text-lg"></i>
                             </button>
