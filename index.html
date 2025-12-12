@@ -1294,28 +1294,113 @@
                 const taskId = document.getElementById('ocorrencia-current-task-id').value;
                 const t = this.data.tasks.find(x => x.id === taskId);
                 if(t) {
+                    const cat = document.getElementById('add-ocorrencia-categoria').value;
                     const desc = document.getElementById('add-ocorrencia-desc').value;
-                    if(!desc) return;
-                    t.ocorrencias.push({
-                        id: crypto.randomUUID(), 
-                        categoria: document.getElementById('add-ocorrencia-categoria').value,
-                        descricao: desc,
-                        inicio: document.getElementById('add-horario-inicial').value,
-                        fim: document.getElementById('add-horario-final').value
-                    });
+                    const ini = document.getElementById('add-horario-inicial').value;
+                    const fim = document.getElementById('add-horario-final').value;
+
+                    if(!desc) return alert("Descreva a ocorrência.");
+
+                    if (this.data.editingId) {
+                        // Lógica de Edição
+                        const oc = t.ocorrencias.find(o => o.id === this.data.editingId);
+                        if (oc) {
+                            oc.categoria = cat;
+                            oc.descricao = desc;
+                            oc.inicio = ini;
+                            oc.fim = fim;
+                            this.showToast('Item atualizado!');
+                        }
+                        this.data.editingId = null;
+                        this.resetOcorrenciaFormUI();
+                    } else {
+                        // Lógica de Adição
+                        t.ocorrencias.push({
+                            id: crypto.randomUUID(), 
+                            categoria: cat,
+                            descricao: desc,
+                            inicio: ini,
+                            fim: fim
+                        });
+                        this.showToast('Item adicionado!');
+                    }
+                    
+                    this.saveData();
                     this.renderOcorrenciasList(t);
+                    
+                    // Limpar campos
                     document.getElementById('add-ocorrencia-desc').value = '';
+                    document.getElementById('add-horario-inicial').value = '';
+                    document.getElementById('add-horario-final').value = '';
                 }
+            },
+
+            prepareEditOcorrencia(taskId, ocId) {
+                const t = this.data.tasks.find(x => x.id === taskId);
+                if(!t) return;
+                const oc = t.ocorrencias.find(o => o.id === ocId);
+                if(!oc) return;
+
+                document.getElementById('add-ocorrencia-categoria').value = oc.categoria;
+                document.getElementById('add-ocorrencia-desc').value = oc.descricao;
+                document.getElementById('add-horario-inicial').value = oc.inicio || '';
+                document.getElementById('add-horario-final').value = oc.fim || '';
+
+                this.data.editingId = ocId;
+                
+                const btn = document.getElementById('add-ocorrencia-btn');
+                btn.innerHTML = `<i class="ph ph-floppy-disk"></i> Salvar Edição`;
+                btn.className = "flex-1 bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition-colors shadow-lg";
+            },
+
+            removeOcorrencia(taskId, ocId) {
+                if(!confirm("Remover este item da lista?")) return;
+                const t = this.data.tasks.find(x => x.id === taskId);
+                if(t) {
+                    t.ocorrencias = t.ocorrencias.filter(o => o.id !== ocId);
+                    this.saveData();
+                    this.renderOcorrenciasList(t);
+                    this.showToast('Item removido.');
+                }
+            },
+
+            resetOcorrenciaFormUI() {
+                const btn = document.getElementById('add-ocorrencia-btn');
+                btn.innerHTML = `+ Adicionar Item`;
+                btn.className = "flex-1 bg-orange-100 text-brand-orange font-bold py-2 rounded hover:bg-orange-200 transition-colors border border-orange-200";
+            },
+
+            resetOcorrenciaForm() {
+                this.data.editingId = null;
+                document.getElementById('add-ocorrencia-desc').value = '';
+                document.getElementById('add-horario-inicial').value = '';
+                document.getElementById('add-horario-final').value = '';
+                this.resetOcorrenciaFormUI();
             },
             
             renderOcorrenciasList(task) {
                 const list = document.getElementById('ocorrencia-list');
-                list.innerHTML = (task.ocorrencias||[]).map(o => `
-                    <div class="p-2 border-b dark:border-slate-700 flex justify-between">
+                if (!task.ocorrencias || task.ocorrencias.length === 0) {
+                    list.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Nenhuma ocorrência registrada.</p>';
+                    return;
+                }
+                // Ordenar por horário
+                const sorted = [...task.ocorrencias].sort((a,b) => (a.inicio || '').localeCompare(b.inicio || ''));
+
+                list.innerHTML = sorted.map(o => `
+                    <div class="p-2 border-b dark:border-slate-700 flex justify-between items-center group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <div>
-                            <span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-1 rounded">${o.inicio||'-'} a ${o.fim||'-'}</span>
-                            <span class="text-xs font-bold text-slate-700 dark:text-white ml-2">${o.categoria}</span>
-                            <p class="text-sm text-slate-500">${o.descricao}</p>
+                            <span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-1 rounded border border-orange-200">${o.inicio||'--:--'} a ${o.fim||'--:--'}</span>
+                            <span class="text-xs font-bold text-slate-700 dark:text-white ml-2 uppercase">${o.categoria}</span>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${o.descricao}</p>
+                        </div>
+                        <div class="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                            <button onclick="App.prepareEditOcorrencia('${task.id}', '${o.id}')" class="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition" title="Editar">
+                                <i class="ph ph-pencil-simple text-lg"></i>
+                            </button>
+                            <button onclick="App.removeOcorrencia('${task.id}', '${o.id}')" class="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition" title="Excluir">
+                                <i class="ph ph-trash text-lg"></i>
+                            </button>
                         </div>
                     </div>`).join('');
             },
@@ -1374,11 +1459,12 @@
                     <div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 card-transition relative group">
                         ${ownerBadge}
                         <div class="flex justify-between items-start mb-3">
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h3 class="font-bold text-lg text-slate-800 dark:text-white uppercase tracking-tight">${t.condominio}</h3>
-                                    <button onclick="App.editTask('${t.id}')" class="text-blue-400 hover:text-blue-600" title="Editar Dados"><i class="ph ph-pencil-simple"></i></button>
-                                </div>
+            <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
+                <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Seguro.</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.5 (Edição Restaurada)</p>
+            </footer>
+        </div>
+    </div>
                                 <p class="text-xs text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${this.formatDate(t.dataAnalise)} <span class="bg-slate-100 dark:bg-slate-700 px-1.5 rounded ml-2">${t.semana||'-'}</span></p>
                             </div>
                             <div class="flex gap-1">
