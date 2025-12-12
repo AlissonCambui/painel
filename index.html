@@ -372,7 +372,7 @@
 
             <footer class="text-center text-xs text-slate-400 py-4 mt-auto border-t dark:border-slate-700">
                 <p id="footer-msg"><i class="ph ph-hard-drives"></i> Modo Seguro.</p>
-                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.5 (Edição Restaurada)</p>
+                <p class="mt-1">© 2025 Painel de Monitoramento - vGestor 3.6 (Cofre + Edição Corrigida)</p>
             </footer>
         </div>
     </div>
@@ -399,11 +399,32 @@
                         <span id="archive-count-badge" class="text-sm bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-white px-2 py-0.5 rounded-full ml-2">0</span>
                     </h2>
                 </div>
-                <button onclick="App.closeModalUI('archive-modal')" class="text-2xl text-slate-400 hover:text-slate-600 ml-2">&times;</button>
+                <div class="flex items-center gap-2">
+                    <button onclick="App.recoverLostData()" class="text-xs font-bold text-blue-500 hover:text-white hover:bg-blue-500 border border-blue-500 px-3 py-1.5 rounded transition-all flex items-center gap-1 shadow-sm" title="Buscar em backups locais">
+                        <i class="ph ph-magnifying-glass"></i> Cofre de Segurança
+                    </button>
+                    <button onclick="App.closeModalUI('archive-modal')" class="text-2xl text-slate-400 hover:text-slate-600 ml-2">&times;</button>
+                </div>
             </div>
             
             <input type="text" id="archive-search" placeholder="Pesquisar no arquivo..." class="mb-3 w-full p-2 text-sm border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-brand-orange">
             <div id="archive-list" class="flex-grow overflow-y-auto space-y-2 pr-2"></div>
+        </div>
+    </div>
+
+    <div id="recovery-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-[90]">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-3xl h-[80vh] flex flex-col shadow-2xl border-2 border-blue-500 dark:border-blue-700">
+            <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-2">
+                <h2 class="text-xl font-bold dark:text-white flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                    <i class="ph ph-shield-check text-2xl"></i> Cofre de Segurança (Backup Local)
+                </h2>
+                <button onclick="App.closeModalUI('recovery-modal')" class="text-2xl text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg mb-4 text-xs text-blue-800 dark:text-blue-200 border border-blue-100 dark:border-blue-800">
+                <i class="ph ph-info"></i> Estes itens foram encontrados nos backups internos do seu navegador. Se algo sumiu, provavelmente está aqui.
+            </div>
+            <input type="text" id="recovery-search" placeholder="Pesquisar no cofre (Nome do condomínio...)" class="mb-3 w-full p-2 text-sm border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+            <div id="recovery-list" class="flex-grow overflow-y-auto space-y-2 pr-2"></div>
         </div>
     </div>
 
@@ -581,7 +602,8 @@
                 unsubscribePersonal: null, // Listener pessoal
                 editingId: null,
                 pendingDeleteId: null,
-                editingTaskId: null
+                editingTaskId: null,
+                recoveryList: [] // Lista para o Cofre
             },
             charts: {},
             statusColors: {
@@ -691,6 +713,11 @@
                  const cleanArchived = JSON.parse(JSON.stringify(this.data.archived));
                  const cleanProd = JSON.parse(JSON.stringify(this.data.productivity));
                  
+                 // Backup Local de Segurança antes de salvar
+                 if (cleanTasks.length > 0 || cleanArchived.length > 0) {
+                     localStorage.setItem('mon_safe_backup', JSON.stringify({t: cleanTasks, a: cleanArchived}));
+                 }
+
                  if (this.data.user) {
                     try {
                         const safeId = this.data.user.uid;
@@ -813,6 +840,8 @@
                 });
                 addListener('archive-search', 'input', () => App.renderArchiveList());
                 
+                addListener('recovery-search', 'input', () => App.renderRecoveryList()); // Listener para o Cofre
+
                 addListener('export-data-btn', 'click', () => App.exportData());
                 addListener('import-data-btn', 'click', () => document.getElementById('file-input').click());
                 addListener('file-input', 'change', (e) => { 
@@ -989,6 +1018,74 @@
                          localStorage.setItem('mon_shadow_archive_latest', JSON.stringify(arr));
                      }
                  } catch(e) {}
+            },
+
+            // --- COFRE DE SEGURANÇA (RECUPERAÇÃO) ---
+            recoverLostData() {
+                const candidates = new Map();
+                const process = (key) => {
+                    try {
+                        const raw = localStorage.getItem(key); if (!raw) return; const parsed = JSON.parse(raw);
+                        let arr = []; if (Array.isArray(parsed)) arr = parsed; else if (parsed.a) arr = parsed.a.concat(parsed.t || []); 
+                        arr.forEach(t => { if (t && t.id) candidates.set(t.id, t); });
+                    } catch(e) { console.error("Error reading " + key, e); }
+                };
+                // Varre todos os locais possíveis
+                process('mon_archived'); 
+                process('mon_tasks'); 
+                process('mon_safe_backup'); 
+                process('mon_shadow_archive_latest');
+                
+                const currentIds = new Set([...this.data.tasks.map(t => t.id), ...this.data.archived.map(t => t.id)]);
+                this.data.recoveryList = [];
+                for (const [id, task] of candidates) { 
+                    if (!currentIds.has(id)) this.data.recoveryList.push(task); 
+                }
+                
+                if (this.data.recoveryList.length === 0) { 
+                    alert("O Cofre está vazio. Nenhum dado perdido foi encontrado nos backups locais."); 
+                } else { 
+                    this.openModalUI('recovery-modal'); 
+                    this.renderRecoveryList(); 
+                }
+            },
+
+            renderRecoveryList() {
+                const list = document.getElementById('recovery-list');
+                const search = document.getElementById('recovery-search').value.toLowerCase();
+                const filtered = this.data.recoveryList.filter(t => (t.condominio || '').toLowerCase().includes(search));
+                
+                if (filtered.length === 0) { list.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Nenhum item correspondente encontrado.</p>'; return; }
+                
+                list.innerHTML = filtered.map(t => `
+                    <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded border border-blue-100 dark:border-blue-900 hover:shadow-md transition-all">
+                        <div>
+                            <p class="font-bold text-sm dark:text-white uppercase text-blue-900 dark:text-blue-100">${t.condominio || 'Sem Nome'}</p>
+                            <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="ph ph-calendar"></i> ${this.formatDate(t.dataAnalise)} <span class="mx-1">•</span> ${t.semana || '-'}</p>
+                        </div>
+                        <button onclick="App.restoreSingleFromRecovery('${t.id}')" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded shadow-lg transition-colors">
+                            <i class="ph ph-download-simple"></i> Recuperar Este
+                        </button>
+                    </div>`).join('');
+            },
+
+            restoreSingleFromRecovery(id) {
+                const idx = this.data.recoveryList.findIndex(t => t.id === id);
+                if (idx > -1) {
+                    const item = this.data.recoveryList[idx];
+                    this.data.recoveryList.splice(idx, 1);
+                    // Marca para não ser arquivado novamente logo em seguida
+                    item.manualRestore = true; 
+                    item.carimboSemanaAtual = true; 
+                    
+                    this.data.tasks.unshift(item);
+                    this.saveData(); 
+                    this.renderRecoveryList(); 
+                    this.render(); 
+                    this.showToast('Item recuperado do Cofre!');
+                    
+                    if (this.data.recoveryList.length === 0) this.closeModalUI('recovery-modal');
+                }
             },
 
             // --- AUTH ---
