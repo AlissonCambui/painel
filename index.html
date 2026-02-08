@@ -249,7 +249,7 @@
 
     <!-- Indicador de Versão no Rodapé -->
     <footer class="p-4 text-center text-xs text-slate-400 dark:text-slate-600">
-        v4.1.6 (Correção de Renderização)
+        v4.2.0 (Persistência & Erros)
     </footer>
 
     <!-- MODAIS EXISTENTES -->
@@ -504,231 +504,13 @@
     </div>
     <!-- [FIM] NOVO MODAL -->
 
-    <div id="pdv-detailed-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-60">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl flex flex-col dark:bg-slate-800 dark:shadow-xl max-h-[90vh]">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Análise Detalhada por PDV</h2>
-                <button id="pdv-detailed-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold dark:text-slate-300 dark:hover:text-slate-100">&times;</button>
-            </div>
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Selecione o Condomínio:</label>
-                <select id="pdv-analysis-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
-                    <option value="">Escolha um PDV...</option>
-                </select>
-            </div>
-            <div id="pdv-analysis-results" class="hidden flex-grow overflow-y-auto">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div class="bg-brand-light p-4 rounded-xl text-center border border-brand-light">
-                        <h3 class="text-sm font-bold text-brand-dark uppercase tracking-wider">Dia Crítico</h3>
-                        <p id="pdv-critical-day" class="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-2">-</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Maior incidência de ocorrências</p>
-                    </div>
-                    <div class="bg-red-50 p-4 rounded-xl text-center border border-red-100 dark:bg-red-900/20 dark:border-red-800/30">
-                        <h3 class="text-sm font-bold text-red-600 uppercase tracking-wider dark:text-red-400">Horário Crítico</h3>
-                        <p id="pdv-critical-time" class="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-2">-</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pico de atividade suspeita</p>
-                    </div>
-                </div>
-                <div class="bg-slate-50 p-4 rounded-xl dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mb-4">
-                    <h3 class="text-center font-semibold mb-4 text-slate-700 dark:text-slate-300">Ocorrências por Dia da Semana</h3>
-                    <div class="chart-container" style="height: 200px;">
-                        <canvas id="pdvAnalysisChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-auto flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
-                <button id="pdv-detailed-footer-close-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Fechar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="custom-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-60">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center dark:bg-slate-800 dark:shadow-xl border border-slate-200 dark:border-slate-700">
-            <div class="mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-brand mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            </div>
-            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2" id="confirm-modal-title">Tem certeza?</h2>
-            <p class="text-slate-600 dark:text-slate-300 mb-6 text-sm" id="confirm-modal-msg">Essa ação não pode ser desfeita.</p>
-            <div class="flex justify-center gap-3">
-                <button id="confirm-modal-cancel-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 flex-1">Cancelar</button>
-                <button id="confirm-modal-yes-btn" class="bg-brand text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-hover flex-1">Sim, confirmar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg dark:bg-slate-800 dark:shadow-xl">
-            <h2 class="text-2xl font-bold mb-4">Adicionar Nova Análise</h2>
-            <form id="task-form">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Condomínio</label>
-                        <div class="relative">
-                            <input type="text" id="form-condominio" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" required autocomplete="off">
-                            <div id="autocomplete-list" class="absolute z-10 w-full bg-white border border-slate-300 rounded-lg mt-1 hidden max-h-40 overflow-y-auto shadow-lg dark:bg-slate-700 dark:border-slate-600"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Data</label>
-                        <input type="date" id="form-data-analise" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" required>
-                    </div>
-                </div>
-                 <div class="mt-4">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Semana (Nº)</label>
-                    <input type="number" id="form-semana-trabalho" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
-                 </div>
-                 <div class="mt-4">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Observações</label>
-                    <textarea id="form-observacoes" rows="3" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"></textarea>
-                 </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" id="cancel-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Cancelar</button>
-                    <button type="submit" class="bg-brand text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-hover">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="ocorrencia-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col dark:bg-slate-800 dark:shadow-xl">
-            <h2 class="text-2xl font-bold mb-4">Gerenciar Ocorrências</h2>
-            <form id="ocorrencia-form" class="flex-grow flex flex-col min-h-0">
-                <input type="hidden" id="ocorrencia-task-id">
-                
-                <div class="flex-grow overflow-y-auto mb-4 bg-slate-50 rounded-lg p-2 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                    <div id="ocorrencia-list" class="space-y-2"></div>
-                </div>
-                
-                <div class="flex-shrink-0 pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <h3 class="font-semibold mb-2 text-sm text-slate-600 dark:text-slate-300">Adicionar / Editar Item</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div>
-                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Categoria</label>
-                            <select id="add-ocorrencia-categoria" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-1 px-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"></select>
-                         </div>
-                        <div>
-                           <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Descrição</label>
-                           <input type="text" id="add-ocorrencia-desc" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-1 px-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Início</label>
-                            <input type="time" id="add-horario-inicial" step="1" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-1 px-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Fim</label>
-                            <input type="time" id="add-horario-final" step="1" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-1 px-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
-                        </div>
-                    </div>
-                     <div class="mt-3">
-                        <label class="flex items-center cursor-pointer">
-                            <input type="checkbox" id="add-ocorrencia-inconclusiva" class="h-4 w-4 text-brand border-gray-300 rounded focus:ring-brand dark:bg-slate-700 dark:border-slate-600">
-                            <span class="ml-2 text-sm font-medium text-slate-700 dark:text-slate-300">Inconclusiva</span>
-                        </label>
-                    </div>
-                     <button type="button" id="add-ocorrencia-btn" class="mt-3 w-full bg-brand-light text-brand-dark font-semibold px-4 py-2 rounded-lg hover:bg-slate-200 text-sm border border-brand-light">+ Adicionar à Lista</button>
-                </div>
-                <div class="mt-6 flex justify-end gap-3 flex-shrink-0">
-                    <button type="button" id="ocorrencia-cancel-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Cancelar</button>
-                    <button type="submit" class="bg-brand text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-hover">Salvar Alterações</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="bulk-add-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg dark:bg-slate-800 dark:shadow-xl">
-            <h2 class="text-2xl font-bold mb-4">Importar Planilha</h2>
-            <p class="text-sm text-slate-600 mb-4 dark:text-slate-300">Cole os dados do Excel. Formato:<br><strong>Semana | Data | Unidade | OC | Colaborador | Status</strong></p>
-            <form id="bulk-add-form">
-                <textarea id="bulk-input-area" rows="10" class="w-full border border-slate-300 rounded-lg p-2 mb-4 text-xs font-mono dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" placeholder="Cole aqui..."></textarea>
-                <div class="flex justify-end gap-2">
-                    <button type="button" id="bulk-cancel-btn" class="bg-slate-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Cancelar</button>
-                    <button type="submit" class="bg-brand text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand-hover">Importar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="completed-report-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl h-5/6 flex flex-col dark:bg-slate-800 dark:shadow-xl">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Relatório de Análises Concluídas</h2>
-                <button id="completed-report-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold dark:text-slate-300 dark:hover:text-slate-100">&times;</button>
-            </div>
-            
-            <!-- NOVO: Resumo Estatístico do Relatório -->
-            <div id="report-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div class="bg-slate-100 p-3 rounded-lg text-center dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">Total Análises</h4>
-                    <p id="report-total-analyses" class="text-2xl font-bold text-slate-800 dark:text-slate-100">0</p>
-                </div>
-                <div class="bg-slate-100 p-3 rounded-lg text-center dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">PDVs Únicos</h4>
-                    <p id="report-total-pdvs" class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</p>
-                </div>
-                <div class="bg-slate-100 p-3 rounded-lg text-center dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">Total Ocorrências</h4>
-                    <p id="report-total-ocs" class="text-2xl font-bold text-red-600 dark:text-red-400">0</p>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                 <input type="text" id="completed-report-search" placeholder="Filtrar relatório (nome, data)..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
-            </div>
-            <div class="flex-grow overflow-y-auto bg-slate-50 p-4 rounded-lg dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                <table class="w-full text-sm text-left text-slate-500 dark:text-slate-400">
-                    <thead class="text-xs text-slate-700 uppercase bg-slate-100 dark:bg-slate-700 dark:text-slate-400 sticky top-0">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 rounded-tl-lg">Condomínio</th>
-                            <th scope="col" class="px-4 py-3">Data</th>
-                            <th scope="col" class="px-4 py-3 text-center">Ocorrências</th>
-                            <th scope="col" class="px-4 py-3 text-right rounded-tr-lg">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="completed-report-list"></tbody>
-                </table>
-            </div>
-            <div class="mt-4 flex justify-end gap-3">
-                 <button id="export-report-btn" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                    Copiar Relatório
-                 </button>
-                 <button id="completed-report-footer-close-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Fechar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-[70]"><div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm text-center dark:bg-slate-800 dark:shadow-xl"><p id="notification-message" class="mb-4 text-lg text-slate-700 dark:text-slate-300"></p><button id="notification-close-btn" class="bg-brand text-white px-6 py-2 rounded-lg">OK</button></div></div>
-    
-    <div id="archive-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-xl p-6 w-full max-w-md dark:bg-slate-800 dark:shadow-xl"><h2 class="text-2xl font-bold mb-4">Arquivar</h2><form id="archive-form"><div class="space-y-2 mb-4"><button type="button" id="view-archive-btn" class="w-full bg-slate-500 text-white px-4 py-2 rounded-lg mb-4">Ver Arquivo</button><div class="flex gap-2"><button type="button" id="archive-cancel-btn" class="bg-slate-200 w-full px-4 py-2 rounded-lg dark:bg-slate-700 dark:text-slate-100">Cancelar</button></div></div></form></div></div>
-    
-    <div id="view-archive-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] flex flex-col dark:bg-slate-800 dark:shadow-xl">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Análises Arquivadas</h2>
-                <button id="view-archive-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold dark:text-slate-300 dark:hover:text-slate-100">&times;</button>
-            </div>
-             <div class="mb-4">
-                <input type="text" id="archive-search-input" placeholder="Buscar em arquivadas..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
-             </div>
-            <div id="view-archive-list-container" class="flex-grow overflow-y-auto bg-slate-50 p-3 rounded-lg min-h-[200px] dark:bg-slate-900">
-                <p class="text-center text-slate-500">Nenhuma análise arquivada.</p>
-            </div>
-            <div class="mt-4 flex justify-end gap-2">
-                 <button id="view-archive-close-footer-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Fechar</button>
-            </div>
-        </div>
-    </div>
-
     <input type="file" id="restore-input" class="hidden" accept=".json">
 
     <!-- Script tipo módulo para usar importações modernas do Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -754,6 +536,7 @@
         // Categorias e outras vars
         let categories = JSON.parse(localStorage.getItem('monitoramentoCategorias')) || ['Furto', 'Fraude Pagamento', 'Consumo Indevido', 'Vandalismo', 'Outros'];
         let currentEditingTaskOcorrencias = [];
+        let isDataLoading = true; // Flag de carregamento
         
         // Vars de Charts
         let ocorrenciasChart;
@@ -796,9 +579,12 @@
                 tasks.sort((a, b) => b.id - a.id);
                 // Atualiza também a referência global de janela
                 window.tasks = tasks;
+                isDataLoading = false; // Dados carregados
                 refreshUI();
             }, (error) => {
                 console.error("Erro ao ler tarefas:", error);
+                isDataLoading = false;
+                showNotification("Erro de conexão com o Banco de Dados: " + error.message);
             });
 
             const qArchived = query(collection(db, "monitoramento_archived"));
@@ -969,6 +755,21 @@
         function renderTasks() {
             const list = document.getElementById('task-list');
             if (!list) return;
+            
+            // Se ainda estiver carregando, não sobrescreva o spinner
+            if (isDataLoading) {
+                // O HTML estático já tem o spinner, mas se refreshUI for chamado, mantemos o spinner
+                list.innerHTML = `
+                <div class="col-span-full text-center py-10 text-slate-400">
+                    <svg class="animate-spin h-8 w-8 text-brand mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sincronizando com o banco de dados...
+                </div>`;
+                return;
+            }
+
             const filtroCond = document.getElementById('filtro-condominio').value.toLowerCase();
             const filtroBackup = document.getElementById('filtro-backup').value;
             const filtroAnalise = document.getElementById('filtro-analise').value;
@@ -1278,11 +1079,21 @@
                 if(errorMsg) errorMsg.classList.add('hidden');
                 const btn = document.getElementById('login-btn');
                 if(btn) btn.textContent = "Entrando...";
-                signInWithEmailAndPassword(auth, email, password).catch((error) => {
-                    console.error("Erro login:", error);
-                    if(btn) btn.textContent = "Entrar no Sistema";
-                    if(errorMsg) { errorMsg.textContent = "E-mail ou senha inválidos."; errorMsg.classList.remove('hidden'); }
-                });
+                
+                // Configura persistência antes do login
+                setPersistence(auth, browserLocalPersistence)
+                    .then(() => {
+                        return signInWithEmailAndPassword(auth, email, password);
+                    })
+                    .catch((error) => {
+                        console.error("Erro login/persistência:", error);
+                        if(btn) btn.textContent = "Entrar no Sistema";
+                        if(errorMsg) { 
+                            errorMsg.textContent = "E-mail ou senha inválidos."; // Simplificado para segurança
+                            if(error.code === 'auth/network-request-failed') errorMsg.textContent = "Erro de conexão. Verifique sua internet.";
+                            errorMsg.classList.remove('hidden'); 
+                        }
+                    });
             });
             if(logoutBtn) logoutBtn.addEventListener('click', () => { signOut(auth).then(() => showNotification("Você saiu do sistema.")); });
 
