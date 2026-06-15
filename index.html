@@ -77,48 +77,15 @@
         </svg>
     </button>
 
-    <!-- [NOVO] TELA DE LOGIN -->
-    <div id="login-container" class="fixed inset-0 z-[100] bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700">
-            <div class="text-center mb-8">
-                <div class="inline-block p-4 rounded-full bg-brand-light mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                </div>
-                <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Acesso Restrito</h1>
-                <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">Identifique-se para acessar o monitoramento.</p>
-            </div>
-            
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">E-mail</label>
-                    <input type="email" id="login-email" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="usuario@email.com" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Senha</label>
-                    <input type="password" id="login-password" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="••••••••" required>
-                </div>
-                <div id="login-error" class="text-red-500 text-sm text-center hidden">E-mail ou senha incorretos.</div>
-                <button type="submit" id="login-btn" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-hover transition-colors shadow-lg">
-                    Entrar no Sistema
-                </button>
-            </form>
-            <p class="mt-6 text-xs text-center text-slate-400 dark:text-slate-500">
-                Apenas pessoal autorizado.
-            </p>
-        </div>
-    </div>
-
-    <!-- CONTEÚDO DO APP (Escondido até login) -->
-    <div id="app-content" class="hidden container mx-auto p-4 md:p-6 lg:p-8 flex-grow flex flex-col min-h-screen">
+    <div class="container mx-auto p-4 md:p-6 lg:p-8 flex-grow">
         
         <header class="mb-8 text-center relative">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100">Painel de Monitoramento</h1>
-            <p class="text-slate-600 dark:text-slate-400 mt-2">Controle de backups, análises e ocorrências (Cloud Firebase).</p>
+            <p class="text-slate-600 dark:text-slate-400 mt-2">Controle de backups, análises e ocorrências de minimercados.</p>
         </header>
 
         <!-- Resumo do Dashboard -->
+        <!-- Alterado lg:grid-cols-5 para xl:grid-cols-6 para acomodar o novo card -->
         <section id="dashboard-resumo" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6 mb-8">
             <div class="bg-white p-4 rounded-xl shadow-md text-center dark:bg-slate-800 dark:shadow-xl">
                 <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400">Solicitações Ativas</h3>
@@ -128,14 +95,19 @@
                 <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400">PDVs Visualizados</h3>
                 <p id="total-pdvs-unicos" class="text-3xl font-bold text-blue-500 mt-1">0</p>
             </div>
-            <div class="bg-white p-4 rounded-xl shadow-md text-center dark:bg-slate-800 dark:shadow-xl">
+            <div class="bg-white p-4 rounded-xl shadow-md text-center dark:bg-slate-800 dark:shadow-xl relative flex flex-col justify-center items-center">
                 <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400">Backups Pendentes</h3>
                 <p id="backups-pendentes" class="text-3xl font-bold text-amber-500 mt-1">0</p>
+                <!-- NOVO BOTÃO DE EXCLUSÃO EM MASSA -->
+                <button id="delete-all-pendentes-btn" class="mt-2 text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-3 py-1 rounded-full transition-colors uppercase shadow-sm">
+                    Excluir Todos
+                </button>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-md text-center dark:bg-slate-800 dark:shadow-xl">
                 <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400">Análises Pendentes</h3>
                 <p id="analises-pendentes" class="text-3xl font-bold text-red-500 mt-1">0</p>
             </div>
+            <!-- NOVO CARD: Análises Concluídas -->
             <div class="bg-white p-4 rounded-xl shadow-md text-center dark:bg-slate-800 dark:shadow-xl">
                 <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400">Análises Concluídas</h3>
                 <p id="analises-concluidas" class="text-3xl font-bold text-emerald-500 mt-1">0</p>
@@ -205,9 +177,6 @@
                                 <button id="restore-backup-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-600 text-amber-600 dark:text-amber-400 font-medium">⬆️ Restaurar Backup</button>
                                 <div class="border-t border-slate-100 dark:border-slate-600 my-1"></div>
                                 <button id="archive-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-600">Arquivar</button>
-                                <div class="border-t border-slate-100 dark:border-slate-600 my-1"></div>
-                                <!-- BOTÃO SAIR -->
-                                <button id="logout-btn" class="w-full text-left block px-4 py-2 text-sm hover:bg-red-50 text-red-600 font-bold dark:hover:bg-red-900/20 dark:text-red-400">🚪 Sair do Sistema</button>
                             </div>
                         </div>
                     </div>
@@ -218,13 +187,6 @@
         <!-- Lista de Tarefas -->
         <main id="task-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <!-- Cards Renderizados via JS -->
-            <div class="col-span-full text-center py-10 text-slate-400">
-                <svg class="animate-spin h-8 w-8 text-brand mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Carregando dados do Firebase...
-            </div>
         </main>
         
         <!-- Gráficos -->
@@ -249,19 +211,18 @@
 
     <!-- Indicador de Versão no Rodapé -->
     <footer class="p-4 text-center text-xs text-slate-400 dark:text-slate-600">
-        v4.2.0 (Persistência & Erros)
+        v3.9.2 (Card Concluídas + Limpeza de Backups Pendentes)
     </footer>
 
     <!-- MODAIS EXISTENTES -->
-    <!-- (Mantidos: task-modal, ocorrencia-modal, bulk-add-modal, etc.) -->
 
-    <!-- [INÍCIO] NOVO MODAL: ANALYTICS E RELATÓRIO PDV (OTIMIZADO) -->
+    <!-- NOVO MODAL: ANALYTICS E RELATÓRIO PDV -->
     <div id="analytics-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-0 hidden z-70">
         <div class="bg-slate-100 w-full h-full md:h-[95vh] md:w-[95vw] md:rounded-xl overflow-hidden flex flex-col dark:bg-slate-900 shadow-2xl">
             <!-- Header Analytics -->
             <div class="bg-slate-900 text-white p-4 flex justify-between items-center shrink-0 shadow-md">
                 <div class="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                     <h2 class="text-xl font-bold">Analytics de Produtividade</h2>
                 </div>
                 <div class="flex gap-2">
@@ -504,961 +465,1247 @@
     </div>
     <!-- [FIM] NOVO MODAL -->
 
+    <div id="pdv-detailed-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-60">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl flex flex-col dark:bg-slate-800 dark:shadow-xl max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Análise Detalhada por PDV</h2>
+                <button id="pdv-detailed-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold dark:text-slate-300 dark:hover:text-slate-100">&times;</button>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Selecione o Condomínio:</label>
+                <select id="pdv-analysis-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+                    <option value="">Escolha um PDV...</option>
+                </select>
+            </div>
+            <div id="pdv-analysis-results" class="hidden flex-grow overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-brand-light p-4 rounded-xl text-center border border-brand-light">
+                        <h3 class="text-sm font-bold text-brand-dark uppercase tracking-wider">Dia Crítico</h3>
+                        <p id="pdv-critical-day" class="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-2">-</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Maior incidência de ocorrências</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-xl text-center border border-red-100 dark:bg-red-900/20 dark:border-red-800/30">
+                        <h3 class="text-sm font-bold text-red-600 uppercase tracking-wider dark:text-red-400">Horário Crítico</h3>
+                        <p id="pdv-critical-time" class="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-2">-</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pico de atividade suspeita</p>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mb-4">
+                    <h3 class="text-center font-semibold mb-4 text-slate-700 dark:text-slate-300">Ocorrências por Dia da Semana</h3>
+                    <div class="chart-container" style="height: 200px;">
+                        <canvas id="pdvAnalysisChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-auto flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
+                <button id="pdv-detailed-footer-close-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-60">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center dark:bg-slate-800 dark:shadow-xl border border-slate-200 dark:border-slate-700">
+            <div class="mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-brand mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2" id="confirm-modal-title">Tem certeza?</h2>
+            <p class="text-slate-600 dark:text-slate-300 mb-6 text-sm" id="confirm-modal-msg">Essa ação não pode ser desfeita.</p>
+            <div class="flex justify-center gap-3">
+                <button id="confirm-modal-cancel-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 flex-1">Cancelar</button>
+                <button id="confirm-modal-yes-btn" class="bg-brand text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-hover flex-1">Sim, confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg dark:bg-slate-800 dark:shadow-xl">
+            <h2 class="text-2xl font-bold mb-4">Adicionar Nova Análise</h2>
+            <form id="task-form">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Condomínio</label>
+                        <div class="relative">
+                            <input type="text" id="form-condominio" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" required autocomplete="off">
+                            <div id="autocomplete-list" class="absolute z-10 w-full bg-white border border-slate-300 rounded-lg mt-1 hidden max-h-40 overflow-y-auto shadow-lg dark:bg-slate-700 dark:border-slate-600"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Data</label>
+                        <input type="date" id="form-data-analise" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" required>
+                    </div>
+                </div>
+                 <div class="mt-4">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Semana (Nº)</label>
+                    <input type="number" id="form-semana-trabalho" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+                 </div>
+                 <div class="mt-4">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Observações</label>
+                    <textarea id="form-observacoes" rows="3" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-2 px-3 focus:ring-brand focus:border-brand dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"></textarea>
+                 </div>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" id="cancel-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Cancelar</button>
+                    <button type="submit" class="bg-brand text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-hover">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="ocorrencia-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col dark:bg-slate-800 dark:shadow-xl">
+            <h2 class="text-2xl font-bold mb-4">Gerenciar Ocorrências</h2>
+            <form id="ocorrencia-form" class="flex-grow flex flex-col min-h-0">
+                <input type="hidden" id="ocorrencia-task-id">
+                
+                <div class="flex-grow overflow-y-auto mb-4 bg-slate-50 rounded-lg p-2 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <div id="ocorrencia-list" class="space-y-2"></div>
+                </div>
+                
+                <div class="flex-shrink-0 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <h3 class="font-semibold mb-2 text-sm text-slate-600 dark:text-slate-300">Adicionar / Editar Item</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Categoria</label>
+                            <select id="add-ocorrencia-categoria" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-1 px-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"></select>
+                         </div>
+                        <div>
+                           <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Descrição</label>
+                           <input type="text" id="add-ocorrencia-desc" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-1 px-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Início</label>
+                            <input type="time" id="add-horario-inicial" step="1" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-1 px-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">Fim</label>
+                            <input type="time" id="add-horario-final" step="1" class="mt-1 block w-full border border-slate-300 rounded-lg shadow-sm py-1 px-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+                        </div>
+                    </div>
+                     <div class="mt-3">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="add-ocorrencia-inconclusiva" class="h-4 w-4 text-brand border-gray-300 rounded focus:ring-brand dark:bg-slate-700 dark:border-slate-600">
+                            <span class="ml-2 text-sm font-medium text-slate-700 dark:text-slate-300">Inconclusiva</span>
+                        </label>
+                    </div>
+                     <button type="button" id="add-ocorrencia-btn" class="mt-3 w-full bg-brand-light text-brand-dark font-semibold px-4 py-2 rounded-lg hover:bg-slate-200 text-sm border border-brand-light">+ Adicionar à Lista</button>
+                </div>
+                <div class="mt-6 flex justify-end gap-3 flex-shrink-0">
+                    <button type="button" id="ocorrencia-cancel-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Cancelar</button>
+                    <button type="submit" class="bg-brand text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-hover">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="bulk-add-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg dark:bg-slate-800 dark:shadow-xl">
+            <h2 class="text-2xl font-bold mb-4">Importar Planilha</h2>
+            <p class="text-sm text-slate-600 mb-4 dark:text-slate-300">Cole os dados do Excel. Formato:<br><strong>Semana | Data | Unidade | OC | Colaborador | Status</strong></p>
+            <form id="bulk-add-form">
+                <textarea id="bulk-input-area" rows="10" class="w-full border border-slate-300 rounded-lg p-2 mb-4 text-xs font-mono dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" placeholder="Cole aqui..."></textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="bulk-cancel-btn" class="bg-slate-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Cancelar</button>
+                    <button type="submit" class="bg-brand text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand-hover">Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="completed-report-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl h-5/6 flex flex-col dark:bg-slate-800 dark:shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Relatório de Análises Concluídas</h2>
+                <button id="completed-report-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold dark:text-slate-300 dark:hover:text-slate-100">&times;</button>
+            </div>
+            
+            <div id="report-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-slate-100 p-3 rounded-lg text-center dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">Total Análises</h4>
+                    <p id="report-total-analyses" class="text-2xl font-bold text-slate-800 dark:text-slate-100">0</p>
+                </div>
+                <div class="bg-slate-100 p-3 rounded-lg text-center dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">PDVs Únicos</h4>
+                    <p id="report-total-pdvs" class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</p>
+                </div>
+                <div class="bg-slate-100 p-3 rounded-lg text-center dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">Total Ocorrências</h4>
+                    <p id="report-total-ocs" class="text-2xl font-bold text-red-600 dark:text-red-400">0</p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                 <input type="text" id="completed-report-search" placeholder="Filtrar relatório (nome, data)..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+            </div>
+            <div class="flex-grow overflow-y-auto bg-slate-50 p-4 rounded-lg dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                <table class="w-full text-sm text-left text-slate-500 dark:text-slate-400">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-100 dark:bg-slate-700 dark:text-slate-400 sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 rounded-tl-lg">Condomínio</th>
+                            <th scope="col" class="px-4 py-3">Data</th>
+                            <th scope="col" class="px-4 py-3 text-center">Ocorrências</th>
+                            <th scope="col" class="px-4 py-3 text-right rounded-tr-lg">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completed-report-list"></tbody>
+                </table>
+            </div>
+            <div class="mt-4 flex justify-end gap-3">
+                 <button id="export-report-btn" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                    Copiar Relatório
+                 </button>
+                 <button id="completed-report-footer-close-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-[70]"><div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm text-center dark:bg-slate-800 dark:shadow-xl"><p id="notification-message" class="mb-4 text-lg text-slate-700 dark:text-slate-300"></p><button id="notification-close-btn" class="bg-brand text-white px-6 py-2 rounded-lg">OK</button></div></div>
+    
+    <div id="archive-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div class="bg-white rounded-xl p-6 w-full max-w-md dark:bg-slate-800 dark:shadow-xl"><h2 class="text-2xl font-bold mb-4">Arquivar</h2><form id="archive-form"><div class="space-y-2 mb-4"><button type="button" id="view-archive-btn" class="w-full bg-slate-500 text-white px-4 py-2 rounded-lg mb-4">Ver Arquivo</button><div class="flex gap-2"><button type="button" id="archive-cancel-btn" class="bg-slate-200 w-full px-4 py-2 rounded-lg dark:bg-slate-700 dark:text-slate-100">Cancelar</button></div></div></form></div></div>
+    
+    <div id="view-archive-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] flex flex-col dark:bg-slate-800 dark:shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Análises Arquivadas</h2>
+                <button id="view-archive-close-btn" class="text-slate-500 hover:text-slate-800 text-2xl font-bold dark:text-slate-300 dark:hover:text-slate-100">&times;</button>
+            </div>
+             <div class="mb-4">
+                <input type="text" id="archive-search-input" placeholder="Buscar em arquivadas..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
+             </div>
+            <div id="view-archive-list-container" class="flex-grow overflow-y-auto bg-slate-50 p-3 rounded-lg min-h-[200px] dark:bg-slate-900">
+                <p class="text-center text-slate-500">Nenhuma análise arquivada.</p>
+            </div>
+            <div class="mt-4 flex justify-end gap-2">
+                 <button id="view-archive-close-footer-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <input type="file" id="restore-input" class="hidden" accept=".json">
 
-    <!-- Script tipo módulo para usar importações modernas do Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyA5wgXYIstkmAc3nLSN6B54ZJhM9YsW-JI",
-            authDomain: "novo-painel-de-monitoramento.firebaseapp.com",
-            projectId: "novo-painel-de-monitoramento",
-            storageBucket: "novo-painel-de-monitoramento.firebasestorage.app",
-            messagingSenderId: "792021984515",
-            appId: "1:792021984515:web:fd601c4ff7f2650cb6f536",
-            measurementId: "G-RQ13TB6JBW"
-        };
-
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // --- VARIÁVEIS GLOBAIS (ESCOPO MÓDULO) ---
-        let tasks = [];
-        let archivedTasks = [];
-        let unsubscribeTasks = null;
-        let unsubscribeArchived = null;
-        // Categorias e outras vars
-        let categories = JSON.parse(localStorage.getItem('monitoramentoCategorias')) || ['Furto', 'Fraude Pagamento', 'Consumo Indevido', 'Vandalismo', 'Outros'];
-        let currentEditingTaskOcorrencias = [];
-        let isDataLoading = true; // Flag de carregamento
-        
-        // Vars de Charts
-        let ocorrenciasChart;
-        let pdvAnalysisChart;
-        let chartTopPdvs, chartDaysWeek, chartOperators, chartIndividualActivity;
-        let analyticsData = [];
-
-        // Chart defaults
-        Chart.defaults.color = '#cbd5e1'; 
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
-
-        // Expor vars globalmente para compatibilidade se necessário (debug)
-        window.tasks = tasks;
-        window.archivedTasks = archivedTasks;
-
-        // --- ELEMENTOS DO LOGIN ---
-        const loginContainer = document.getElementById('login-container');
-        const appContent = document.getElementById('app-content');
-        const loginForm = document.getElementById('login-form');
-        const logoutBtn = document.getElementById('logout-btn');
-
-        // --- FUNÇÕES DE LÓGICA DE DADOS ---
-        
-        function refreshUI() {
-            renderTasks();
-            updateDashboard();
-            updateCharts();
-        }
-
-        function startDataListeners() {
-            // Evita duplicar listeners
-            if (unsubscribeTasks || unsubscribeArchived) return;
-
-            const qTasks = query(collection(db, "monitoramento_tasks"));
-            unsubscribeTasks = onSnapshot(qTasks, (snapshot) => {
-                tasks = [];
-                snapshot.forEach((doc) => {
-                    tasks.push({ ...doc.data(), id: doc.id });
-                });
-                tasks.sort((a, b) => b.id - a.id);
-                // Atualiza também a referência global de janela
-                window.tasks = tasks;
-                isDataLoading = false; // Dados carregados
-                refreshUI();
-            }, (error) => {
-                console.error("Erro ao ler tarefas:", error);
-                isDataLoading = false;
-                showNotification("Erro de conexão com o Banco de Dados: " + error.message);
-            });
-
-            const qArchived = query(collection(db, "monitoramento_archived"));
-            unsubscribeArchived = onSnapshot(qArchived, (snapshot) => {
-                archivedTasks = [];
-                snapshot.forEach((doc) => {
-                    archivedTasks.push({ ...doc.data(), id: doc.id });
-                });
-                // Atualiza também a referência global de janela
-                window.archivedTasks = archivedTasks;
-                renderArchivedList();
-            });
-        }
-
-        function stopDataListeners() {
-            if (unsubscribeTasks) { unsubscribeTasks(); unsubscribeTasks = null; }
-            if (unsubscribeArchived) { unsubscribeArchived(); unsubscribeArchived = null; }
-            tasks = [];
-            archivedTasks = [];
-            window.tasks = [];
-            window.archivedTasks = [];
-        }
-
-        // --- LÓGICA DE AUTENTICAÇÃO (PRINCIPAL) ---
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Usuário Logado: Esconde login, mostra app, inicia listeners
-                if(loginContainer) loginContainer.classList.add('hidden');
-                if(appContent) appContent.classList.remove('hidden');
-                startDataListeners();
-                console.log("Usuário autenticado e dados sincronizando.");
-            } else {
-                // Usuário Deslogado: Mostra login, esconde app, para listeners
-                if(loginContainer) loginContainer.classList.remove('hidden');
-                if(appContent) appContent.classList.add('hidden');
-                stopDataListeners();
-                console.log("Usuário desconectado.");
-            }
-        });
-
-        // --- FUNÇÕES DE UI E HELPER ---
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const html = document.documentElement;
-            const sunIcon = document.getElementById('icon-sun');
-            const moonIcon = document.getElementById('icon-moon');
-
-            if (savedTheme === 'light') {
-                html.classList.remove('dark');
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            } else {
-                html.classList.add('dark');
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            }
-        }
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            const sunIcon = document.getElementById('icon-sun');
-            const moonIcon = document.getElementById('icon-moon');
+    <script>
+        // Função para troca de abas no analytics (Escopo Global)
+        function switchAnalyticsTab(tabId) {
+            // Remove active class from buttons
+            document.querySelectorAll('.analytics-tab-btn').forEach(btn => btn.classList.remove('active'));
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
             
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            } else {
-                html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            }
+            // Activate selected
+            document.getElementById(`tab-btn-${tabId}`).classList.add('active');
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
         }
 
-        function showNotification(message) {
-            const elMsg = document.getElementById('notification-message');
-            const elModal = document.getElementById('notification-modal');
-            if (elMsg && elModal) {
-                elMsg.textContent = message;
-                elModal.classList.remove('hidden');
-            }
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const parts = dateString.split('-');
-            if(parts.length === 3) {
-                return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-            return dateString;
-        }
-        
-        function formatDateForInput(date) { 
-            const offset = date.getTimezoneOffset() * 60000; 
-            const localISOTime = (new Date(date - offset)).toISOString().slice(0, 10);
-            return localISOTime;
-        }
-
-        function getDayName(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString + 'T12:00:00');
-            if(isNaN(date.getTime())) return '';
-            const dayName = date.toLocaleDateString('pt-BR', { weekday: 'long' });
-            return dayName.charAt(0).toUpperCase() + dayName.slice(1);
-        }
-
-        function populateCategorySelect(selectElement) {
-            if (!selectElement) return;
-            selectElement.innerHTML = '';
-            categories.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
-                selectElement.appendChild(option);
-            });
-        }
-
-        function populatePdvAnalysisSelect() {
-            const select = document.getElementById('pdv-analysis-select');
-            if (!select) return;
-            select.innerHTML = '<option value="">Escolha um PDV...</option>';
-            const allCondos = [...tasks, ...archivedTasks].map(t => t.condominio.trim());
-            const uniqueCondos = [...new Set(allCondos)].sort();
-            uniqueCondos.forEach(name => {
-                if(name) {
-                    const option = document.createElement('option');
-                    option.value = name;
-                    option.textContent = name;
-                    select.appendChild(option);
-                }
-            });
-        }
-
-        function getCondoHighRiskCount(name) {
-            const all = [...tasks, ...archivedTasks];
-            return all.filter(t => t.condominio.trim().toLowerCase() === name.trim().toLowerCase()).reduce((count, t) => {
-                if (t.ocorrencias && t.ocorrencias.length >= 3) return count + 1;
-                return count;
-            }, 0);
-        }
-
-        function renderModalOcorrenciasList() {
-            const list = document.getElementById('ocorrencia-list');
-            if (!list) return; // Guard clause adicionado
-            list.innerHTML = '';
-            if (currentEditingTaskOcorrencias.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-500 py-4">Nenhuma ocorrência registrada.</p>'; return; }
-            currentEditingTaskOcorrencias.forEach((ocor, index) => {
-                const div = document.createElement('div');
-                div.className = 'ocorrencia-item-row p-3 bg-white border border-slate-200 rounded-lg flex justify-between items-center group dark:bg-slate-800 dark:border-slate-700';
-                const inconclusivaBadge = ocor.inconclusiva ? `<span class="ml-2 text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full border border-red-200 dark:bg-red-900 dark:text-red-100 dark:border-red-800">INCONCLUSIVA</span>` : '';
-                div.innerHTML = `<div class="flex-grow"><p class="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center flex-wrap">${ocor.categoria}${inconclusivaBadge}</p><p class="text-xs text-slate-600 dark:text-slate-400">${ocor.desc}</p><p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-1">${ocor.horarioInicial} - ${ocor.horarioFinal}</p></div><div class="flex gap-2 occ-actions"><button type="button" data-index="${index}" class="edit-item-btn text-blue-500 hover:text-blue-700" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button><button type="button" data-index="${index}" class="delete-item-btn text-red-500 hover:text-red-700" title="Remover"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div>`;
-                list.appendChild(div);
-            });
-        }
-
-        // --- RENDERIZAÇÃO DA LISTA DE TAREFAS ---
-        const statusClasses = {
-            'Pendente': 'bg-amber-100 text-amber-600',
-            'Em Andamento': 'bg-orange-100 text-orange-600',
-            'Em Análise': 'bg-orange-100 text-orange-600',
-            'Concluído': 'bg-emerald-100 text-emerald-600',
-            'Concluída': 'bg-emerald-100 text-emerald-600',
-            'Não visualizar': 'bg-slate-100 text-slate-500'
-        };
-
-        function renderTasks() {
-            const list = document.getElementById('task-list');
-            if (!list) return;
-            
-            // Se ainda estiver carregando, não sobrescreva o spinner
-            if (isDataLoading) {
-                // O HTML estático já tem o spinner, mas se refreshUI for chamado, mantemos o spinner
-                list.innerHTML = `
-                <div class="col-span-full text-center py-10 text-slate-400">
-                    <svg class="animate-spin h-8 w-8 text-brand mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Sincronizando com o banco de dados...
-                </div>`;
-                return;
-            }
-
-            const filtroCond = document.getElementById('filtro-condominio').value.toLowerCase();
-            const filtroBackup = document.getElementById('filtro-backup').value;
-            const filtroAnalise = document.getElementById('filtro-analise').value;
-            const filtroData = document.getElementById('filtro-data').value;
-            const filtroSemana = document.getElementById('filtro-semana').value;
-            const filtroDiaSemana = document.getElementById('filtro-dia-semana').value;
-
-            let filtered = tasks.filter(t => t.condominio.toLowerCase().includes(filtroCond));
-            if (filtroBackup) filtered = filtered.filter(t => t.statusBackup === filtroBackup);
-            if (filtroAnalise) filtered = filtered.filter(t => t.statusAnalise === filtroAnalise);
-            if (filtroData) filtered = filtered.filter(t => t.dataAnalise === filtroData);
-            if (filtroSemana) filtered = filtered.filter(t => t.semanaDeTrabalho == filtroSemana);
-            if (filtroDiaSemana !== "") {
-                filtered = filtered.filter(t => {
-                    if (!t.dataAnalise) return false;
-                    const d = new Date(t.dataAnalise + 'T12:00:00');
-                    return d.getDay().toString() === filtroDiaSemana;
-                });
-            }
-            filtered.sort((a, b) => a.condominio.localeCompare(b.condominio));
-            list.innerHTML = '';
-            if(filtered.length === 0) { list.innerHTML = `<p class="text-slate-500 text-center col-span-full">Nenhuma tarefa encontrada.</p>`; return; }
-
-            filtered.forEach(task => {
-                const card = document.createElement('div');
-                let color = task.statusAnalise === 'Concluída' ? '#10b981' : (task.statusAnalise === 'Em Análise' ? '#f97316' : '#f59e0b');
-                card.className = 'bg-white p-4 rounded-xl shadow-md border-l-4 dark:bg-slate-800 dark:shadow-xl';
-                card.style.borderLeftColor = color;
-                const ocCount = task.ocorrencias ? task.ocorrencias.length : 0;
-                const badge = ocCount > 0 ? `<div class="mt-1"><span class="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-lg border border-red-300 dark:bg-red-900 dark:text-red-100 dark:border-red-700">OCs: ${ocCount}</span></div>` : '';
-                const highRiskDays = getCondoHighRiskCount(task.condominio);
-                let riskBadge = highRiskDays > 0 ? `<span class="ml-2 text-lg" title="PDV Crítico">🔥</span>` : '';
-                const isCollapsed = !task.isExpanded; 
-                let editBtnHTML = (task.statusAnalise !== 'Arquivado') ? `<button data-id="${task.id}" class="edit-ocorrencia-btn mt-4 w-full bg-slate-200 text-slate-800 font-bold py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">${task.statusAnalise === 'Concluída' ? 'Ver/Editar Ocorrências' : 'Registrar Ocorrências'}</button>` : '';
-                let obsHTML = task.observacoes ? `<div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700"><p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Obs:</p><p class="text-sm text-slate-500 dark:text-slate-400">${task.observacoes}</p></div>` : '';
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <h3 class="font-bold text-lg flex-1 flex items-center flex-wrap">${task.condominio}${riskBadge}</h3>
-                        <div class="flex items-center gap-2">
-                            <button data-id="${task.id}" class="archive-single-btn text-slate-400 hover:text-brand font-bold text-lg p-1" title="Arquivar"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg></button>
-                            <button data-id="${task.id}" class="delete-task-btn text-slate-400 hover:text-red-600 font-bold text-lg p-1" title="Excluir"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center mt-2">
-                        <div><p class="text-sm text-slate-500 dark:text-slate-400">Data: <strong>${formatDate(task.dataAnalise)}</strong> <span class="text-xs text-slate-400 ml-1 font-semibold">(${getDayName(task.dataAnalise)})</span></p>${badge}</div>
-                        <button data-id="${task.id}" class="toggle-details-btn p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-slate-100">${isCollapsed ? '&#9660;' : '&#9650;'}</button>
-                    </div>
-                    <div class="${isCollapsed ? 'hidden' : ''} mt-4 details-content">
-                        <div class="space-y-3 text-sm mt-4">
-                            <div class="flex justify-between items-center text-sm mb-1"><span class="font-semibold text-slate-600 dark:text-slate-300">Backup:</span> <select data-id="${task.id}" data-type="backup" class="status-select border-none text-right font-semibold text-sm rounded-lg p-1 ${statusClasses[task.statusBackup]}"><option value="Pendente" ${task.statusBackup === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Andamento" ${task.statusBackup === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option><option value="Concluído" ${task.statusBackup === 'Concluído' ? 'selected' : ''}>Concluído</option></select></div>
-                            <div class="flex justify-between items-center text-sm"><span class="font-semibold text-slate-600 dark:text-slate-300">Análise:</span> <select data-id="${task.id}" data-type="analise" class="status-select border-none text-right font-semibold text-sm rounded-lg p-1 ${statusClasses[task.statusAnalise]}"><option value="Pendente" ${task.statusAnalise === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Análise" ${task.statusAnalise === 'Em Análise' ? 'selected' : ''}>Em Análise</option><option value="Concluída" ${task.statusAnalise === 'Concluída' ? 'selected' : ''}>Concluída</option></select></div>
-                        </div>
-                        ${obsHTML}
-                        ${editBtnHTML}
-                    </div>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        // --- DASHBOARD E EXPORTAÇÃO ---
-        function updateDashboard() {
-            const ft = tasks.filter(t => t.statusAnalise !== 'Arquivado');
-            if(document.getElementById('total-solicitacoes')) document.getElementById('total-solicitacoes').textContent = ft.length;
-            const ct = ft.filter(t => t.statusAnalise === 'Concluída');
-            const uniquePdvs = new Set(ct.map(t => t.condominio.trim())).size;
-            if(document.getElementById('total-pdvs-unicos')) document.getElementById('total-pdvs-unicos').textContent = uniquePdvs;
-            if(document.getElementById('backups-pendentes')) document.getElementById('backups-pendentes').textContent = ft.filter(t => t.statusBackup === 'Pendente').length;
-            if(document.getElementById('analises-pendentes')) document.getElementById('analises-pendentes').textContent = ft.filter(t => t.statusAnalise === 'Pendente').length;
-            const totOc = ct.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
-            if(document.getElementById('total-ocorrencias-semana')) document.getElementById('total-ocorrencias-semana').textContent = totOc;
-            if(document.getElementById('analises-concluidas')) document.getElementById('analises-concluidas').textContent = ct.length;
-            if(document.getElementById('produtividade-semanal')) document.getElementById('produtividade-semanal').textContent = ct.length > 0 ? (totOc / ct.length).toFixed(1) : '0.0';
-        }
-
-        function updateCharts() {
-            const dataByCondo = tasks.reduce((acc, task) => {
-                if (task.ocorrencia === 'Sim' && task.ocorrencias) {
-                    if (!acc[task.condominio]) acc[task.condominio] = 0;
-                    acc[task.condominio] += task.ocorrencias.length;
-                }
-                return acc;
-            }, {});
-            const labels = Object.keys(dataByCondo);
-            const data = Object.values(dataByCondo);
-            if (ocorrenciasChart) {
-                ocorrenciasChart.data.labels = labels;
-                ocorrenciasChart.data.datasets[0].data = data;
-                ocorrenciasChart.update();
-            }
-        }
-
-        function exportCompletedReport() {
-            const completed = tasks.filter(t => t.statusAnalise === 'Concluída');
-            completed.sort((a, b) => a.condominio.localeCompare(b.condominio));
-            if (completed.length === 0) { showNotification('Não há análises concluídas para exportar.'); return; }
-            let report = `*RELATÓRIO DE ANÁLISES CONCLUÍDAS - ${new Date().toLocaleDateString('pt-BR')}*\n--------------------------------------------------\n\n`;
-            completed.forEach((task, index) => {
-                report += `*${index + 1}. ${task.condominio}* - ${formatDate(task.dataAnalise)} (${getDayName(task.dataAnalise)})\n`;
-                if (task.ocorrencias && task.ocorrencias.length > 0) {
-                    report += `🚨 *Ocorrências:* ${task.ocorrencias.length}\n`;
-                    task.ocorrencias.forEach((oc, idx) => {
-                        const inconcl = oc.inconclusiva ? ' (INCONCLUSIVA)' : '';
-                        report += `   - [${oc.categoria}] ${oc.desc} (${oc.horarioInicial} - ${oc.horarioFinal})${inconcl}\n`;
-                    });
-                } else { report += `✅ Sem ocorrências registradas.\n`; }
-                if (task.observacoes) { report += `📝 *Obs:* ${task.observacoes}\n`; }
-                report += `\n--------------------------------------------------\n\n`;
-            });
-            
-            const el = document.createElement('textarea');
-            el.value = report;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy'); 
-            document.body.removeChild(el);
-            showNotification('Relatório copiado para a área de transferência!');
-        }
-
-        // --- BACKUP / RESTORE / OUTROS ---
-        function exportBackup() {
-            const data = {
-                version: "4.1.3",
-                exportDate: new Date().toISOString(),
-                tasks: tasks,
-                archivedTasks: archivedTasks,
-                categories: categories
-            };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-            const downloadAnchorNode = document.createElement('a');
-            const dateStr = new Date().toISOString().split('T')[0];
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `monitoramento_backup_cloud_${dateStr}.json`);
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-            showNotification('Backup exportado com sucesso!');
-        }
-
-        function handleRestore(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.tasks && Array.isArray(data.tasks)) {
-                        showConfirm('Restaurar Backup no Firebase', `Isso adicionará ${data.tasks.length} tarefas ao banco de dados online. Continuar?`, async () => {
-                            showNotification('Restaurando dados...');
-                            const batch = writeBatch(db);
-                            let count = 0;
-                            data.tasks.forEach(t => {
-                                const ref = doc(db, "monitoramento_tasks", t.id.toString());
-                                batch.set(ref, t);
-                                count++;
-                            });
-                            if (data.archivedTasks) {
-                                data.archivedTasks.forEach(t => {
-                                    const ref = doc(db, "monitoramento_archived", t.id.toString());
-                                    batch.set(ref, t);
-                                    count++;
-                                });
-                            }
-                            await batch.commit();
-                            showNotification(`Sucesso! ${count} registros restaurados.`);
-                        });
-                    } else { showNotification('Arquivo de backup inválido.'); }
-                } catch (err) { console.error(err); showNotification('Erro ao ler arquivo: ' + err.message); }
-                event.target.value = '';
-            };
-            reader.readAsText(file);
-        }
-
-        function showConfirm(title, msg, callback) {
-            const confirmModal = document.getElementById('custom-confirm-modal');
-            const confirmTitle = document.getElementById('confirm-modal-title');
-            const confirmMsg = document.getElementById('confirm-modal-msg');
-            const confirmYesBtn = document.getElementById('confirm-modal-yes-btn');
-            const confirmCancelBtn = document.getElementById('confirm-modal-cancel-btn');
-
-            confirmTitle.textContent = title;
-            confirmMsg.textContent = msg;
-            
-            const newYesBtn = confirmYesBtn.cloneNode(true);
-            confirmYesBtn.parentNode.replaceChild(newYesBtn, confirmYesBtn);
-            
-            const newCancelBtn = confirmCancelBtn.cloneNode(true);
-            confirmCancelBtn.parentNode.replaceChild(newCancelBtn, confirmCancelBtn);
-
-            newYesBtn.addEventListener('click', () => { if (callback) callback(); confirmModal.classList.add('hidden'); });
-            newCancelBtn.addEventListener('click', () => { confirmModal.classList.add('hidden'); });
-            confirmModal.classList.remove('hidden');
-        }
-
-        function renderArchivedList() {
-            const container = document.getElementById('view-archive-list-container');
-            if (!container) return; // Guard clause adicionado
-            const filterInput = document.getElementById('archive-search-input');
-            const filter = filterInput ? filterInput.value.toLowerCase() : '';
-            const filtered = archivedTasks.filter(t => t.condominio.toLowerCase().includes(filter) || (t.dataAnalise && t.dataAnalise.includes(filter)));
-            if (filtered.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 mt-4">Nenhuma análise arquivada.</p>'; return; }
-            container.innerHTML = filtered.map(t => `
-                <div class="flex justify-between items-center p-3 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                    <div><p class="font-bold text-slate-700 dark:text-slate-200">${t.condominio}</p><p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(t.dataAnalise)}</p></div>
-                    <div class="flex gap-2"><button data-id="${t.id}" class="unarchive-btn text-xs font-semibold bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg hover:bg-orange-200 transition-colors">Desarquivar</button><button data-id="${t.id}" class="delete-archive-btn text-xs font-semibold bg-red-100 text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-200 transition-colors">Excluir</button></div>
-                </div>`).join('');
-        }
-
-        function renderCompletedReport() {
-            const tbody = document.getElementById('completed-report-list');
-            if (!tbody) return; // Guard clause adicionado
-            const search = document.getElementById('completed-report-search').value.toLowerCase();
-            const completed = tasks.filter(t => t.statusAnalise === 'Concluída' && (t.condominio.toLowerCase().includes(search) || t.dataAnalise.includes(search)));
-            completed.sort((a, b) => a.condominio.localeCompare(b.condominio));
-            
-            if(document.getElementById('report-total-analyses')) document.getElementById('report-total-analyses').textContent = completed.length;
-            if(document.getElementById('report-total-pdvs')) document.getElementById('report-total-pdvs').textContent = new Set(completed.map(t => t.condominio.trim())).size;
-            if(document.getElementById('report-total-ocs')) document.getElementById('report-total-ocs').textContent = completed.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
-
-            tbody.innerHTML = '';
-            if (completed.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-3 text-center">Nenhuma análise concluída encontrada.</td></tr>`; return; }
-            completed.forEach(t => {
-                const ocCount = t.ocorrencias ? t.ocorrencias.length : 0;
-                tbody.insertAdjacentHTML('beforeend', `<tr class="bg-white border-b dark:bg-slate-800 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600"><td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap dark:text-white">${t.condominio}</td><td class="px-4 py-3">${formatDate(t.dataAnalise)}</td><td class="px-4 py-3 text-center">${ocCount}</td><td class="px-4 py-3 text-right text-emerald-500 font-bold">Concluída</td></tr>`);
-            });
-        }
-
-        // --- HANDLERS E EVENTOS ---
-        async function handleTaskSubmit(e) {
-            e.preventDefault();
-            const condominio = document.getElementById('form-condominio').value;
-            const dataAnalise = document.getElementById('form-data-analise').value;
-            if (tasks.some(t => t.condominio === condominio && t.dataAnalise === dataAnalise)) { showNotification('Análise já existe.'); return; }
+        document.addEventListener('DOMContentLoaded', () => {
             try {
-                const newId = Date.now().toString();
-                const newTask = {
-                    id: newId,
-                    condominio: condominio,
-                    dataAnalise: dataAnalise,
-                    semanaDeTrabalho: parseInt(document.getElementById('form-semana-trabalho').value) || 0,
-                    observacoes: document.getElementById('form-observacoes').value,
-                    statusBackup: 'Pendente', statusAnalise: 'Pendente', ocorrencia: 'Pendente', isExpanded: true, ocorrencias: []
+                console.log("Painel de Monitoramento v3.9.2 - Card Concluídas + Limpeza de Pendentes"); 
+
+                // --- 1. VARIÁVEIS GLOBAIS ---
+                let ocorrenciasChart;
+                let pdvAnalysisChart;
+                let chartTopPdvs, chartDaysWeek, chartOperators, chartIndividualActivity;
+                let analyticsData = []; // Inicializado como array vazio
+
+                // CONFIGURAÇÃO GLOBAL DE CORES DO CHART.JS PARA DARK MODE VISÍVEL
+                Chart.defaults.color = '#cbd5e1'; // Slate 300 (Texto claro)
+                Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)'; // Linhas de grade sutis
+
+                let tasks = JSON.parse(localStorage.getItem('monitoramentoTasks')) || [];
+                let archivedTasks = JSON.parse(localStorage.getItem('archivedTasks')) || [];
+                let categories = JSON.parse(localStorage.getItem('monitoramentoCategorias')) || ['Furto', 'Fraude Pagamento', 'Consumo Indevido', 'Vandalismo', 'Outros'];
+                let currentEditingTaskOcorrencias = [];
+
+                const statusClasses = {
+                    'Pendente': 'bg-amber-100 text-amber-600',
+                    'Em Andamento': 'bg-orange-100 text-orange-600',
+                    'Em Análise': 'bg-orange-100 text-orange-600',
+                    'Concluído': 'bg-emerald-100 text-emerald-600',
+                    'Concluída': 'bg-emerald-100 text-emerald-600',
+                    'Não visualizar': 'bg-slate-100 text-slate-500'
                 };
-                await setDoc(doc(db, "monitoramento_tasks", newId), newTask);
-                document.getElementById('task-modal').classList.add('hidden');
-                showNotification('Nova análise adicionada ao Firebase.');
-            } catch (error) { console.error(error); showNotification('Erro ao salvar no Firebase.'); }
-        }
-
-        async function handleBulkAddSubmit(e) { /* ... lógica idêntica anterior ... */ 
-            e.preventDefault();
-            const inputArea = document.getElementById('bulk-input-area').value.trim();
-            if (!inputArea) { showNotification('Cole os dados.'); return; }
-            const lines = inputArea.split('\n').filter(line => line.trim().length > 0);
-            const newTasks = [];
-            let ignoredCount = 0;
-            lines.forEach((line, index) => {
-                const lineLower = line.toLowerCase();
-                if ((lineLower.includes('semana') || lineLower.includes('data')) && (lineLower.includes('unidade') || lineLower.includes('status'))) return;
-                let parts = line.split(/\s{2,}|\t/).map(p => p.trim()).filter(p => p.length > 0);
-                if (parts.length < 5) { ignoredCount++; return; }
-                let unidadeRaw = parts[2] || '';
-                let statusRaw = parts[parts.length - 1] || 'Pendente';
-                let isoDate = '';
-                if (parts[1] && parts[1].includes('/')) {
-                    const [d, m, y] = parts[1].split('/');
-                    if (d && m && y) isoDate = `${y}-${m}-${d}`;
-                } else { isoDate = new Date().toISOString().split('T')[0]; }
-                const existsInDb = tasks.some(t => t.condominio.toLowerCase().trim() === unidadeRaw.toLowerCase().trim() && t.dataAnalise === isoDate);
-                const existsInBatch = newTasks.some(t => t.condominio.toLowerCase().trim() === unidadeRaw.toLowerCase().trim() && t.dataAnalise === isoDate);
-                if (existsInDb || existsInBatch) { ignoredCount++; return; }
-                newTasks.push({
-                    id: (Date.now() + index).toString(),
-                    condominio: unidadeRaw,
-                    dataAnalise: isoDate,
-                    semanaDeTrabalho: parseInt(parts[0].replace(/\D/g,'')) || 0,
-                    observacoes: '',
-                    statusBackup: statusRaw.toLowerCase().includes('finalizado') ? 'Concluído' : 'Pendente',
-                    statusAnalise: statusRaw.toLowerCase().includes('finalizado') ? 'Concluída' : 'Pendente',
-                    ocorrencia: 'Não', isExpanded: true, ocorrencias: []
-                });
-            });
-            if (newTasks.length > 0) { 
-                try {
-                    const batch = writeBatch(db);
-                    newTasks.forEach(t => { const ref = doc(db, "monitoramento_tasks", t.id); batch.set(ref, t); });
-                    await batch.commit();
-                    document.getElementById('bulk-add-modal').classList.add('hidden'); 
-                    document.getElementById('bulk-input-area').value = ''; 
-                    showNotification(`${newTasks.length} análises importadas. (${ignoredCount} ignoradas)`); 
-                } catch (err) { console.error(err); showNotification('Erro ao importar em lote.'); }
-            } else { showNotification('Nenhum dado importado.'); }
-        }
-
-        // --- FUNÇÃO DE INICIALIZAÇÃO SEGURA ---
-        function initApp() {
-            console.log("DOM Loaded - Binds Iniciados");
-            initTheme(); 
-
-            // Login Binds
-            if(loginForm) loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                const errorMsg = document.getElementById('login-error');
-                if(errorMsg) errorMsg.classList.add('hidden');
-                const btn = document.getElementById('login-btn');
-                if(btn) btn.textContent = "Entrando...";
                 
-                // Configura persistência antes do login
-                setPersistence(auth, browserLocalPersistence)
-                    .then(() => {
-                        return signInWithEmailAndPassword(auth, email, password);
-                    })
-                    .catch((error) => {
-                        console.error("Erro login/persistência:", error);
-                        if(btn) btn.textContent = "Entrar no Sistema";
-                        if(errorMsg) { 
-                            errorMsg.textContent = "E-mail ou senha inválidos."; // Simplificado para segurança
-                            if(error.code === 'auth/network-request-failed') errorMsg.textContent = "Erro de conexão. Verifique sua internet.";
-                            errorMsg.classList.remove('hidden'); 
+                const analyticsExampleData = `16/04/2025\t15/04/2025\t346\tRESIDENCIAL TERRACO\t1\t1\t7\tDayane\t
+28/03/2025\t29/04/2025\t281\tSKY PAULICEIA\t1\t1\t0\tMarcelo\tcamera 1 não possui gravação
+17/04/2025\t30/04/2025\t168\tMORADAS DA FLORA\t1\t1\t1\tDayane\tVisualizado por Vitória
+24/04/2025\t30/04/2025\t286\tSPAZIO MARESIAS\t1\t1\t6\tJoao Pablo\t
+29/03/2025\t30/04/2025\t275\tMUNDI GUARULHOS\t1\t1\t2\tMarcelo\t
+28/03/2025\t29/04/2025\t245\tFLORESTA CAMPO LIMPO\t1\t1\t3\tMarcelo\tCamera 2 corrompeu às 09h00`;
+
+
+                // --- 2. FUNÇÕES DO SISTEMA PRINCIPAL ---
+
+                function saveTasks() {
+                    localStorage.setItem('monitoramentoTasks', JSON.stringify(tasks));
+                    localStorage.setItem('archivedTasks', JSON.stringify(archivedTasks));
+                }
+
+                // --- GESTÃO DE TEMA (DARK MODE) ---
+                function initTheme() {
+                    const savedTheme = localStorage.getItem('theme');
+                    const html = document.documentElement;
+                    const sunIcon = document.getElementById('icon-sun');
+                    const moonIcon = document.getElementById('icon-moon');
+
+                    // Lógica: Se estiver salvo como 'light', remove a classe dark. Caso contrário (dark ou null), mantém dark.
+                    if (savedTheme === 'light') {
+                        html.classList.remove('dark');
+                        sunIcon.classList.remove('hidden');
+                        moonIcon.classList.add('hidden');
+                    } else {
+                        html.classList.add('dark');
+                        sunIcon.classList.add('hidden');
+                        moonIcon.classList.remove('hidden');
+                    }
+                }
+
+                function toggleTheme() {
+                    const html = document.documentElement;
+                    const sunIcon = document.getElementById('icon-sun');
+                    const moonIcon = document.getElementById('icon-moon');
+                    
+                    if (html.classList.contains('dark')) {
+                        html.classList.remove('dark');
+                        localStorage.setItem('theme', 'light');
+                        sunIcon.classList.remove('hidden');
+                        moonIcon.classList.add('hidden');
+                    } else {
+                        html.classList.add('dark');
+                        localStorage.setItem('theme', 'dark');
+                        sunIcon.classList.add('hidden');
+                        moonIcon.classList.remove('hidden');
+                    }
+                }
+
+                // --- FUNÇÕES DE BACKUP E RESTAURO ---
+                function exportBackup() {
+                    const data = {
+                        version: "3.9.1",
+                        exportDate: new Date().toISOString(),
+                        tasks: tasks,
+                        archivedTasks: archivedTasks,
+                        categories: categories
+                    };
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    const dateStr = new Date().toISOString().split('T')[0];
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", `monitoramento_backup_${dateStr}.json`);
+                    document.body.appendChild(downloadAnchorNode);
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                    showNotification('Backup exportado com sucesso!');
+                }
+
+                function handleRestore(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (data.tasks && Array.isArray(data.tasks)) {
+                                showConfirm('Restaurar Backup', `Isso substituirá seus dados atuais por ${data.tasks.length} tarefas do arquivo. Continuar?`, () => {
+                                    tasks = data.tasks;
+                                    archivedTasks = data.archivedTasks || [];
+                                    if(data.categories) {
+                                        categories = data.categories;
+                                        localStorage.setItem('monitoramentoCategorias', JSON.stringify(categories));
+                                    }
+                                    saveTasks();
+                                    refreshUI();
+                                    showNotification('Dados restaurados com sucesso!');
+                                });
+                            } else {
+                                showNotification('Arquivo de backup inválido.');
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            showNotification('Erro ao ler arquivo.');
+                        }
+                        // Reset input para permitir selecionar o mesmo arquivo novamente
+                        event.target.value = '';
+                    };
+                    reader.readAsText(file);
+                }
+
+
+                function showNotification(message) {
+                    const elMsg = document.getElementById('notification-message');
+                    const elModal = document.getElementById('notification-modal');
+                    if (elMsg && elModal) {
+                        elMsg.textContent = message;
+                        elModal.classList.remove('hidden');
+                    }
+                }
+
+                function formatDate(dateString) {
+                    if (!dateString) return 'N/A';
+                    const parts = dateString.split('-');
+                    if(parts.length === 3) {
+                        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                    return dateString;
+                }
+                
+                function formatDateForInput(date) { 
+                    const offset = date.getTimezoneOffset() * 60000; 
+                    const localISOTime = (new Date(date - offset)).toISOString().slice(0, 10);
+                    return localISOTime;
+                }
+
+                function getDayName(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString + 'T12:00:00');
+                    if(isNaN(date.getTime())) return '';
+                    const dayName = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+                    return dayName.charAt(0).toUpperCase() + dayName.slice(1);
+                }
+                
+                function populateCategorySelect(selectElement) {
+                    if (!selectElement) return;
+                    selectElement.innerHTML = '';
+                    categories.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat;
+                        option.textContent = cat;
+                        selectElement.appendChild(option);
+                    });
+                }
+
+                function populatePdvAnalysisSelect() {
+                    const select = document.getElementById('pdv-analysis-select');
+                    if (!select) return;
+                    select.innerHTML = '<option value="">Escolha um PDV...</option>';
+                    const allCondos = [...tasks, ...archivedTasks].map(t => t.condominio.trim());
+                    const uniqueCondos = [...new Set(allCondos)].sort();
+                    uniqueCondos.forEach(name => {
+                        if(name) {
+                            const option = document.createElement('option');
+                            option.value = name;
+                            option.textContent = name;
+                            select.appendChild(option);
                         }
                     });
-            });
-            if(logoutBtn) logoutBtn.addEventListener('click', () => { signOut(auth).then(() => showNotification("Você saiu do sistema.")); });
+                }
 
-            // Event Listeners Gerais com GUARDS (Proteção contra Null)
-            const themeBtn = document.getElementById('theme-toggle-btn'); if(themeBtn) themeBtn.addEventListener('click', toggleTheme);
-            const exportBtn = document.getElementById('export-backup-btn'); if(exportBtn) exportBtn.addEventListener('click', exportBackup);
-            const restoreBtn = document.getElementById('restore-backup-btn'); if(restoreBtn) restoreBtn.addEventListener('click', () => document.getElementById('restore-input').click());
-            const restoreInput = document.getElementById('restore-input'); if(restoreInput) restoreInput.addEventListener('change', handleRestore);
-            
-            const filCond = document.getElementById('filtro-condominio'); if(filCond) filCond.addEventListener('input', refreshUI);
-            const filData = document.getElementById('filtro-data'); if(filData) filData.addEventListener('change', refreshUI); 
-            const filSem = document.getElementById('filtro-semana'); if(filSem) filSem.addEventListener('input', refreshUI);
-            const filDia = document.getElementById('filtro-dia-semana'); if(filDia) filDia.addEventListener('change', refreshUI); 
-            const filBack = document.getElementById('filtro-backup'); if(filBack) filBack.addEventListener('change', refreshUI); 
-            const filAnal = document.getElementById('filtro-analise'); if(filAnal) filAnal.addEventListener('change', refreshUI); 
-            
-            const expAll = document.getElementById('expand-all-btn'); if(expAll) expAll.addEventListener('click', async () => { 
-                const batch = writeBatch(db);
-                tasks.forEach(t => { if(!t.isExpanded) { batch.update(doc(db, "monitoramento_tasks", t.id), { isExpanded: true }); } });
-                try { await batch.commit(); } catch(e) { console.error(e); }
-            });
-            const collAll = document.getElementById('collapse-all-btn'); if(collAll) collAll.addEventListener('click', async () => { 
-                const batch = writeBatch(db);
-                tasks.forEach(t => { if(t.isExpanded) { batch.update(doc(db, "monitoramento_tasks", t.id), { isExpanded: false }); } });
-                try { await batch.commit(); } catch(e) { console.error(e); }
-            });
+                function getCondoHighRiskCount(name) {
+                    const all = [...tasks, ...archivedTasks];
+                    return all.filter(t => t.condominio.trim().toLowerCase() === name.trim().toLowerCase()).reduce((count, t) => {
+                        if (t.ocorrencias && t.ocorrencias.length >= 3) return count + 1;
+                        return count;
+                    }, 0);
+                }
 
-            // Modais e Forms
-            const addTaskBtn = document.getElementById('add-task-btn'); 
-            if(addTaskBtn) addTaskBtn.addEventListener('click', () => { document.getElementById('task-form').reset(); document.getElementById('form-data-analise').value = formatDateForInput(new Date()); document.getElementById('task-modal').classList.remove('hidden'); });
-            
-            const cancelBtn = document.getElementById('cancel-btn'); if(cancelBtn) cancelBtn.addEventListener('click', () => document.getElementById('task-modal').classList.add('hidden'));
-            const taskForm = document.getElementById('task-form'); if(taskForm) taskForm.addEventListener('submit', handleTaskSubmit);
-            const bulkForm = document.getElementById('bulk-add-form'); if(bulkForm) bulkForm.addEventListener('submit', handleBulkAddSubmit);
-            
-            // Menu Ações
-            const actionsMenu = document.getElementById('actions-menu');
-            const actionsBtn = document.getElementById('actions-menu-btn');
-            if(actionsBtn) actionsBtn.addEventListener('click', (e) => { e.stopPropagation(); if(actionsMenu) actionsMenu.classList.toggle('hidden'); });
-            document.addEventListener('click', (event) => { 
-                const menuContainer = document.getElementById('actions-menu-container');
-                if (actionsMenu && menuContainer && !menuContainer.contains(event.target)) actionsMenu.classList.add('hidden'); 
-            });
-            
-            // Modais Botões
-            const modals = { 'bulk-add-btn': 'bulk-add-modal', 'archive-btn': 'archive-modal', 'completed-report-btn': 'completed-report-modal', 'detailed-pdv-btn': 'pdv-detailed-modal', 'open-analytics-btn': 'analytics-modal' };
-            Object.keys(modals).forEach(k => {
-                const el = document.getElementById(k);
-                if(el) el.addEventListener('click', () => { 
-                    if(actionsMenu) actionsMenu.classList.add('hidden'); 
-                    const modalEl = document.getElementById(modals[k]);
-                    if(modalEl) modalEl.classList.remove('hidden');
+                function exportCompletedReport() {
+                    const completed = tasks.filter(t => t.statusAnalise === 'Concluída');
+                    completed.sort((a, b) => a.condominio.localeCompare(b.condominio));
+                    if (completed.length === 0) { showNotification('Não há análises concluídas para exportar.'); return; }
+                    let report = `*RELATÓRIO DE ANÁLISES CONCLUÍDAS - ${new Date().toLocaleDateString('pt-BR')}*\n--------------------------------------------------\n\n`;
+                    completed.forEach((task, index) => {
+                        report += `*${index + 1}. ${task.condominio}* - ${formatDate(task.dataAnalise)} (${getDayName(task.dataAnalise)})\n`;
+                        if (task.ocorrencias && task.ocorrencias.length > 0) {
+                            report += `🚨 *Ocorrências:* ${task.ocorrencias.length}\n`;
+                            task.ocorrencias.forEach((oc, idx) => {
+                                const inconcl = oc.inconclusiva ? ' (INCONCLUSIVA)' : '';
+                                report += `   - [${oc.categoria}] ${oc.desc} (${oc.horarioInicial} - ${oc.horarioFinal})${inconcl}\n`;
+                            });
+                        } else { report += `✅ Sem ocorrências registradas.\n`; }
+                        if (task.observacoes) { report += `📝 *Obs:* ${task.observacoes}\n`; }
+                        report += `\n--------------------------------------------------\n\n`;
+                    });
+                    const el = document.createElement('textarea');
+                    el.value = report;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    showNotification('Relatório completo copiado para a área de transferência!');
+                }
+
+                function renderCompletedReport() {
+                    const tbody = document.getElementById('completed-report-list');
+                    const search = document.getElementById('completed-report-search').value.toLowerCase();
                     
-                    if (k === 'completed-report-btn') { 
-                        const search = document.getElementById('completed-report-search');
-                        if(search) search.value = ''; 
-                        renderCompletedReport(); 
-                    }
-                    if (k === 'detailed-pdv-btn') { 
-                        populatePdvAnalysisSelect(); 
-                        const results = document.getElementById('pdv-analysis-results');
-                        if(results) results.classList.add('hidden'); 
-                        if(pdvAnalysisChart) pdvAnalysisChart.destroy(); 
-                    }
-                    if (k === 'open-analytics-btn') { 
-                        const dbView = document.getElementById('analytics-dashboard-view');
-                        const inpView = document.getElementById('analytics-input-view');
-                        const backBtn = document.getElementById('analytics-back-to-input-btn');
-                        
-                        if(dbView) {
-                            dbView.classList.remove('flex'); 
-                            dbView.classList.add('hidden'); 
+                    // Filtra as tarefas concluídas baseadas na busca
+                    const completed = tasks.filter(t => t.statusAnalise === 'Concluída' && (t.condominio.toLowerCase().includes(search) || t.dataAnalise.includes(search)));
+                    completed.sort((a, b) => a.condominio.localeCompare(b.condominio));
+                    
+                    // --- CÁLCULOS DO RESUMO ---
+                    const totalAnalises = completed.length;
+                    const uniquePdvs = new Set(completed.map(t => t.condominio.trim())).size;
+                    const totalOcorrencias = completed.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
+
+                    // Atualiza os elementos do DOM
+                    const elAnalises = document.getElementById('report-total-analyses');
+                    const elPdvs = document.getElementById('report-total-pdvs');
+                    const elOcs = document.getElementById('report-total-ocs');
+
+                    if (elAnalises) elAnalises.textContent = totalAnalises;
+                    if (elPdvs) elPdvs.textContent = uniquePdvs;
+                    if (elOcs) elOcs.textContent = totalOcorrencias;
+                    // ---------------------------------
+
+                    tbody.innerHTML = '';
+                    if (completed.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-3 text-center">Nenhuma análise concluída encontrada.</td></tr>`; return; }
+                    completed.forEach(t => {
+                        const ocCount = t.ocorrencias ? t.ocorrencias.length : 0;
+                        const row = `<tr class="bg-white border-b dark:bg-slate-800 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600"><td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap dark:text-white">${t.condominio}</td><td class="px-4 py-3">${formatDate(t.dataAnalise)}</td><td class="px-4 py-3 text-center">${ocCount}</td><td class="px-4 py-3 text-right text-emerald-500 font-bold">Concluída</td></tr>`;
+                        tbody.insertAdjacentHTML('beforeend', row);
+                    });
+                }
+
+                function updateDashboard() {
+                    const ft = tasks.filter(t => t.statusAnalise !== 'Arquivado');
+                    document.getElementById('total-solicitacoes').textContent = ft.length;
+                    const ct = ft.filter(t => t.statusAnalise === 'Concluída');
+                    const uniquePdvs = new Set(ct.map(t => t.condominio.trim())).size;
+                    document.getElementById('total-pdvs-unicos').textContent = uniquePdvs;
+                    document.getElementById('backups-pendentes').textContent = ft.filter(t => t.statusBackup === 'Pendente').length;
+                    document.getElementById('analises-pendentes').textContent = ft.filter(t => t.statusAnalise === 'Pendente').length;
+                    const totOc = ct.reduce((acc, t) => acc + (t.ocorrencias ? t.ocorrencias.length : 0), 0);
+                    document.getElementById('total-ocorrencias-semana').textContent = totOc;
+                    // Atualiza o novo card
+                    document.getElementById('analises-concluidas').textContent = ct.length;
+                    document.getElementById('produtividade-semanal').textContent = ct.length > 0 ? (totOc / ct.length).toFixed(1) : '0.0';
+                }
+
+                function updateCharts() {
+                    const dataByCondo = tasks.reduce((acc, task) => {
+                        if (task.ocorrencia === 'Sim' && task.ocorrencias) {
+                            if (!acc[task.condominio]) acc[task.condominio] = 0;
+                            acc[task.condominio] += task.ocorrencias.length;
                         }
-                        if(inpView) inpView.classList.remove('hidden'); 
-                        if(backBtn) backBtn.classList.add('hidden'); 
+                        return acc;
+                    }, {});
+                    const labels = Object.keys(dataByCondo);
+                    const data = Object.values(dataByCondo);
+                    if (ocorrenciasChart) {
+                        ocorrenciasChart.data.labels = labels;
+                        ocorrenciasChart.data.datasets[0].data = data;
+                        ocorrenciasChart.update();
                     }
-                });
-            });
+                }
 
-            // Close Buttons
-            const closeIds = ['bulk-cancel-btn', 'archive-cancel-btn', 'view-archive-close-btn', 'view-archive-close-footer-btn', 'notification-close-btn', 'ocorrencia-cancel-btn', 'completed-report-close-btn', 'completed-report-footer-close-btn', 'pdv-detailed-close-btn', 'pdv-detailed-footer-close-btn', 'analytics-close-btn'];
-            closeIds.forEach(id => { 
-                const el = document.getElementById(id); 
-                if(el) el.addEventListener('click', () => {
-                    const overlay = el.closest('.fixed');
-                    if(overlay) overlay.classList.add('hidden');
-                }); 
-            });
+                function showConfirm(title, msg, callback) {
+                    const confirmModal = document.getElementById('custom-confirm-modal');
+                    const confirmTitle = document.getElementById('confirm-modal-title');
+                    const confirmMsg = document.getElementById('confirm-modal-msg');
+                    const confirmYesBtn = document.getElementById('confirm-modal-yes-btn');
+                    const confirmCancelBtn = document.getElementById('confirm-modal-cancel-btn');
 
-            // Analytics Binds
-            const analyticsLoadBtn = document.getElementById('analytics-load-example-btn');
-            if(analyticsLoadBtn) analyticsLoadBtn.addEventListener('click', () => { document.getElementById('analytics-raw-input').value = analyticsExampleData; });
-            
-            const analyticsProcBtn = document.getElementById('analytics-process-btn');
-            if(analyticsProcBtn) analyticsProcBtn.addEventListener('click', processAnalyticsData);
-            
-            const analyticsWeekFilter = document.getElementById('analytics-week-filter');
-            if(analyticsWeekFilter) analyticsWeekFilter.addEventListener('change', (e) => updateAnalyticsUI(e.target.value));
-
-            const analyticsBackBtn = document.getElementById('analytics-back-to-input-btn');
-            if(analyticsBackBtn) analyticsBackBtn.addEventListener('click', () => { document.getElementById('analytics-input-view').classList.remove('hidden'); document.getElementById('analytics-dashboard-view').classList.add('hidden'); document.getElementById('analytics-dashboard-view').classList.remove('flex'); document.getElementById('analytics-back-to-input-btn').classList.add('hidden'); });
-
-            // ... Binds restantes ...
-            const reportSearch = document.getElementById('completed-report-search'); if (reportSearch) reportSearch.addEventListener('input', renderCompletedReport);
-            const exportReportBtn = document.getElementById('export-report-btn'); if(exportReportBtn) exportReportBtn.addEventListener('click', exportCompletedReport);
-            const pdvSelect = document.getElementById('pdv-analysis-select'); if(pdvSelect) pdvSelect.addEventListener('change', (e) => generatePdvReport(e.target.value)); 
-
-            const viewArchBtn = document.getElementById('view-archive-btn');
-            if(viewArchBtn) viewArchBtn.addEventListener('click', () => { document.getElementById('archive-modal').classList.add('hidden'); document.getElementById('view-archive-modal').classList.remove('hidden'); document.getElementById('archive-search-input').value = ''; renderArchivedList(); });
-            
-            const archSearch = document.getElementById('archive-search-input');
-            if(archSearch) archSearch.addEventListener('input', renderArchivedList);
-            
-            const viewArchList = document.getElementById('view-archive-list-container');
-            if(viewArchList) viewArchList.addEventListener('click', (e) => {
-                const unarchiveBtn = e.target.closest('.unarchive-btn'); const deleteArchiveBtn = e.target.closest('.delete-archive-btn');
-                if (unarchiveBtn) showConfirm('Desarquivar', 'Restaurar esta análise?', async () => { const id = unarchiveBtn.dataset.id; const t = archivedTasks.find(x => x.id === id); if(t) { try { await setDoc(doc(db, "monitoramento_tasks", id), t); await deleteDoc(doc(db, "monitoramento_archived", id)); showNotification('Análise restaurada.'); } catch(e){console.error(e);} } });
-                else if (deleteArchiveBtn) showConfirm('Excluir', 'Apagar registro?', async () => { try { await deleteDoc(doc(db, "monitoramento_archived", deleteArchiveBtn.dataset.id)); showNotification('Excluído.'); } catch(e){console.error(e);} });
-            });
-
-            // Task List Actions (Delegate)
-            const taskList = document.getElementById('task-list');
-            if(taskList) {
-                taskList.addEventListener('click', async (e) => {
-                    const delBtn = e.target.closest('.delete-task-btn'); 
-                    const archBtn = e.target.closest('.archive-single-btn'); 
-                    const toggleBtn = e.target.closest('.toggle-details-btn'); 
-                    const editOcBtn = e.target.closest('.edit-ocorrencia-btn');
+                    confirmTitle.textContent = title;
+                    confirmMsg.textContent = msg;
                     
-                    if (delBtn) showConfirm('Excluir Análise', 'Tem certeza?', async () => { try { await deleteDoc(doc(db, "monitoramento_tasks", delBtn.dataset.id)); showNotification('Análise excluída.'); } catch(e){console.error(e);} });
-                    else if (archBtn) showConfirm('Arquivar Análise', 'Mover para arquivo?', async () => { const id = archBtn.dataset.id; const t = tasks.find(x => x.id === id); if(t) { try { await setDoc(doc(db, "monitoramento_archived", id), { ...t, statusAnalise: 'Arquivado' }); await deleteDoc(doc(db, "monitoramento_tasks", id)); showNotification('Análise arquivada.'); } catch(e){console.error(e);} } });
-                    else if (toggleBtn) { const id = toggleBtn.dataset.id; const t = tasks.find(x => x.id == id); if(t) { updateDoc(doc(db, "monitoramento_tasks", id), { isExpanded: !t.isExpanded }).catch(console.error); } }
+                    const newYesBtn = confirmYesBtn.cloneNode(true);
+                    confirmYesBtn.parentNode.replaceChild(newYesBtn, confirmYesBtn);
+                    
+                    const newCancelBtn = confirmCancelBtn.cloneNode(true);
+                    confirmCancelBtn.parentNode.replaceChild(newCancelBtn, confirmCancelBtn);
+
+                    newYesBtn.addEventListener('click', () => {
+                        if (callback) callback();
+                        confirmModal.classList.add('hidden');
+                    });
+
+                    newCancelBtn.addEventListener('click', () => {
+                        confirmModal.classList.add('hidden');
+                    });
+
+                    confirmModal.classList.remove('hidden');
+                }
+
+                function refreshUI() {
+                    saveTasks();
+                    renderTasks();
+                    updateDashboard();
+                    updateCharts();
+                }
+
+                function renderTasks() {
+                    const list = document.getElementById('task-list');
+                    if (!list) return;
+                    const filtroCond = document.getElementById('filtro-condominio').value.toLowerCase();
+                    const filtroBackup = document.getElementById('filtro-backup').value;
+                    const filtroAnalise = document.getElementById('filtro-analise').value;
+                    const filtroData = document.getElementById('filtro-data').value;
+                    const filtroSemana = document.getElementById('filtro-semana').value;
+                    const filtroDiaSemana = document.getElementById('filtro-dia-semana').value;
+
+                    let filtered = tasks.filter(t => t.condominio.toLowerCase().includes(filtroCond));
+                    if (filtroBackup) filtered = filtered.filter(t => t.statusBackup === filtroBackup);
+                    if (filtroAnalise) filtered = filtered.filter(t => t.statusAnalise === filtroAnalise);
+                    if (filtroData) filtered = filtered.filter(t => t.dataAnalise === filtroData);
+                    if (filtroSemana) filtered = filtered.filter(t => t.semanaDeTrabalho == filtroSemana);
+                    if (filtroDiaSemana !== "") {
+                        filtered = filtered.filter(t => {
+                            if (!t.dataAnalise) return false;
+                            const d = new Date(t.dataAnalise + 'T12:00:00');
+                            return d.getDay().toString() === filtroDiaSemana;
+                        });
+                    }
+                    filtered.sort((a, b) => a.condominio.localeCompare(b.condominio));
+                    list.innerHTML = '';
+                    if(filtered.length === 0) { list.innerHTML = `<p class="text-slate-500 text-center col-span-full">Nenhuma tarefa encontrada.</p>`; return; }
+
+                    filtered.forEach(task => {
+                        const card = document.createElement('div');
+                        let color = task.statusAnalise === 'Concluída' ? '#10b981' : (task.statusAnalise === 'Em Análise' ? '#f97316' : '#f59e0b');
+                        card.className = 'bg-white p-4 rounded-xl shadow-md border-l-4 dark:bg-slate-800 dark:shadow-xl';
+                        card.style.borderLeftColor = color;
+                        const ocCount = task.ocorrencias ? task.ocorrencias.length : 0;
+                        const badge = ocCount > 0 ? `<div class="mt-1"><span class="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-lg border border-red-300 dark:bg-red-900 dark:text-red-100 dark:border-red-700">OCs: ${ocCount}</span></div>` : '';
+                        const highRiskDays = getCondoHighRiskCount(task.condominio);
+                        let riskBadge = highRiskDays > 0 ? `<span class="ml-2 text-lg" title="PDV Crítico">🔥</span>` : '';
+                        const isCollapsed = !task.isExpanded;
+                        let editBtnHTML = (task.statusAnalise !== 'Arquivado') ? `<button data-id="${task.id}" class="edit-ocorrencia-btn mt-4 w-full bg-slate-200 text-slate-800 font-bold py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">${task.statusAnalise === 'Concluída' ? 'Ver/Editar Ocorrências' : 'Registrar Ocorrências'}</button>` : '';
+                        let obsHTML = task.observacoes ? `<div class="mt-4 border-t pt-2 space-y-2 dark:border-slate-700"><p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Obs:</p><p class="text-sm text-slate-500 dark:text-slate-400">${task.observacoes}</p></div>` : '';
+
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-lg flex-1 flex items-center flex-wrap">${task.condominio}${riskBadge}</h3>
+                                <div class="flex items-center gap-2">
+                                    <button data-id="${task.id}" class="archive-single-btn text-slate-400 hover:text-brand font-bold text-lg p-1" title="Arquivar"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg></button>
+                                    <button data-id="${task.id}" class="delete-task-btn text-slate-400 hover:text-red-600 font-bold text-lg p-1" title="Excluir"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center mt-2">
+                                <div><p class="text-sm text-slate-500 dark:text-slate-400">Data: <strong>${formatDate(task.dataAnalise)}</strong> <span class="text-xs text-slate-400 ml-1 font-semibold">(${getDayName(task.dataAnalise)})</span></p>${badge}</div>
+                                <button data-id="${task.id}" class="toggle-details-btn p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-slate-100">${isCollapsed ? '&#9660;' : '&#9650;'}</button>
+                            </div>
+                            <div class="${isCollapsed ? 'hidden' : ''} mt-4 details-content">
+                                <div class="space-y-3 text-sm mt-4">
+                                    <div class="flex justify-between items-center text-sm mb-1"><span class="font-semibold text-slate-600 dark:text-slate-300">Backup:</span> <select data-id="${task.id}" data-type="backup" class="status-select border-none text-right font-semibold text-sm rounded-lg p-1 ${statusClasses[task.statusBackup]}"><option value="Pendente" ${task.statusBackup === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Andamento" ${task.statusBackup === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option><option value="Concluído" ${task.statusBackup === 'Concluído' ? 'selected' : ''}>Concluído</option></select></div>
+                                    <div class="flex justify-between items-center text-sm"><span class="font-semibold text-slate-600 dark:text-slate-300">Análise:</span> <select data-id="${task.id}" data-type="analise" class="status-select border-none text-right font-semibold text-sm rounded-lg p-1 ${statusClasses[task.statusAnalise]}"><option value="Pendente" ${task.statusAnalise === 'Pendente' ? 'selected' : ''}>Pendente</option><option value="Em Análise" ${task.statusAnalise === 'Em Análise' ? 'selected' : ''}>Em Análise</option><option value="Concluída" ${task.statusAnalise === 'Concluída' ? 'selected' : ''}>Concluída</option></select></div>
+                                </div>
+                                ${obsHTML}
+                                ${editBtnHTML}
+                            </div>
+                        `;
+                        list.appendChild(card);
+                    });
+                }
+
+                function renderArchivedList() {
+                    const container = document.getElementById('view-archive-list-container');
+                    const filterInput = document.getElementById('archive-search-input');
+                    const filter = filterInput ? filterInput.value.toLowerCase() : '';
+                    
+                    const filtered = archivedTasks.filter(t => t.condominio.toLowerCase().includes(filter) || (t.dataAnalise && t.dataAnalise.includes(filter)));
+                    
+                    if (filtered.length === 0) { 
+                        container.innerHTML = '<p class="text-center text-slate-500 mt-4">Nenhuma análise arquivada.</p>'; 
+                        return; 
+                    }
+                    
+                    container.innerHTML = filtered.map(t => `
+                        <div class="flex justify-between items-center p-3 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                            <div>
+                                <p class="font-bold text-slate-700 dark:text-slate-200">${t.condominio}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(t.dataAnalise)}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button data-id="${t.id}" class="unarchive-btn text-xs font-semibold bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg hover:bg-orange-200 dark:bg-orange-900 dark:text-orange-100 dark:hover:bg-orange-800 transition-colors">Desarquivar</button>
+                                <button data-id="${t.id}" class="delete-archive-btn text-xs font-semibold bg-red-100 text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-200 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800 transition-colors">Excluir</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                function renderModalOcorrenciasList() {
+                    const list = document.getElementById('ocorrencia-list');
+                    list.innerHTML = '';
+                    if (currentEditingTaskOcorrencias.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-500 py-4">Nenhuma ocorrência registrada.</p>'; return; }
+                    currentEditingTaskOcorrencias.forEach((ocor, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'ocorrencia-item-row p-3 bg-white border border-slate-200 rounded-lg flex justify-between items-center group dark:bg-slate-800 dark:border-slate-700';
+                        const inconclusivaBadge = ocor.inconclusiva ? `<span class="ml-2 text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full border border-red-200 dark:bg-red-900 dark:text-red-100 dark:border-red-800">INCONCLUSIVA</span>` : '';
+                        div.innerHTML = `<div class="flex-grow"><p class="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center flex-wrap">${ocor.categoria}${inconclusivaBadge}</p><p class="text-xs text-slate-600 dark:text-slate-400">${ocor.desc}</p><p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-1">${ocor.horarioInicial} - ${ocor.horarioFinal}</p></div><div class="flex gap-2 occ-actions"><button type="button" data-index="${index}" class="edit-item-btn text-blue-500 hover:text-blue-700" title="Editar"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button><button type="button" data-index="${index}" class="delete-item-btn text-red-500 hover:text-red-700" title="Remover"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div>`;
+                        list.appendChild(div);
+                    });
+                }
+
+                function handleTaskSubmit(e) {
+                    e.preventDefault();
+                    const condominio = document.getElementById('form-condominio').value;
+                    const dataAnalise = document.getElementById('form-data-analise').value;
+                    if (tasks.some(t => t.condominio === condominio && t.dataAnalise === dataAnalise)) {
+                        showNotification('Análise já existe.'); return; 
+                    }
+                    tasks.unshift({
+                        id: Date.now(),
+                        condominio: condominio,
+                        dataAnalise: dataAnalise,
+                        semanaDeTrabalho: parseInt(document.getElementById('form-semana-trabalho').value) || 0,
+                        observacoes: document.getElementById('form-observacoes').value,
+                        statusBackup: 'Pendente', statusAnalise: 'Pendente', ocorrencia: 'Pendente', isExpanded: true, ocorrencias: []
+                    });
+                    refreshUI();
+                    document.getElementById('task-modal').classList.add('hidden');
+                    showNotification('Nova análise adicionada.');
+                }
+
+                function handleBulkAddSubmit(e) {
+                    e.preventDefault();
+                    const inputArea = document.getElementById('bulk-input-area').value.trim();
+                    if (!inputArea) { showNotification('Cole os dados.'); return; }
+                    const lines = inputArea.split('\n').filter(line => line.trim().length > 0);
+                    const newTasks = [];
+                    let ignoredCount = 0;
+
+                    lines.forEach((line, index) => {
+                        const lineLower = line.toLowerCase();
+                        if ((lineLower.includes('semana') || lineLower.includes('data')) && (lineLower.includes('unidade') || lineLower.includes('status'))) return;
+
+                        let parts = line.split(/\s{2,}|\t/).map(p => p.trim()).filter(p => p.length > 0);
+                        if (parts.length < 5) { ignoredCount++; return; }
+                        
+                        let unidadeRaw = parts[2] || '';
+                        let statusRaw = parts[parts.length - 1] || 'Pendente';
+                        let isoDate = '';
+                        if (parts[1] && parts[1].includes('/')) {
+                            const [d, m, y] = parts[1].split('/');
+                            if (d && m && y) isoDate = `${y}-${m}-${d}`;
+                        } else {
+                            isoDate = new Date().toISOString().split('T')[0];
+                        }
+
+                        const existsInDb = tasks.some(t => t.condominio.toLowerCase().trim() === unidadeRaw.toLowerCase().trim() && t.dataAnalise === isoDate);
+                        const existsInBatch = newTasks.some(t => t.condominio.toLowerCase().trim() === unidadeRaw.toLowerCase().trim() && t.dataAnalise === isoDate);
+
+                        if (existsInDb || existsInBatch) { ignoredCount++; return; }
+
+                        newTasks.push({
+                            id: Date.now() + index,
+                            condominio: unidadeRaw,
+                            dataAnalise: isoDate,
+                            semanaDeTrabalho: parseInt(parts[0].replace(/\D/g,'')) || 0,
+                            observacoes: '',
+                            statusBackup: statusRaw.toLowerCase().includes('finalizado') ? 'Concluído' : 'Pendente',
+                            statusAnalise: statusRaw.toLowerCase().includes('finalizado') ? 'Concluída' : 'Pendente',
+                            ocorrencia: 'Não', isExpanded: true, ocorrencias: []
+                        });
+                    });
+
+                    if (newTasks.length > 0) { 
+                        tasks.unshift(...newTasks); refreshUI(); 
+                        document.getElementById('bulk-add-modal').classList.add('hidden'); 
+                        document.getElementById('bulk-input-area').value = ''; 
+                        showNotification(`${newTasks.length} análises importadas. (${ignoredCount} duplicadas/ignoradas)`); 
+                    } else {
+                        showNotification('Nenhum dado importado.');
+                    }
+                }
+
+                function generatePdvReport(pdvName) {
+                    if (!pdvName) return;
+
+                    const allTasks = [...tasks, ...archivedTasks].filter(t => t.condominio.trim() === pdvName);
+                    
+                    if (allTasks.length === 0) return;
+
+                    const daysCount = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0}; 
+                    const hoursCount = {};
+
+                    allTasks.forEach(t => {
+                        if (t.ocorrencias && t.ocorrencias.length > 0) {
+                            if (t.dataAnalise) {
+                                const d = new Date(t.dataAnalise + 'T12:00:00');
+                                const dayIndex = d.getDay();
+                                daysCount[dayIndex] += t.ocorrencias.length; 
+                            }
+
+                            t.ocorrencias.forEach(oc => {
+                                if (oc.horarioInicial) {
+                                    const hour = parseInt(oc.horarioInicial.split(':')[0]);
+                                    if (!isNaN(hour)) {
+                                        hoursCount[hour] = (hoursCount[hour] || 0) + 1;
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    let maxDay = -1;
+                    let maxDayCount = -1;
+                    for (let d = 0; d <= 6; d++) {
+                        if (daysCount[d] > maxDayCount) {
+                            maxDayCount = daysCount[d];
+                            maxDay = d;
+                        }
+                    }
+                    const dayNames = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+                    document.getElementById('pdv-critical-day').textContent = maxDayCount > 0 ? dayNames[maxDay] : "N/A";
+
+                    let maxHour = -1;
+                    let maxHourCount = -1;
+                    Object.keys(hoursCount).forEach(h => {
+                        if (hoursCount[h] > maxHourCount) {
+                            maxHourCount = hoursCount[h];
+                            maxHour = h;
+                        }
+                    });
+                    document.getElementById('pdv-critical-time').textContent = maxHourCount > 0 ? `${maxHour}h - ${parseInt(maxHour)+1}h` : "N/A";
+
+                    const ctx = document.getElementById('pdvAnalysisChart').getContext('2d');
+                    
+                    if (pdvAnalysisChart) {
+                        pdvAnalysisChart.destroy();
+                    }
+
+                    pdvAnalysisChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: dayNames,
+                            datasets: [{
+                                label: 'Total de Ocorrências',
+                                data: [0, 1, 2, 3, 4, 5, 6].map(d => daysCount[d]),
+                                backgroundColor: 'rgba(55, 192, 160, 0.6)',
+                                borderColor: '#37c0a0',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                            }
+                        }
+                    });
+
+                    document.getElementById('pdv-analysis-results').classList.remove('hidden');
+                }
+
+                // --- 3. ANALYTICS LOGIC (OTIMIZADO) ---
+
+                function getWeekInfo(dateStr) {
+                    if (!dateStr) return null;
+                    const parts = dateStr.split('/');
+                    if (parts.length !== 3) return null;
+                    const date = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                    if (isNaN(date.getTime())) return null;
+                    const dayOfWeek = date.getDay();
+                    const startOfWeek = new Date(date);
+                    startOfWeek.setDate(date.getDate() - dayOfWeek);
+                    startOfWeek.setHours(0, 0, 0, 0);
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setDate(startOfWeek.getDate() + 6);
+                    const fmt = d => `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`;
+                    return { key: startOfWeek.getTime(), label: `Semana ${fmt(startOfWeek)} a ${fmt(endOfWeek)}` };
+                }
+
+                function processAnalyticsData() {
+                    const rawInput = document.getElementById('analytics-raw-input').value;
+                    if (!rawInput.trim()) { showNotification("Insira dados antes de gerar."); return; }
+                    try {
+                        const rows = rawInput.trim().split('\n');
+                        const parsed = rows.map((row, index) => {
+                            let cols = row.split('\t');
+                            if (cols.length < 5) return null;
+                            const pdvNome = cols[3]?.trim();
+                            if (!pdvNome || pdvNome.toLowerCase().includes('unidade')) return null;
+                            const dataProdutividade = cols[1]?.trim();
+                            const weekInfo = getWeekInfo(dataProdutividade);
+                            return {
+                                id: index,
+                                weekKey: weekInfo ? weekInfo.key : 0,
+                                weekLabel: weekInfo ? weekInfo.label : 'Data Inválida',
+                                pdv: pdvNome,
+                                oc: parseInt(cols[6]?.trim()) || 0,
+                                operador: (cols[7]?.trim() || '').toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+                                hasIssue: (cols[8]?.trim() || '').toLowerCase().match(/(corrompido|sem gravação|cortes|travando|off|desconectad|problema)/),
+                                dataProd: dataProdutividade
+                            };
+                        }).filter(i => i !== null);
+
+                        if (parsed.length === 0) { showNotification("Nenhum dado válido identificado."); return; }
+                        analyticsData = parsed;
+                        updateAnalyticsUI('all');
+                        
+                        document.getElementById('analytics-input-view').classList.add('hidden');
+                        
+                        const dashboard = document.getElementById('analytics-dashboard-view');
+                        dashboard.classList.remove('hidden');
+                        dashboard.classList.add('flex');
+                        
+                        document.getElementById('analytics-back-to-input-btn').classList.remove('hidden');
+                        switchAnalyticsTab('general'); // Reset to first tab
+                    } catch (err) { console.error(err); showNotification("Erro ao processar dados."); }
+                }
+
+                function updateAnalyticsUI(selectedWeekKey) {
+                    if (!analyticsData) return;
+                    
+                    // Filter Logic
+                    const weeksMap = new Map();
+                    analyticsData.forEach(item => { if (item.weekKey !== 0) weeksMap.set(item.weekKey, item.weekLabel); });
+                    const select = document.getElementById('analytics-week-filter');
+                    const currentVal = select.value;
+                    select.innerHTML = '<option value="all">Todas as Semanas</option>';
+                    Array.from(weeksMap.entries()).sort((a,b) => a[0] - b[0]).forEach(([key, label]) => {
+                        const opt = document.createElement('option'); opt.value = key; opt.textContent = label; select.appendChild(opt);
+                    });
+                    select.value = selectedWeekKey !== undefined ? selectedWeekKey : (currentVal || 'all');
+
+                    const filtered = select.value === 'all' ? analyticsData : analyticsData.filter(i => i.weekKey == select.value);
+
+                    // KPIs
+                    document.getElementById('kpi-visitas').textContent = filtered.length;
+                    document.getElementById('kpi-ocs').textContent = filtered.reduce((acc, c) => acc + c.oc, 0);
+                    document.getElementById('kpi-issues').textContent = filtered.filter(i => i.hasIssue).length;
+
+                    // Stats Aggregation
+                    const pdvStats = {};
+                    const opStats = {};
+                    const dayStats = { 'Domingo':0, 'Segunda-feira':0, 'Terça-feira':0, 'Quarta-feira':0, 'Quinta-feira':0, 'Sexta-feira':0, 'Sábado':0 };
+
+                    filtered.forEach(item => {
+                        pdvStats[item.pdv] = (pdvStats[item.pdv] || 0) + item.oc;
+                        if(item.operador) opStats[item.operador] = (opStats[item.operador] || 0) + item.oc;
+                        if (item.oc > 0 && item.dataProd) {
+                            const parts = item.dataProd.split('/');
+                            if(parts.length===3) {
+                                const dt = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+                                if(!isNaN(dt)) {
+                                    const dCap = dt.toLocaleDateString('pt-BR', { weekday: 'long' }).replace(/^\w/, c => c.toUpperCase());
+                                    if(dayStats[dCap] !== undefined) dayStats[dCap] += item.oc;
+                                }
+                            }
+                        }
+                    });
+
+                    // Update Top PDV KPI
+                    const sortedPdvs = Object.entries(pdvStats).sort((a,b) => b[1] - a[1]);
+                    document.getElementById('kpi-critical-pdv').textContent = sortedPdvs.length > 0 ? sortedPdvs[0][0] : 'N/A';
+                    document.getElementById('kpi-critical-count').textContent = sortedPdvs.length > 0 ? sortedPdvs[0][1] + ' OCs' : '0 OCs';
+
+                    // Update Spam Section (Always based on ALL data to detect trends)
+                    let maxTs = 0;
+                    const pdvRiskMap = {};
+                    analyticsData.forEach(item => {
+                         if (item.dataProd) {
+                            const parts = item.dataProd.split('/');
+                            const dt = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+                            if (!isNaN(dt) && dt.getTime() > maxTs) maxTs = dt.getTime();
+                            if (!pdvRiskMap[item.pdv]) pdvRiskMap[item.pdv] = { name: item.pdv, total: 0, lastTs: 0 };
+                            pdvRiskMap[item.pdv].total += item.oc;
+                            if (!isNaN(dt) && dt.getTime() > pdvRiskMap[item.pdv].lastTs) pdvRiskMap[item.pdv].lastTs = dt.getTime();
+                        }
+                    });
+                    const spamList = Object.values(pdvRiskMap).map(p => ({ ...p, daysInactive: Math.floor((maxTs - p.lastTs) / (86400000)) })).filter(p => p.total >= 3 && p.daysInactive >= 5).sort((a,b) => b.total - a.total);
+                    
+                    const spamContainer = document.getElementById('spam-list-container');
+                    spamContainer.innerHTML = '';
+                    if (spamList.length > 0) {
+                        document.getElementById('analytics-spam-section').classList.remove('hidden');
+                        document.getElementById('spam-count-badge').textContent = spamList.length;
+                        spamList.forEach(p => {
+                            spamContainer.innerHTML += `<div class="bg-white dark:bg-slate-700 border-l-4 border-red-500 p-2 rounded shadow-sm text-xs flex justify-between items-center text-slate-800 dark:text-slate-100"><div><strong>${p.name}</strong><br><span class="text-slate-500 dark:text-slate-400">Inativo há ${p.daysInactive} dias</span></div><div class="text-right font-bold text-red-600 dark:text-red-400">${p.total} OCs</div></div>`;
+                        });
+                    } else { document.getElementById('analytics-spam-section').classList.add('hidden'); }
+
+                    // Update Charts
+                    updateAnalyticsCharts(sortedPdvs.slice(0, 10), dayStats, opStats);
+
+                    // Update Peaks Table
+                    const pdvMonths = {};
+                    analyticsData.forEach(item => {
+                         if (item.oc > 0 && item.dataProd) {
+                            const parts = item.dataProd.split('/');
+                            if(parts.length===3) {
+                                const mKey = `${parts[2]}-${parts[1]}`;
+                                const mName = new Date(parseInt(parts[2]), parseInt(parts[1])-1, 1).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+                                if(!pdvMonths[item.pdv]) pdvMonths[item.pdv] = {};
+                                if(!pdvMonths[item.pdv][mKey]) pdvMonths[item.pdv][mKey] = { name: mName, count: 0 };
+                                pdvMonths[item.pdv][mKey].count += item.oc;
+                            }
+                        }
+                    });
+                    const peaks = Object.keys(pdvMonths).map(pdv => {
+                        const months = Object.values(pdvMonths[pdv]);
+                        if(months.length === 0) return null;
+                        const peak = months.reduce((max, c) => c.count > max.count ? c : max, months[0]);
+                        return { name: pdv, month: peak.name, count: peak.count };
+                    }).filter(i => i!==null).sort((a,b) => b.count - a.count).slice(0,10);
+                    
+                    const peakBody = document.getElementById('table-peaks-body');
+                    peakBody.innerHTML = '';
+                    peaks.forEach(p => peakBody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-slate-50"><td class="px-4 py-2 font-medium">${p.name}</td><td class="px-4 py-2 text-blue-600 font-bold uppercase">${p.month}</td><td class="px-4 py-2 text-center"><span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold">${p.count}</span></td></tr>`));
+
+                    // --- POPULAR SELETOR DE COLABORADOR ---
+                    const individualSelect = document.getElementById('individual-operator-select');
+                    if (individualSelect) {
+                        individualSelect.innerHTML = '<option value="">Escolha um operador...</option>';
+                        // Extrair lista única de operadores
+                        const uniqueOperators = [...new Set(analyticsData.map(i => i.operador).filter(op => op))].sort();
+                        uniqueOperators.forEach(op => {
+                            const option = document.createElement('option');
+                            option.value = op;
+                            option.textContent = op;
+                            individualSelect.appendChild(option);
+                        });
+                        // Listener para mudança
+                        individualSelect.onchange = (e) => updateIndividualStats(e.target.value);
+                    }
+                }
+
+                function updateIndividualStats(operatorName) {
+                    const container = document.getElementById('individual-dashboard-container');
+                    if (!operatorName) {
+                        container.classList.add('hidden');
+                        return;
+                    }
+                    container.classList.remove('hidden');
+
+                    // 1. Filtrar dados do operador
+                    const opData = analyticsData.filter(i => i.operador === operatorName);
+                    
+                    // 2. Calcular KPIs
+                    const totalVolume = opData.length;
+                    const totalOcs = opData.reduce((acc, curr) => acc + curr.oc, 0);
+                    const efficiency = totalVolume > 0 ? ((totalOcs / totalVolume) * 100).toFixed(1) : "0.0";
+
+                    // Calcular médias da equipe para comparação
+                    const allOps = [...new Set(analyticsData.map(i => i.operador).filter(op => op))];
+                    const avgVolume = analyticsData.length / allOps.length;
+                    const totalGlobalOcs = analyticsData.reduce((a,b) => a+b.oc, 0);
+                    const avgEfficiency = (totalGlobalOcs / analyticsData.length * 100);
+
+                    // Atualizar UI dos KPIs
+                    document.getElementById('ind-profile-name').textContent = operatorName;
+                    document.getElementById('ind-kpi-volume').textContent = totalVolume;
+                    document.getElementById('ind-kpi-ocs').textContent = totalOcs;
+                    document.getElementById('ind-kpi-efficiency').textContent = efficiency + '%';
+
+                    // 3. Gerar Pontos Fortes e a Melhorar
+                    const strengthsList = document.getElementById('ind-list-strengths');
+                    const improvementsList = document.getElementById('ind-list-improvements');
+                    strengthsList.innerHTML = '';
+                    improvementsList.innerHTML = '';
+
+                    // Lógica de Feedback
+                    if (totalVolume > avgVolume * 1.1) strengthsList.innerHTML += `<li>Alto volume de monitoramento (acima da média).</li>`;
+                    else if (totalVolume < avgVolume * 0.8) improvementsList.innerHTML += `<li>Aumentar o volume de análises diárias.</li>`;
+
+                    if (parseFloat(efficiency) > avgEfficiency * 1.2) strengthsList.innerHTML += `<li>Excelente taxa de detecção de ocorrências.</li>`;
+                    else if (parseFloat(efficiency) < avgEfficiency * 0.8 && totalVolume > 10) improvementsList.innerHTML += `<li>Atenção aos detalhes: taxa de conversão abaixo da média.</li>`;
+
+                    // Verificar constância (dias distintos trabalhados)
+                    const uniqueDays = new Set(opData.map(i => i.dataProd)).size;
+                    if (uniqueDays >= 5) strengthsList.innerHTML += `<li>Boa constância e presença nas escalas.</li>`;
+
+                    // Verificar qualidade técnica (reportou issues?)
+                    const issuesReported = opData.filter(i => i.hasIssue).length;
+                    if (issuesReported > 2) strengthsList.innerHTML += `<li>Proativo no reporte de falhas técnicas.</li>`;
+
+                    // Fallback se listas vazias
+                    if (strengthsList.innerHTML === '') strengthsList.innerHTML = `<li>Performance consistente dentro do esperado.</li>`;
+                    if (improvementsList.innerHTML === '') improvementsList.innerHTML = `<li>Manter a constância atual.</li>`;
+
+                    // 4. Gráfico de Atividade Diária
+                    const dailyActivity = {};
+                    opData.forEach(item => {
+                        if (item.dataProd) {
+                            dailyActivity[item.dataProd] = (dailyActivity[item.dataProd] || 0) + 1; // Contar volume
+                        }
+                    });
+                    
+                    // Ordenar datas
+                    const sortedDates = Object.keys(dailyActivity).sort((a, b) => {
+                        const partsA = a.split('/'); const partsB = b.split('/');
+                        return new Date(partsA[2], partsA[1]-1, partsA[0]) - new Date(partsB[2], partsB[1]-1, partsB[0]);
+                    });
+
+                    if (chartIndividualActivity) chartIndividualActivity.destroy();
+                    const ctxInd = document.getElementById('chart-individual-activity').getContext('2d');
+                    
+                    chartIndividualActivity = new Chart(ctxInd, {
+                        type: 'line',
+                        data: {
+                            labels: sortedDates,
+                            datasets: [{
+                                label: 'Análises por Dia',
+                                data: sortedDates.map(d => dailyActivity[d]),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 1, color: '#cbd5e1' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                                x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                            }
+                        }
+                    });
+                }
+
+                function updateAnalyticsCharts(topPdvs, dayStats, opStats) {
+                    if(chartTopPdvs) chartTopPdvs.destroy();
+                    if(chartDaysWeek) chartDaysWeek.destroy();
+                    if(chartOperators) chartOperators.destroy();
+
+                    // Configuração explícita de cores para eixos X e Y
+                    const commonOptions = {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: {
+                                ticks: { color: '#cbd5e1' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            y: {
+                                ticks: { color: '#cbd5e1' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            }
+                        }
+                    };
+
+                    chartTopPdvs = new Chart(document.getElementById('chart-top-pdvs').getContext('2d'), {
+                        type: 'bar',
+                        data: { labels: topPdvs.map(i => i[0]), datasets: [{ label: 'Ocorrências', data: topPdvs.map(i => i[1]), backgroundColor: '#ef4444', borderRadius: 4 }] },
+                        options: { 
+                            indexAxis: 'y', 
+                            ...commonOptions
+                        }
+                    });
+
+                    chartDaysWeek = new Chart(document.getElementById('chart-days-week').getContext('2d'), {
+                        type: 'bar',
+                        data: { labels: Object.keys(dayStats), datasets: [{ label: 'Volume', data: Object.values(dayStats), backgroundColor: '#3b82f6', borderRadius: 4 }] },
+                        options: commonOptions
+                    });
+
+                    const sortedOps = Object.entries(opStats).sort((a,b) => b[1] - a[1]).slice(0, 15);
+                    chartOperators = new Chart(document.getElementById('chart-operators').getContext('2d'), {
+                        type: 'bar',
+                        data: { labels: sortedOps.map(i => i[0]), datasets: [{ label: 'OCs', data: sortedOps.map(i => i[1]), backgroundColor: '#10b981', borderRadius: 4 }] },
+                        options: commonOptions
+                    });
+                }
+
+                // --- 4. LISTENERS ---
+                document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+                document.getElementById('export-backup-btn').addEventListener('click', exportBackup);
+                document.getElementById('restore-backup-btn').addEventListener('click', () => document.getElementById('restore-input').click());
+                document.getElementById('restore-input').addEventListener('change', handleRestore);
+
+                document.getElementById('filtro-condominio').addEventListener('input', refreshUI);
+                document.getElementById('filtro-data').addEventListener('change', refreshUI); 
+                document.getElementById('filtro-semana').addEventListener('input', refreshUI);
+                document.getElementById('filtro-dia-semana').addEventListener('change', refreshUI); 
+                document.getElementById('filtro-backup').addEventListener('change', refreshUI); 
+                document.getElementById('filtro-analise').addEventListener('change', refreshUI); 
+                document.getElementById('expand-all-btn').addEventListener('click', () => { tasks.forEach(t => t.isExpanded = true); refreshUI(); });
+                document.getElementById('collapse-all-btn').addEventListener('click', () => { tasks.forEach(t => t.isExpanded = false); refreshUI(); });
+                document.getElementById('add-task-btn').addEventListener('click', () => { document.getElementById('task-form').reset(); document.getElementById('form-data-analise').value = formatDateForInput(new Date()); document.getElementById('task-modal').classList.remove('hidden'); });
+                document.getElementById('cancel-btn').addEventListener('click', () => document.getElementById('task-modal').classList.add('hidden'));
+                document.getElementById('task-form').addEventListener('submit', handleTaskSubmit);
+                document.getElementById('bulk-add-form').addEventListener('submit', handleBulkAddSubmit);
+                
+                const actionsMenu = document.getElementById('actions-menu');
+                document.getElementById('actions-menu-btn').addEventListener('click', (e) => { e.stopPropagation(); actionsMenu.classList.toggle('hidden'); });
+                document.addEventListener('click', (event) => { if (!document.getElementById('actions-menu-container').contains(event.target)) actionsMenu.classList.add('hidden'); });
+                
+                const modals = { 'bulk-add-btn': 'bulk-add-modal', 'archive-btn': 'archive-modal', 'completed-report-btn': 'completed-report-modal', 'detailed-pdv-btn': 'pdv-detailed-modal', 'open-analytics-btn': 'analytics-modal' };
+                Object.keys(modals).forEach(k => {
+                    const el = document.getElementById(k);
+                    if(el) el.addEventListener('click', () => { 
+                        actionsMenu.classList.add('hidden'); 
+                        document.getElementById(modals[k]).classList.remove('hidden');
+                        if (k === 'completed-report-btn') { document.getElementById('completed-report-search').value = ''; renderCompletedReport(); }
+                        if (k === 'detailed-pdv-btn') { populatePdvAnalysisSelect(); document.getElementById('pdv-analysis-results').classList.add('hidden'); if(pdvAnalysisChart) pdvAnalysisChart.destroy(); }
+                        if (k === 'open-analytics-btn') { document.getElementById('analytics-dashboard-view').classList.remove('flex'); document.getElementById('analytics-dashboard-view').classList.add('hidden'); document.getElementById('analytics-input-view').classList.remove('hidden'); document.getElementById('analytics-back-to-input-btn').classList.add('hidden'); }
+                    });
+                });
+                
+                document.getElementById('analytics-load-example-btn').addEventListener('click', () => { document.getElementById('analytics-raw-input').value = analyticsExampleData; });
+                document.getElementById('analytics-process-btn').addEventListener('click', processAnalyticsData);
+                document.getElementById('analytics-back-to-input-btn').addEventListener('click', () => { document.getElementById('analytics-input-view').classList.remove('hidden'); document.getElementById('analytics-dashboard-view').classList.add('hidden'); document.getElementById('analytics-dashboard-view').classList.remove('flex'); document.getElementById('analytics-back-to-input-btn').classList.add('hidden'); });
+                document.getElementById('analytics-close-btn').addEventListener('click', () => document.getElementById('analytics-modal').classList.add('hidden'));
+                document.getElementById('analytics-week-filter').addEventListener('change', (e) => updateAnalyticsUI(e.target.value));
+
+                const reportSearch = document.getElementById('completed-report-search'); if (reportSearch) reportSearch.addEventListener('input', renderCompletedReport);
+                const exportReportBtn = document.getElementById('export-report-btn'); if(exportReportBtn) exportReportBtn.addEventListener('click', exportCompletedReport);
+                const pdvSelect = document.getElementById('pdv-analysis-select'); if(pdvSelect) pdvSelect.addEventListener('change', (e) => generatePdvReport(e.target.value));
+                document.getElementById('pdv-detailed-close-btn').addEventListener('click', () => document.getElementById('pdv-detailed-modal').classList.add('hidden'));
+                document.getElementById('pdv-detailed-footer-close-btn').addEventListener('click', () => document.getElementById('pdv-detailed-modal').classList.add('hidden'));
+                const closeIds = ['bulk-cancel-btn', 'archive-cancel-btn', 'view-archive-close-btn', 'view-archive-close-footer-btn', 'notification-close-btn', 'ocorrencia-cancel-btn', 'completed-report-close-btn', 'completed-report-footer-close-btn'];
+                closeIds.forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('click', () => el.closest('.fixed').classList.add('hidden')); });
+
+                document.getElementById('view-archive-btn').addEventListener('click', () => { document.getElementById('archive-modal').classList.add('hidden'); document.getElementById('view-archive-modal').classList.remove('hidden'); document.getElementById('archive-search-input').value = ''; renderArchivedList(); });
+                document.getElementById('archive-search-input').addEventListener('input', renderArchivedList);
+                document.getElementById('view-archive-list-container').addEventListener('click', (e) => {
+                    const unarchiveBtn = e.target.closest('.unarchive-btn'); const deleteArchiveBtn = e.target.closest('.delete-archive-btn');
+                    if (unarchiveBtn) showConfirm('Desarquivar', 'Restaurar esta análise?', () => { const index = archivedTasks.findIndex(t => t.id == unarchiveBtn.dataset.id); if (index > -1) { tasks.unshift(archivedTasks.splice(index, 1)[0]); saveTasks(); refreshUI(); renderArchivedList(); showNotification('Análise restaurada.'); } });
+                    else if (deleteArchiveBtn) showConfirm('Excluir do Arquivo', 'Excluir permanentemente?', () => { archivedTasks = archivedTasks.filter(t => t.id != deleteArchiveBtn.dataset.id); saveTasks(); renderArchivedList(); });
+                });
+
+                document.getElementById('task-list').addEventListener('click', (e) => {
+                    const delBtn = e.target.closest('.delete-task-btn'); const archBtn = e.target.closest('.archive-single-btn'); const toggleBtn = e.target.closest('.toggle-details-btn'); const editOcBtn = e.target.closest('.edit-ocorrencia-btn');
+                    if (delBtn) showConfirm('Excluir Análise', 'Tem certeza?', () => { tasks = tasks.filter(t => t.id != delBtn.dataset.id); refreshUI(); showNotification('Análise excluída.'); });
+                    else if (archBtn) showConfirm('Arquivar Análise', 'Mover para arquivo?', () => { const idx = tasks.findIndex(t => t.id == archBtn.dataset.id); if(idx > -1) { archivedTasks.push(tasks.splice(idx, 1)[0]); refreshUI(); showNotification('Análise arquivada.'); } });
+                    else if (toggleBtn) { const t = tasks.find(x => x.id == toggleBtn.dataset.id); if(t) { t.isExpanded = !t.isExpanded; refreshUI(); } }
                     else if (editOcBtn) { const t = tasks.find(x => x.id == editOcBtn.dataset.id); if(t) { document.getElementById('ocorrencia-task-id').value = t.id; currentEditingTaskOcorrencias = JSON.parse(JSON.stringify(t.ocorrencias || [])); renderModalOcorrenciasList(); populateCategorySelect(document.getElementById('add-ocorrencia-categoria')); document.getElementById('add-ocorrencia-desc').value = ''; document.getElementById('ocorrencia-modal').classList.remove('hidden'); } }
                 });
 
-                taskList.addEventListener('change', async (e) => { 
-                    if (e.target.classList.contains('status-select')) { 
-                        const id = e.target.dataset.id; const type = e.target.dataset.type; const val = e.target.value;
-                        try { if (type === 'backup') await updateDoc(doc(db, "monitoramento_tasks", id), { statusBackup: val }); if (type === 'analise') await updateDoc(doc(db, "monitoramento_tasks", id), { statusAnalise: val }); } catch(err) { console.error(err); }
-                    } 
+                document.getElementById('task-list').addEventListener('change', (e) => { if (e.target.classList.contains('status-select')) { const t = tasks.find(x => x.id == e.target.dataset.id); if (t) { if (e.target.dataset.type === 'backup') t.statusBackup = e.target.value; if (e.target.dataset.type === 'analise') t.statusAnalise = e.target.value; refreshUI(); } } });
+                document.getElementById('add-ocorrencia-btn').addEventListener('click', () => { const desc = document.getElementById('add-ocorrencia-desc').value; if (desc) { currentEditingTaskOcorrencias.push({ categoria: document.getElementById('add-ocorrencia-categoria').value, desc: desc, horarioInicial: document.getElementById('add-horario-inicial').value, horarioFinal: document.getElementById('add-horario-final').value, inconclusiva: document.getElementById('add-ocorrencia-inconclusiva').checked }); renderModalOcorrenciasList(); document.getElementById('add-ocorrencia-desc').value = ''; document.getElementById('add-horario-inicial').value = ''; document.getElementById('add-horario-final').value = ''; document.getElementById('add-ocorrencia-inconclusiva').checked = false; } });
+                document.getElementById('ocorrencia-form').addEventListener('submit', (e) => { e.preventDefault(); const task = tasks.find(t => t.id == document.getElementById('ocorrencia-task-id').value); if (task) { task.ocorrencias = [...currentEditingTaskOcorrencias]; task.ocorrencia = task.ocorrencias.length > 0 ? 'Sim' : 'Não'; refreshUI(); document.getElementById('ocorrencia-modal').classList.add('hidden'); showNotification('Ocorrências atualizadas.'); } });
+                document.getElementById('ocorrencia-cancel-btn').addEventListener('click', () => document.getElementById('ocorrencia-modal').classList.add('hidden'));
+                document.getElementById('ocorrencia-list').addEventListener('click', (e) => {
+                    const delBtn = e.target.closest('.delete-item-btn'); const editBtn = e.target.closest('.edit-item-btn');
+                    if (delBtn) { currentEditingTaskOcorrencias.splice(parseInt(delBtn.dataset.index), 1); renderModalOcorrenciasList(); }
+                    else if (editBtn) { const item = currentEditingTaskOcorrencias[parseInt(editBtn.dataset.index)]; document.getElementById('add-ocorrencia-categoria').value = item.categoria; document.getElementById('add-ocorrencia-desc').value = item.desc; document.getElementById('add-horario-inicial').value = item.horarioInicial; document.getElementById('add-horario-final').value = item.horarioFinal; document.getElementById('add-ocorrencia-inconclusiva').checked = item.inconclusiva || false; currentEditingTaskOcorrencias.splice(parseInt(editBtn.dataset.index), 1); renderModalOcorrenciasList(); }
                 });
-            }
 
-            // Ocorrencias Modal Logic
-            const addOcBtn = document.getElementById('add-ocorrencia-btn');
-            if(addOcBtn) addOcBtn.addEventListener('click', () => { const desc = document.getElementById('add-ocorrencia-desc').value; if (desc) { currentEditingTaskOcorrencias.push({ categoria: document.getElementById('add-ocorrencia-categoria').value, desc: desc, horarioInicial: document.getElementById('add-horario-inicial').value, horarioFinal: document.getElementById('add-horario-final').value, inconclusiva: document.getElementById('add-ocorrencia-inconclusiva').checked }); renderModalOcorrenciasList(); document.getElementById('add-ocorrencia-desc').value = ''; document.getElementById('add-horario-inicial').value = ''; document.getElementById('add-horario-final').value = ''; document.getElementById('add-ocorrencia-inconclusiva').checked = false; } });
-            
-            const ocForm = document.getElementById('ocorrencia-form');
-            if(ocForm) ocForm.addEventListener('submit', async (e) => { e.preventDefault(); const id = document.getElementById('ocorrencia-task-id').value; try { const newOcorrencias = [...currentEditingTaskOcorrencias]; await updateDoc(doc(db, "monitoramento_tasks", id), { ocorrencias: newOcorrencias, ocorrencia: newOcorrencias.length > 0 ? 'Sim' : 'Não' }); document.getElementById('ocorrencia-modal').classList.add('hidden'); showNotification('Ocorrências atualizadas.'); } catch(e){console.error(e);} });
-            
-            const ocCancel = document.getElementById('ocorrencia-cancel-btn');
-            if(ocCancel) ocCancel.addEventListener('click', () => document.getElementById('ocorrencia-modal').classList.add('hidden'));
-            
-            const ocList = document.getElementById('ocorrencia-list');
-            if(ocList) ocList.addEventListener('click', (e) => { const del = e.target.closest('.delete-item-btn'); const edit = e.target.closest('.edit-item-btn'); if (del) { currentEditingTaskOcorrencias.splice(parseInt(del.dataset.index), 1); renderModalOcorrenciasList(); } else if (edit) { const item = currentEditingTaskOcorrencias[parseInt(edit.dataset.index)]; document.getElementById('add-ocorrencia-categoria').value = item.categoria; document.getElementById('add-ocorrencia-desc').value = item.desc; document.getElementById('add-horario-inicial').value = item.horarioInicial; document.getElementById('add-horario-final').value = item.horarioFinal; document.getElementById('add-ocorrencia-inconclusiva').checked = item.inconclusiva || false; currentEditingTaskOcorrencias.splice(parseInt(edit.dataset.index), 1); renderModalOcorrenciasList(); } });
+                // Autocomplete
+                const condoInput = document.getElementById('form-condominio'); const autoList = document.getElementById('autocomplete-list');
+                if (condoInput && autoList) {
+                    condoInput.addEventListener('input', function() {
+                        const val = this.value.toLowerCase(); autoList.innerHTML = ''; if (!val) { autoList.classList.add('hidden'); return; }
+                        const matches = [...new Set([...tasks, ...archivedTasks].map(t => t.condominio))].filter(h => h.toLowerCase().includes(val));
+                        if (matches.length > 0) { autoList.classList.remove('hidden'); matches.forEach(m => { const div = document.createElement('div'); div.className = "p-2 hover:bg-slate-100 cursor-pointer text-sm dark:hover:bg-slate-600 dark:text-slate-100"; div.textContent = m; div.addEventListener('click', () => { condoInput.value = m; autoList.classList.add('hidden'); }); autoList.appendChild(div); }); } else { autoList.classList.add('hidden'); }
+                    });
+                    document.addEventListener('click', (e) => { if (e.target !== condoInput) autoList.classList.add('hidden'); });
+                }
 
-            // Autocomplete
-            const condoInput = document.getElementById('form-condominio'); const autoList = document.getElementById('autocomplete-list');
-            if (condoInput && autoList) {
-                condoInput.addEventListener('input', function() {
-                    const val = this.value.toLowerCase(); autoList.innerHTML = ''; if (!val) { autoList.classList.add('hidden'); return; }
-                    const matches = [...new Set([...tasks, ...archivedTasks].map(t => t.condominio))].filter(h => h.toLowerCase().includes(val));
-                    if (matches.length > 0) { autoList.classList.remove('hidden'); matches.forEach(m => { const div = document.createElement('div'); div.className = "p-2 hover:bg-slate-100 cursor-pointer text-sm dark:hover:bg-slate-600 dark:text-slate-100"; div.textContent = m; div.addEventListener('click', () => { condoInput.value = m; autoList.classList.add('hidden'); }); autoList.appendChild(div); }); } else { autoList.classList.add('hidden'); }
+                // --- NOVO: LÓGICA DE EXCLUSÃO EM MASSA ---
+                document.getElementById('delete-all-pendentes-btn').addEventListener('click', () => {
+                    const pendentesCount = tasks.filter(t => t.statusBackup === 'Pendente').length;
+                    
+                    if (pendentesCount === 0) {
+                        showNotification('Não há backups pendentes para excluir.');
+                        return;
+                    }
+
+                    showConfirm(
+                        'Excluir Todos os Backups Pendentes', 
+                        `CUIDADO: Você está prestes a excluir permanentemente ${pendentesCount} análises com status de backup "Pendente". Essa ação não pode ser desfeita. Deseja continuar?`, 
+                        () => {
+                            // Filtra o array, mantendo apenas aqueles cujo status do backup seja diferente de 'Pendente'
+                            tasks = tasks.filter(t => t.statusBackup !== 'Pendente');
+                            refreshUI();
+                            showNotification(`${pendentesCount} análises excluídas com sucesso!`);
+                        }
+                    );
                 });
-                document.addEventListener('click', (e) => { if (e.target !== condoInput) autoList.classList.add('hidden'); });
-            }
 
-            // Init Chart
-            const ctxOc = document.getElementById('ocorrenciasChart');
-            if(ctxOc) ocorrenciasChart = new Chart(ctxOc.getContext('2d'), { type: 'bar', data: { labels: [], datasets: [{ label: '# de Ocorrências', data: [], backgroundColor: 'rgba(55, 192, 160, 0.6)' }] }, options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } } });
-        }
+                // Setup
+                const ctxOc = document.getElementById('ocorrenciasChart');
+                if(ctxOc) ocorrenciasChart = new Chart(ctxOc.getContext('2d'), { type: 'bar', data: { labels: [], datasets: [{ label: '# de Ocorrências', data: [], backgroundColor: 'rgba(55, 192, 160, 0.6)' }] }, options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } } });
+                
+                initTheme(); // Inicializa o tema salvo
+                refreshUI();
 
-        // Executar inicialização de forma segura
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
-
-        // --- FUNÇÕES DE ANALYTICS (ESCOPO MÓDULO) ---
-        // (Movidas para cá para garantir que existam quando o DOM carregar)
-        function getWeekInfo(dateStr) {
-            if (!dateStr) return null;
-            const parts = dateStr.split('/');
-            if (parts.length !== 3) return null;
-            const date = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
-            if (isNaN(date.getTime())) return null;
-            const dayOfWeek = date.getDay();
-            const startOfWeek = new Date(date);
-            startOfWeek.setDate(date.getDate() - dayOfWeek);
-            startOfWeek.setHours(0, 0, 0, 0);
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-            const fmt = d => `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`;
-            return { key: startOfWeek.getTime(), label: `Semana ${fmt(startOfWeek)} a ${fmt(endOfWeek)}` };
-        }
-
-        function processAnalyticsData() {
-            const rawInput = document.getElementById('analytics-raw-input').value;
-            if (!rawInput.trim()) { showNotification("Insira dados antes de gerar."); return; }
-            try {
-                const rows = rawInput.trim().split('\n');
-                const parsed = rows.map((row, index) => {
-                    let cols = row.split('\t');
-                    if (cols.length < 5) return null;
-                    const pdvNome = cols[3]?.trim();
-                    if (!pdvNome || pdvNome.toLowerCase().includes('unidade')) return null;
-                    const dataProdutividade = cols[1]?.trim();
-                    const weekInfo = getWeekInfo(dataProdutividade);
-                    return { id: index, weekKey: weekInfo ? weekInfo.key : 0, weekLabel: weekInfo ? weekInfo.label : 'Data Inválida', pdv: pdvNome, oc: parseInt(cols[6]?.trim()) || 0, operador: (cols[7]?.trim() || '').toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), hasIssue: (cols[8]?.trim() || '').toLowerCase().match(/(corrompido|sem gravação|cortes|travando|off|desconectad|problema)/), dataProd: dataProdutividade };
-                }).filter(i => i !== null);
-                if (parsed.length === 0) { showNotification("Nenhum dado válido identificado."); return; }
-                analyticsData = parsed;
-                updateAnalyticsUI('all');
-                document.getElementById('analytics-input-view').classList.add('hidden');
-                const dashboard = document.getElementById('analytics-dashboard-view');
-                dashboard.classList.remove('hidden');
-                dashboard.classList.add('flex');
-                document.getElementById('analytics-back-to-input-btn').classList.remove('hidden');
-                window.switchAnalyticsTab('general');
-            } catch (err) { console.error(err); showNotification("Erro ao processar dados."); }
-        }
-
-        function updateAnalyticsUI(selectedWeekKey) {
-            // ... (Lógica idêntica à anterior, mas no escopo correto) ...
-            if (!analyticsData) return;
-            const weeksMap = new Map();
-            analyticsData.forEach(item => { if (item.weekKey !== 0) weeksMap.set(item.weekKey, item.weekLabel); });
-            const select = document.getElementById('analytics-week-filter');
-            const currentVal = select.value;
-            select.innerHTML = '<option value="all">Todas as Semanas</option>';
-            Array.from(weeksMap.entries()).sort((a,b) => a[0] - b[0]).forEach(([key, label]) => { const opt = document.createElement('option'); opt.value = key; opt.textContent = label; select.appendChild(opt); });
-            select.value = selectedWeekKey !== undefined ? selectedWeekKey : (currentVal || 'all');
-            const filtered = select.value === 'all' ? analyticsData : analyticsData.filter(i => i.weekKey == select.value);
-            
-            // KPIs
-            if(document.getElementById('kpi-visitas')) document.getElementById('kpi-visitas').textContent = filtered.length;
-            if(document.getElementById('kpi-ocs')) document.getElementById('kpi-ocs').textContent = filtered.reduce((acc, c) => acc + c.oc, 0);
-            if(document.getElementById('kpi-issues')) document.getElementById('kpi-issues').textContent = filtered.filter(i => i.hasIssue).length;
-            
-            const pdvStats = {}; const opStats = {}; const dayStats = { 'Domingo':0, 'Segunda-feira':0, 'Terça-feira':0, 'Quarta-feira':0, 'Quinta-feira':0, 'Sexta-feira':0, 'Sábado':0 };
-            filtered.forEach(item => {
-                pdvStats[item.pdv] = (pdvStats[item.pdv] || 0) + item.oc;
-                if(item.operador) opStats[item.operador] = (opStats[item.operador] || 0) + item.oc;
-                if (item.oc > 0 && item.dataProd) {
-                    const parts = item.dataProd.split('/');
-                    if(parts.length===3) {
-                        const dt = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
-                        if(!isNaN(dt)) { const dCap = dt.toLocaleDateString('pt-BR', { weekday: 'long' }).replace(/^\w/, c => c.toUpperCase()); if(dayStats[dCap] !== undefined) dayStats[dCap] += item.oc; }
-                    }
-                }
-            });
-            const sortedPdvs = Object.entries(pdvStats).sort((a,b) => b[1] - a[1]);
-            if(document.getElementById('kpi-critical-pdv')) document.getElementById('kpi-critical-pdv').textContent = sortedPdvs.length > 0 ? sortedPdvs[0][0] : 'N/A';
-            if(document.getElementById('kpi-critical-count')) document.getElementById('kpi-critical-count').textContent = sortedPdvs.length > 0 ? sortedPdvs[0][1] + ' OCs' : '0 OCs';
-            
-            // Spam List
-            let maxTs = 0; const pdvRiskMap = {};
-            analyticsData.forEach(item => {
-                 if (item.dataProd) {
-                    const parts = item.dataProd.split('/');
-                    const dt = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
-                    if (!isNaN(dt) && dt.getTime() > maxTs) maxTs = dt.getTime();
-                    if (!pdvRiskMap[item.pdv]) pdvRiskMap[item.pdv] = { name: item.pdv, total: 0, lastTs: 0 };
-                    pdvRiskMap[item.pdv].total += item.oc;
-                    if (!isNaN(dt) && dt.getTime() > pdvRiskMap[item.pdv].lastTs) pdvRiskMap[item.pdv].lastTs = dt.getTime();
-                }
-            });
-            const spamList = Object.values(pdvRiskMap).map(p => ({ ...p, daysInactive: Math.floor((maxTs - p.lastTs) / (86400000)) })).filter(p => p.total >= 3 && p.daysInactive >= 5).sort((a,b) => b.total - a.total);
-            const spamContainer = document.getElementById('spam-list-container');
-            if(spamContainer) {
-                spamContainer.innerHTML = '';
-                if (spamList.length > 0) {
-                    document.getElementById('analytics-spam-section').classList.remove('hidden');
-                    document.getElementById('spam-count-badge').textContent = spamList.length;
-                    spamList.forEach(p => { spamContainer.innerHTML += `<div class="bg-white dark:bg-slate-700 border-l-4 border-red-500 p-2 rounded shadow-sm text-xs flex justify-between items-center text-slate-800 dark:text-slate-100"><div><strong>${p.name}</strong><br><span class="text-slate-500 dark:text-slate-400">Inativo há ${p.daysInactive} dias</span></div><div class="text-right font-bold text-red-600 dark:text-red-400">${p.total} OCs</div></div>`; });
-                } else { document.getElementById('analytics-spam-section').classList.add('hidden'); }
-            }
-
-            updateAnalyticsCharts(sortedPdvs.slice(0, 10), dayStats, opStats);
-            
-            // Peaks Table logic omitted for brevity as it's repetitive, but ensured structure exists
-            const pdvMonths = {};
-            analyticsData.forEach(item => {
-                 if (item.oc > 0 && item.dataProd) {
-                    const parts = item.dataProd.split('/');
-                    if(parts.length===3) {
-                        const mKey = `${parts[2]}-${parts[1]}`;
-                        const mName = new Date(parseInt(parts[2]), parseInt(parts[1])-1, 1).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-                        if(!pdvMonths[item.pdv]) pdvMonths[item.pdv] = {};
-                        if(!pdvMonths[item.pdv][mKey]) pdvMonths[item.pdv][mKey] = { name: mName, count: 0 };
-                        pdvMonths[item.pdv][mKey].count += item.oc;
-                    }
-                }
-            });
-            const peaks = Object.keys(pdvMonths).map(pdv => {
-                const months = Object.values(pdvMonths[pdv]);
-                if(months.length === 0) return null;
-                const peak = months.reduce((max, c) => c.count > max.count ? c : max, months[0]);
-                return { name: pdv, month: peak.name, count: peak.count };
-            }).filter(i => i!==null).sort((a,b) => b.count - a.count).slice(0,10);
-            const peakBody = document.getElementById('table-peaks-body');
-            if (peakBody) {
-                peakBody.innerHTML = '';
-                peaks.forEach(p => peakBody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-slate-50"><td class="px-4 py-2 font-medium">${p.name}</td><td class="px-4 py-2 text-blue-600 font-bold uppercase">${p.month}</td><td class="px-4 py-2 text-center"><span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold">${p.count}</span></td></tr>`));
-            }
-            
-            const individualSelect = document.getElementById('individual-operator-select');
-            if (individualSelect) {
-                const currentOp = individualSelect.value;
-                individualSelect.innerHTML = '<option value="">Escolha um operador...</option>';
-                const uniqueOperators = [...new Set(analyticsData.map(i => i.operador).filter(op => op))].sort();
-                uniqueOperators.forEach(op => { const option = document.createElement('option'); option.value = op; option.textContent = op; individualSelect.appendChild(option); });
-                individualSelect.value = currentOp;
-                individualSelect.onchange = (e) => updateIndividualStats(e.target.value);
-            }
-        }
-        
-        function updateIndividualStats(operatorName) {
-            const container = document.getElementById('individual-dashboard-container');
-            if (!operatorName) { container.classList.add('hidden'); return; }
-            container.classList.remove('hidden');
-            const opData = analyticsData.filter(i => i.operador === operatorName);
-            const totalVolume = opData.length;
-            const totalOcs = opData.reduce((acc, curr) => acc + curr.oc, 0);
-            const efficiency = totalVolume > 0 ? ((totalOcs / totalVolume) * 100).toFixed(1) : "0.0";
-            const allOps = [...new Set(analyticsData.map(i => i.operador).filter(op => op))];
-            const avgVolume = analyticsData.length / allOps.length;
-            const totalGlobalOcs = analyticsData.reduce((a,b) => a+b.oc, 0);
-            const avgEfficiency = (totalGlobalOcs / analyticsData.length * 100);
-            document.getElementById('ind-profile-name').textContent = operatorName;
-            document.getElementById('ind-kpi-volume').textContent = totalVolume;
-            document.getElementById('ind-kpi-ocs').textContent = totalOcs;
-            document.getElementById('ind-kpi-efficiency').textContent = efficiency + '%';
-            const strengthsList = document.getElementById('ind-list-strengths');
-            const improvementsList = document.getElementById('ind-list-improvements');
-            strengthsList.innerHTML = ''; improvementsList.innerHTML = '';
-            if (totalVolume > avgVolume * 1.1) strengthsList.innerHTML += `<li>Alto volume de monitoramento (acima da média).</li>`;
-            else if (totalVolume < avgVolume * 0.8) improvementsList.innerHTML += `<li>Aumentar o volume de análises diárias.</li>`;
-            if (parseFloat(efficiency) > avgEfficiency * 1.2) strengthsList.innerHTML += `<li>Excelente taxa de detecção de ocorrências.</li>`;
-            else if (parseFloat(efficiency) < avgEfficiency * 0.8 && totalVolume > 10) improvementsList.innerHTML += `<li>Atenção aos detalhes: taxa de conversão abaixo da média.</li>`;
-            const uniqueDays = new Set(opData.map(i => i.dataProd)).size;
-            if (uniqueDays >= 5) strengthsList.innerHTML += `<li>Boa constância e presença nas escalas.</li>`;
-            const issuesReported = opData.filter(i => i.hasIssue).length;
-            if (issuesReported > 2) strengthsList.innerHTML += `<li>Proativo no reporte de falhas técnicas.</li>`;
-            if (strengthsList.innerHTML === '') strengthsList.innerHTML = `<li>Performance consistente dentro do esperado.</li>`;
-            if (improvementsList.innerHTML === '') improvementsList.innerHTML = `<li>Manter a constância atual.</li>`;
-            const dailyActivity = {};
-            opData.forEach(item => { if (item.dataProd) { dailyActivity[item.dataProd] = (dailyActivity[item.dataProd] || 0) + 1; } });
-            const sortedDates = Object.keys(dailyActivity).sort((a, b) => { const partsA = a.split('/'); const partsB = b.split('/'); return new Date(partsA[2], partsA[1]-1, partsA[0]) - new Date(partsB[2], partsB[1]-1, partsB[0]); });
-            if (chartIndividualActivity) chartIndividualActivity.destroy();
-            const ctxInd = document.getElementById('chart-individual-activity').getContext('2d');
-            chartIndividualActivity = new Chart(ctxInd, { type: 'line', data: { labels: sortedDates, datasets: [{ label: 'Análises por Dia', data: sortedDates.map(d => dailyActivity[d]), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#cbd5e1' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } } } } });
-        }
-
-        function updateAnalyticsCharts(topPdvs, dayStats, opStats) {
-            if(chartTopPdvs) chartTopPdvs.destroy();
-            if(chartDaysWeek) chartDaysWeek.destroy();
-            if(chartOperators) chartOperators.destroy();
-            const commonOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } } } };
-            chartTopPdvs = new Chart(document.getElementById('chart-top-pdvs').getContext('2d'), { type: 'bar', data: { labels: topPdvs.map(i => i[0]), datasets: [{ label: 'Ocorrências', data: topPdvs.map(i => i[1]), backgroundColor: '#ef4444', borderRadius: 4 }] }, options: { indexAxis: 'y', ...commonOptions } });
-            chartDaysWeek = new Chart(document.getElementById('chart-days-week').getContext('2d'), { type: 'bar', data: { labels: Object.keys(dayStats), datasets: [{ label: 'Volume', data: Object.values(dayStats), backgroundColor: '#3b82f6', borderRadius: 4 }] }, options: commonOptions });
-            const sortedOps = Object.entries(opStats).sort((a,b) => b[1] - a[1]).slice(0, 15);
-            chartOperators = new Chart(document.getElementById('chart-operators').getContext('2d'), { type: 'bar', data: { labels: sortedOps.map(i => i[0]), datasets: [{ label: 'OCs', data: sortedOps.map(i => i[1]), backgroundColor: '#10b981', borderRadius: 4 }] }, options: commonOptions });
-        }
+            } catch (error) { console.error("Erro crítico:", error); alert("Erro ao carregar o painel: " + error.message); }
+        });
     </script>
 </body>
 </html>
