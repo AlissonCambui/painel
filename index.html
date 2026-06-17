@@ -650,10 +650,15 @@
                     <tbody id="completed-report-list"></tbody>
                 </table>
             </div>
-            <div class="mt-4 flex justify-end gap-3">
-                 <button id="export-report-btn" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+            <div class="mt-4 flex justify-end gap-3 flex-wrap">
+                 <!-- NOVO BOTÃO: Exportar Excel -->
+                 <button id="export-excel-btn" class="bg-emerald-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-emerald-700 flex items-center shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    Exportar Excel
+                 </button>
+                 <button id="export-report-btn" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                    Copiar Relatório
+                    Copiar Texto
                  </button>
                  <button id="completed-report-footer-close-btn" class="bg-slate-200 text-slate-800 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">Fechar</button>
             </div>
@@ -924,6 +929,57 @@
                     showNotification('Relatório completo copiado para a área de transferência!');
                 }
 
+                /* NOVA FUNÇÃO: EXPORTAR PARA EXCEL (CSV) */
+                function exportCompletedReportToExcel() {
+                    const completed = tasks.filter(t => t.statusAnalise === 'Concluída');
+                    completed.sort((a, b) => a.condominio.localeCompare(b.condominio));
+                    
+                    if (completed.length === 0) { 
+                        showNotification('Não há análises concluídas para exportar.'); 
+                        return; 
+                    }
+
+                    // \uFEFF é o BOM (Byte Order Mark) que faz o Excel reconhecer os acentos do UTF-8
+                    let csvContent = "\uFEFF"; 
+                    csvContent += "Semana;Condomínio;Data da Análise;Dia da Semana;Total Ocorrências;Detalhe Ocorrências;Observações\n";
+
+                    completed.forEach(task => {
+                        const semana = task.semanaDeTrabalho || "";
+                        // Trata quebras de linha e aspas para não quebrar a formatação da coluna
+                        const condominio = `"${(task.condominio || "").replace(/"/g, '""')}"`;
+                        const dataFormatada = formatDate(task.dataAnalise);
+                        const diaSemana = getDayName(task.dataAnalise);
+                        const ocCount = task.ocorrencias ? task.ocorrencias.length : 0;
+                        
+                        let detalheOcs = "";
+                        if (task.ocorrencias && task.ocorrencias.length > 0) {
+                            detalheOcs = task.ocorrencias.map(oc => {
+                                const inconcl = oc.inconclusiva ? ' (INCONCLUSIVA)' : '';
+                                return `[${oc.categoria}] ${oc.desc} (${oc.horarioInicial} - ${oc.horarioFinal})${inconcl}`;
+                            }).join(" | ");
+                        }
+                        detalheOcs = `"${detalheOcs.replace(/"/g, '""')}"`;
+                        const obs = `"${(task.observacoes || "").replace(/"/g, '""')}"`;
+
+                        csvContent += `${semana};${condominio};${dataFormatada};${diaSemana};${ocCount};${detalheOcs};${obs}\n`;
+                    });
+
+                    // Cria um arquivo temporário no navegador e força o download
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    const url = URL.createObjectURL(blob);
+                    
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `Relatorio_Concluidas_${new Date().toISOString().split('T')[0]}.csv`);
+                    link.style.visibility = 'hidden';
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showNotification('Arquivo Excel baixado com sucesso!');
+                }
+
                 function renderCompletedReport() {
                     const tbody = document.getElementById('completed-report-list');
                     const search = document.getElementById('completed-report-search').value.toLowerCase();
@@ -1154,21 +1210,76 @@
                     const newTasks = [];
                     let ignoredCount = 0;
 
+                    // Função para identificar e ignorar os dias da semana
+                    const isDayOfWeek = (str) => {
+                        const s = str.toLowerCase();
+                        return s === 'segunda' || s === 'terça' || s === 'quarta' || 
+                               s === 'quinta' || s === 'sexta' || s === 'sábado' || 
+                               s === 'sabado' || s === 'domingo' || 
+                               s === 'segunda-feira' || s === 'terça-feira' || 
+                               s === 'quarta-feira' || s === 'quinta-feira' || 
+                               s === 'sexta-feira';
+                    };
+
                     lines.forEach((line, index) => {
                         const lineLower = line.toLowerCase();
-                        if ((lineLower.includes('semana') || lineLower.includes('data')) && (lineLower.includes('unidade') || lineLower.includes('status'))) return;
+                        // Ignora a linha de cabeçalho baseada no padrão enviado
+                        if ((lineLower.includes('semana') || lineLower.includes('data')) && (lineLower.includes('unidade') || lineLower.includes('colaborador'))) return;
 
-                        let parts = line.split(/\s{2,}|\t/).map(p => p.trim()).filter(p => p.length > 0);
-                        if (parts.length < 5) { ignoredCount++; return; }
+                        // Divide por tabulação prioritariamente (como vem do Excel) ou por múltiplos espaços
+                        let parts = line.split(/\t/).map(p => p.trim()).filter(p => p.length > 0);
+                        if (parts.length < 2) {
+                            parts = line.split(/\s{2,}/).map(p => p.trim()).filter(p => p.length > 0);
+                        }
+                        if (parts.length < 2) { ignoredCount++; return; }
                         
-                        let unidadeRaw = parts[2] || '';
-                        let statusRaw = parts[parts.length - 1] || 'Pendente';
-                        let isoDate = '';
-                        if (parts[1] && parts[1].includes('/')) {
-                            const [d, m, y] = parts[1].split('/');
-                            if (d && m && y) isoDate = `${y}-${m}-${d}`;
-                        } else {
-                            isoDate = new Date().toISOString().split('T')[0];
+                        let unidadeRaw = '';
+                        let dataStr = '';
+                        let statusRaw = 'Pendente';
+                        let semanaVal = 0;
+
+                        // Parser inteligente: verifica o tipo de informação em cada coluna e extrai
+                        for (let part of parts) {
+                            // 1. Procura a Data (ex: 30/05/2026)
+                            if (!dataStr && (part.match(/\d{2}\/\d{2}\/\d{2,4}/) || part.match(/\d{2}-\d{2}-\d{2,4}/))) {
+                                dataStr = part;
+                                continue;
+                            }
+                            
+                            // 2. Ignora expressamente Dias da Semana ("sábado", "quarta-feira", etc)
+                            if (isDayOfWeek(part)) continue;
+                            
+                            // 3. Procura o número da semana ("Semana 24" ou "24")
+                            if (/^semana\s*\d+$/i.test(part) || /^\d+$/.test(part)) {
+                                if (semanaVal === 0 && !unidadeRaw) {
+                                    semanaVal = parseInt(part.replace(/\D/g, ''));
+                                }
+                                continue;
+                            }
+
+                            // 4. Captura status se houver ("Finalizado", "Concluído")
+                            if (part.toLowerCase().includes('finalizado') || part.toLowerCase().includes('concluído')) {
+                                statusRaw = 'Concluído';
+                                continue;
+                            }
+
+                            // 5. O que sobrar de texto válido e longo será tratado como o Condomínio (PDV)
+                            if (!unidadeRaw && part.length > 2) {
+                                unidadeRaw = part;
+                            }
+                        }
+
+                        if (!unidadeRaw) { ignoredCount++; return; }
+
+                        // Converte a data para ISO padrão para que o Input type="date" funcione
+                        let isoDate = new Date().toISOString().split('T')[0];
+                        if (dataStr) {
+                            const dateMatch = dataStr.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{2,4})/);
+                            if (dateMatch) {
+                                let [_, d, m, y] = dateMatch;
+                                if (y.length === 2) y = "20" + y;
+                                isoDate = `${y}-${m}-${d}`;
+                            }
                         }
 
                         const existsInDb = tasks.some(t => t.condominio.toLowerCase().trim() === unidadeRaw.toLowerCase().trim() && t.dataAnalise === isoDate);
@@ -1178,12 +1289,12 @@
 
                         newTasks.push({
                             id: Date.now() + index,
-                            condominio: unidadeRaw,
+                            condominio: unidadeRaw.toUpperCase(),
                             dataAnalise: isoDate,
-                            semanaDeTrabalho: parseInt(parts[0].replace(/\D/g,'')) || 0,
+                            semanaDeTrabalho: semanaVal,
                             observacoes: '',
-                            statusBackup: statusRaw.toLowerCase().includes('finalizado') ? 'Concluído' : 'Pendente',
-                            statusAnalise: statusRaw.toLowerCase().includes('finalizado') ? 'Concluída' : 'Pendente',
+                            statusBackup: statusRaw,
+                            statusAnalise: statusRaw === 'Concluído' ? 'Concluída' : 'Pendente',
                             ocorrencia: 'Não', isExpanded: true, ocorrencias: []
                         });
                     });
@@ -1633,6 +1744,9 @@
 
                 const reportSearch = document.getElementById('completed-report-search'); if (reportSearch) reportSearch.addEventListener('input', renderCompletedReport);
                 const exportReportBtn = document.getElementById('export-report-btn'); if(exportReportBtn) exportReportBtn.addEventListener('click', exportCompletedReport);
+                // LISTENER PARA O NOVO BOTÃO DE EXCEL
+                const exportExcelBtn = document.getElementById('export-excel-btn'); if(exportExcelBtn) exportExcelBtn.addEventListener('click', exportCompletedReportToExcel);
+                
                 const pdvSelect = document.getElementById('pdv-analysis-select'); if(pdvSelect) pdvSelect.addEventListener('change', (e) => generatePdvReport(e.target.value));
                 document.getElementById('pdv-detailed-close-btn').addEventListener('click', () => document.getElementById('pdv-detailed-modal').classList.add('hidden'));
                 document.getElementById('pdv-detailed-footer-close-btn').addEventListener('click', () => document.getElementById('pdv-detailed-modal').classList.add('hidden'));
